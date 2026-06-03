@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "vercel-build": "prisma generate && node --experimental-json-modules seed.js",
+    "vercel-build": "prisma generate",
     "start": "node server.js",
     "seed": "node seed.js",
     "db:generate": "prisma generate",
