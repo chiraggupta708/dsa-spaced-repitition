@@ -20,13 +20,14 @@ export default async function handler(req, res) {
       if (c.sm2 && c.sm2.repetitions >= 5) mastered++;
       if (!c.sm2 || !c.sm2.nextReview || c.sm2.nextReview <= todayStr) due++;
     });
+    var streak = await countStreak(allCards);
     sendJSON(res, 200, {
       ok: true,
       stats: {
         total: total,
         due: due,
         mastered: mastered,
-        streak: countStreak(allCards)
+        streak: streak
       }
     });
   } catch (e) {
