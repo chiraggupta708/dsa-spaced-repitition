@@ -2,8 +2,5 @@
   "version": 2,
   "buildCommand": null,
   "outputDirectory": ".",
-  "framework": null,
-  "rewrites": [
-    { "source": "/api/cards/:cardId/review", "destination": "/api/cards/:cardId?review=1" }
-  ]
+  "framework": null
 }

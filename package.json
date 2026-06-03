@@ -4,26 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "vercel-build": "echo \"No build step needed\"",
-    "start": "node server.js",
-    "seed": "node seed.js",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:push": "prisma db push",
-    "db:seed": "node lib/seed-postgres.js",
-    "db:studio": "prisma studio"
+    "start": "node server.js"
   },
   "engines": {
     "node": "20.x"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.1.0",
-    "@prisma/adapter-neon": "^7.8.0",
-    "@prisma/client": "^7.8.0",
-    "@upstash/redis": "^1.38.0",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "prisma": "^7.8.0",
-    "ws": "^8.21.0"
+    "@neondatabase/serverless": "^1.1.0"
   }
 }
