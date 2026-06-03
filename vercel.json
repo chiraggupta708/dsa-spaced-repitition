@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": null,
+  "buildCommand": "prisma generate",
   "outputDirectory": ".",
   "framework": null,
   "rewrites": [
