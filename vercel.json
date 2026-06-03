@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "prisma generate",
+  "buildCommand": "prisma generate && prisma db push --skip-generate",
   "outputDirectory": ".",
   "framework": null,
   "rewrites": [

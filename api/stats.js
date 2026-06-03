@@ -31,6 +31,7 @@ export default async function handler(req, res) {
       }
     });
   } catch (e) {
-    sendJSON(res, 500, { ok: false, error: 'Internal error' });
+    console.error('[stats] Error:', e);
+    sendJSON(res, 500, { ok: false, error: e.message || 'Internal error' });
   }
 }

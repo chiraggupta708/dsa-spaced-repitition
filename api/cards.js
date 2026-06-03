@@ -12,7 +12,8 @@ export default async function handler(req, res) {
       });
       sendJSON(res, 200, { ok: true, cards: sorted });
     } catch (e) {
-      sendJSON(res, 500, { ok: false, error: 'Internal error' });
+      console.error('[cards GET] Error:', e);
+      sendJSON(res, 500, { ok: false, error: e.message || 'Internal error' });
     }
     return;
   }
@@ -39,7 +40,8 @@ export default async function handler(req, res) {
       await save(cData);
       sendJSON(res, 201, { ok: true, card: card });
     } catch (err) {
-      sendJSON(res, 400, { ok: false, error: badBodyError(err) });
+      console.error('[cards POST] Error:', err);
+      sendJSON(res, 500, { ok: false, error: err.message || 'Internal error' });
     }
     return;
   }
