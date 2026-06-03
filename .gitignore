@@ -2,3 +2,4 @@ node_modules/
 data/journal.json
 .env
 .DS_Store
+src/generated/prisma/
