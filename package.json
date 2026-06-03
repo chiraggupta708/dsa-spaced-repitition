@@ -1,0 +1,14 @@
+{
+  "name": "coding-journal",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node seed.js"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.38.0",
+    "express": "^5.2.1"
+  }
+}

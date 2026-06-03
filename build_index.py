@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+"""Build the complete index.html for coding-journal with REST API backend."""
+
+html = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coding Journal</title>
+  <style>
+    :root {  --bg: #0d1117;  --surface: #161b22;  --surface2: #21262d;  --border: #30363d;  --text: #c9d1d9;  --text2: #8b949e;  --accent: #58a6ff;  --green: #3fb950;  --orange: #d29922;  --red: #f85149;  --radius: 12px;  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;  --mono: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, "Liberation Mono", monospace; }
+    * { box-sizing: border-box; }
+    html { background: var(--bg); min-height: 100%; }
+    body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: 0.55; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .app { width: 100%; max-width: 960px; margin: 0 auto; padding: 28px 20px 56px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 18px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+    header h1 { display: flex; align-items: center; gap: 12px; margin: 0; font-size: clamp(1.45rem, 4vw, 2rem); line-height: 1.2; letter-spacing: -0.02em; }
+    header .actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+    .badge { display: inline-flex; align-items: center; justify-content: center; min-width: 48px; padding: 4px 10px; border: 1px solid rgba(88,166,255,0.35); border-radius: 999px; background: rgba(88,166,255,0.14); color: var(--accent); font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .stat-card { padding: 18px; border: 1px solid var(--border); border-radius: var(--radius); background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent), var(--surface); box-shadow: 0 8px 24px rgba(1,4,9,0.22); }
+    .stat-num { color: var(--accent); font-size: 2rem; font-weight: 800; line-height: 1; }
+    .stat-label { margin-top: 8px; color: var(--text2); font-size: 0.88rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+    .tabs { display: flex; align-items: center; gap: 4px; margin: 4px 0 20px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+    .tab { display: inline-flex; align-items: center; gap: 8px; padding: 12px 14px; color: var(--text2); font-weight: 700; white-space: nowrap; border-bottom: 2px solid transparent; transition: color 160ms ease, background 160ms ease, border-color 160ms ease; cursor: pointer; user-select: none; }
+    .tab:hover { color: var(--text); background: rgba(177,186,196,0.06); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-count { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 7px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); color: var(--text); font-size: 0.75rem; font-weight: 800; }
+    .card { padding: 18px; margin-bottom: 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); cursor: pointer; transition: border-color 160ms ease, transform 160ms ease, background 160ms ease; }
+    .card:hover { border-color: rgba(88,166,255,0.55); background: #1a2029; transform: translateY(-1px); }
+    .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .card-title { color: var(--accent); font-size: 1.05rem; font-weight: 800; line-height: 1.35; }
+    .card-title a { color: inherit; }
+    .card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 10px; color: var(--text2); font-size: 0.86rem; }
+    .card-due { color: var(--orange); font-weight: 700; }
+    .card-overdue { color: var(--red); font-weight: 700; }
+    .card-mastered { color: var(--green); font-weight: 700; }
+    .tag { display: inline-flex; align-items: center; padding: 2px 8px; border: 1px solid var(--border); border-radius: 999px; background: rgba(110,118,129,0.12); color: var(--text2); font-size: 0.78rem; font-weight: 700; }
+    .detail { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .detail.open { display: block; }
+    .detail-section { margin-bottom: 18px; }
+    .detail-section:last-child { margin-bottom: 0; }
+    .detail-section h3 { margin: 0 0 8px; color: var(--text2); font-size: 0.74rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    pre, code, .code-block { font-family: var(--mono); background: #0b1017; border-radius: 8px; }
+    pre, .code-block { max-height: 360px; margin: 0; padding: 14px; overflow: auto; border: 1px solid var(--border); color: #d2a8ff; font-size: 0.88rem; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+    code { padding: 2px 5px; color: #ffdfb6; font-size: 0.9em; }
+    pre code { padding: 0; color: inherit; background: transparent; border-radius: 0; }
+    .review-area { margin-bottom: 24px; padding: 22px; border: 1px solid rgba(88,166,255,0.55); border-radius: var(--radius); background: radial-gradient(circle at top left, rgba(88,166,255,0.14), transparent 45%), var(--surface); box-shadow: 0 12px 32px rgba(1,4,9,0.32); }
+    .review-area h2 { margin: 0 0 6px; color: var(--text); font-size: 1.3rem; }
+    .review-area .subtitle, .review-area p { margin-top: 0; color: var(--text2); }
+    .rating-btns { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+    .rating-btns button { min-width: 46px; padding: 10px 13px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface2); color: var(--text); font-weight: 800; transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease; }
+    .rating-btns button:hover { border-color: var(--accent); background: rgba(88,166,255,0.12); color: var(--accent); transform: translateY(-1px); }
+    .rating-btns button.selected { border-color: var(--accent); background: var(--accent); color: #07111f; }
+    .btn-submit-review { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 16px; border: 1px solid var(--accent); border-radius: 10px; background: var(--accent); color: #07111f; font-weight: 800; transition: filter 160ms ease, opacity 160ms ease, transform 160ms ease; }
+    .btn-submit-review:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 7px; color: var(--text); font-size: 0.9rem; font-weight: 800; }
+    input, textarea, select { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 10px; outline: none; background: #0b1017; color: var(--text); transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease; }
+    textarea { min-height: 130px; resize: vertical; }
+    input::placeholder, textarea::placeholder { color: #6e7681; }
+    input:focus, textarea:focus, select:focus { border-color: var(--accent); background: #0d1117; box-shadow: 0 0 0 3px rgba(88,166,255,0.16); }
+    .form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .btn-primary, .btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border-radius: 10px; font-weight: 800; line-height: 1.2; transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease, opacity 160ms ease; }
+    .btn-primary { border: 1px solid var(--accent); background: var(--accent); color: #07111f; }
+    .btn-primary:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn-ghost { border: 1px solid var(--border); background: transparent; color: var(--text); }
+    .btn-ghost:hover:not(:disabled) { border-color: var(--accent); background: rgba(88,166,255,0.1); color: var(--accent); transform: translateY(-1px); }
+    .empty { padding: 56px 20px; text-align: center; color: var(--text2); font-size: 1.25rem; font-weight: 700; }
+    .empty small { display: block; margin-top: 8px; font-size: 0.92rem; font-weight: 500; }
+    .toast { position: fixed; right: 20px; bottom: 20px; z-index: 1000; max-width: min(360px, calc(100vw - 40px)); padding: 13px 16px; border: 1px solid rgba(88,166,255,0.5); border-radius: 10px; background: var(--surface2); color: var(--text); box-shadow: 0 16px 36px rgba(1,4,9,0.45); opacity: 0; transform: translateX(120%) translateY(8px); pointer-events: none; transition: opacity 220ms ease, transform 220ms ease; }
+    .toast.show { opacity: 1; transform: translateX(0) translateY(0); }
+    .hidden { display: none !important; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--surface2); border: 2px solid var(--bg); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border); }
+    @media (max-width: 600px) {
+      .app { padding: 20px 14px 44px; }
+      header { flex-wrap: wrap; align-items: flex-start; }
+      header h1 { width: 100%; }
+      header .actions { width: 100%; margin-left: 0; }
+      header .actions .btn-ghost { flex: 1; }
+      .form-row { grid-template-columns: 1fr; }
+      .card-header { flex-direction: column; }
+      .toast { right: 14px; bottom: 14px; max-width: calc(100vw - 28px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header>
+      <h1>\u270f\ufe0f Coding Journal <span class="badge" id="dueBadge">0 due</span></h1>
+      <div class="actions">
+        <button id="exportBtn" class="btn-ghost" type="button">Export</button>
+        <button id="importBtn" class="btn-ghost" type="button">Import</button>
+        <input id="importInput" type="file" accept="application/json,.json" hidden>
+      </div>
+    </header>
+    <div class="stats">
+      <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total</div></div>
+      <div class="stat-card"><div class="stat-num" id="statDue" style="color:var(--orange)">0</div><div class="stat-label">Due</div></div>
+      <div class="stat-card"><div class="stat-num" id="statMastered" style="color:var(--green)">0</div><div class="stat-label">Mastered</div></div>
+      <div class="stat-card"><div class="stat-num" id="statStreak">0</div><div class="stat-label">Review streak</div></div>
+    </div>
+    <div id="reviewArea" class="review-area hidden"></div>
+    <div class="tabs">
+      <div class="tab active" data-tab="due" onclick="switchTab('due')">Due <span class="tab-count" id="tDue">0</span></div>
+      <div class="tab" data-tab="all" onclick="switchTab('all')">All <span class="tab-count" id="tAll">0</span></div>
+      <div class="tab" data-tab="mastered" onclick="switchTab('mastered')">Mastered <span class="tab-count" id="tMastered">0</span></div>
+      <div style="flex:1"></div>
+      <div class="tab" data-tab="add" onclick="switchTab('add')" style="color:var(--accent)">+ New</div>
+    </div>
+    <div id="content"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+</body>
+</html>"""
+
+with open('/Users/chirag/.openclaw/workspace/zuck/coding-journal/index.html', 'w') as f:
+    f.write(html)
+print("Done writing HTML skeleton")
