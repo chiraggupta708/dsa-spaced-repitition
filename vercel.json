@@ -4,7 +4,7 @@
   "framework": null,
   "functions": {
     "api/*.js": {
-      "runtime": "nodejs@20.x"
+      "runtime": "@vercel/node@3"
     }
   },
   "rewrites": [
