@@ -12,6 +12,9 @@
     "db:seed": "node lib/seed-postgres.js",
     "db:studio": "prisma studio"
   },
+  "engines": {
+    "node": "20.x"
+  },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
     "@prisma/adapter-neon": "^7.8.0",
