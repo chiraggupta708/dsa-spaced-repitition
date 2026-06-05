@@ -284,20 +284,7 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
       <input id="importInput" type="file" accept="application/json,.json" hidden>
     </div>
 
-    <!-- Search & Filters (Plan 1) -->
-    <div class="search-bar-wrapper">
-      <div class="search-bar">
-        <input class="search-input" id="searchInput" type="text" placeholder="Search cards..." autocomplete="off">
-      </div>
-      <select class="sort-select" id="sortSelect">
-        <option value="nextReview">Sort: Due</option>
-        <option value="created">Sort: Newest</option>
-        <option value="ef">Sort: Ease</option>
-        <option value="reps">Sort: Reps</option>
-        <option value="random" data-random="1">Sort: Random</option>
-      </select>
-    </div>
-    <div class="filter-bar" id="filterBar"></div>
+    <!-- Search bar rendered by CJ.search module -->
     <div id="content"></div>
   </div>
 
@@ -739,6 +726,10 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 
   // ---- getAllTags - async, calls callback with [{name, count}] ----
   S.getAllTags = function(callback) {
+    if (S.tagCache && S.tagCache.length) {
+      if (callback) callback(S.tagCache.slice());
+      return;
+    }
     CJ.api.getAll().then(function(cards) {
       cards = Array.isArray(cards) ? cards : [];
       var tagMap = {};
@@ -874,7 +865,7 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
     sortHTML += '</select>';
     var html = '<div class="search-bar-wrapper">' +
       '<div class="search-bar">' +
-      '<input class="search-input" id="cjSearch" type="text" placeholder="Search cards..." value="' + queryVal + '" oninput="CJ.search.onSearchInput(this.value)">' +
+      '<input class="search-input" id="cjSearch" type="text" placeholder="Search cards..." value="' + queryVal + '" oninput="CJ.search.onDebouncedInput(this.value)">' +
       '</div>' +
       sortHTML +
       '</div>' +
@@ -884,6 +875,18 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
       '<button class="filter-chip" onclick="CJ.search.showTagManager()" style="background:transparent;border:1px dashed currentColor;opacity:.6">🏷️ Manage Tags</button>' +
       '</div>';
     return html;
+  };
+
+  // ---- Invalidate tag cache -- call after card changes ----
+  S.invalidateCache = function() {
+    S.tagCache = null;
+  };
+
+  // Hook into CJ.renderer methods to invalidate cache
+  var origSwitchTab = CJ.renderer.switchTab;
+  CJ.renderer.switchTab = function(tab) {
+    S.invalidateCache();
+    origSwitchTab.call(this, tab);
   };
 
   // ---- Event handlers ----
@@ -974,6 +977,17 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
     }
     S.applyFilters();
     S._updateHash();
+  };
+
+  // ---- Debounced search ----
+  S._searchTimer = null;
+  S.onDebouncedInput = function(value) {
+    S.query = value;
+    if (S._searchTimer) clearTimeout(S._searchTimer);
+    S._searchTimer = setTimeout(function() {
+      S.applyFilters();
+      S._updateHash();
+    }, 300);
   };
 
   S.clearFilters = function() {
@@ -1308,8 +1322,6 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 
     fetchFn().then(function(c) {
       c = Array.isArray(c) ? c : [];
-      c.sort(sortFn);
-
       var unfiltered = c.slice();
 
       var query = S.query;
@@ -1364,6 +1376,8 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
   // ---- On load: parse hash state ----
   document.addEventListener('DOMContentLoaded', function() {
     S._parseHash();
+    S.invalidateCache();
+    if (CJ.renderer && CJ.renderer.refresh) CJ.renderer.refresh();
   });
 
 })();
