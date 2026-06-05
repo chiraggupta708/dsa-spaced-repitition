@@ -1,1092 +1,640 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Coding Journal</title>
-  <style>
-    :root {
-      --bg: #0d1117;
-      --surface: #161b22;
-      --surface2: #21262d;
-      --border: #30363d;
-      --text: #c9d1d9;
-      --text2: #8b949e;
-      --accent: #58a6ff;
-      --green: #3fb950;
-      --orange: #d29922;
-      --red: #f85149;
-      --radius: 12px;
-      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-      --mono: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, "Liberation Mono", monospace;
-    }
-    * { box-sizing: border-box; }
-    html { background: var(--bg); min-height: 100%; }
-    body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.6; -webkit-font-smoothing: antialiased; }
-    button, input, textarea, select { font: inherit; }
-    button { cursor: pointer; }
-    button:disabled { cursor: not-allowed; opacity: 0.55; }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .app { width: 100%; max-width: 960px; margin: 0 auto; padding: 28px 20px 56px; }
-    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 18px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
-    header h1 { display: flex; align-items: center; gap: 12px; margin: 0; font-size: clamp(1.45rem, 4vw, 2rem); line-height: 1.2; letter-spacing: -0.02em; }
-    header .actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
-    .badge { display: inline-flex; align-items: center; justify-content: center; min-width: 48px; padding: 4px 10px; border: 1px solid rgba(88,166,255,0.35); border-radius: 999px; background: rgba(88,166,255,0.14); color: var(--accent); font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 24px; }
-    .stat-card { padding: 18px; border: 1px solid var(--border); border-radius: var(--radius); background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent), var(--surface); box-shadow: 0 8px 24px rgba(1,4,9,0.22); }
-    .stat-num { color: var(--accent); font-size: 2rem; font-weight: 800; line-height: 1; }
-    .stat-label { margin-top: 8px; color: var(--text2); font-size: 0.88rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
-    .tabs { display: flex; align-items: center; gap: 4px; margin: 4px 0 20px; border-bottom: 1px solid var(--border); overflow-x: auto; }
-    .tab { display: inline-flex; align-items: center; gap: 8px; padding: 12px 14px; color: var(--text2); font-weight: 700; white-space: nowrap; border-bottom: 2px solid transparent; transition: color 160ms ease, background 160ms ease, border-color 160ms ease; cursor: pointer; user-select: none; }
-    .tab:hover { color: var(--text); background: rgba(177,186,196,0.06); }
-    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-    .tab-count { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 7px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); color: var(--text); font-size: 0.75rem; font-weight: 800; }
-    .card { padding: 18px; margin-bottom: 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); cursor: pointer; transition: border-color 160ms ease, transform 160ms ease, background 160ms ease; }
-    .card:hover { border-color: rgba(88,166,255,0.55); background: #1a2029; transform: translateY(-1px); }
-    .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-    .card-title { color: var(--accent); font-size: 1.05rem; font-weight: 800; line-height: 1.35; }
-    .card-title a { color: inherit; }
-    .card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 10px; color: var(--text2); font-size: 0.86rem; }
-    .card-due { color: var(--orange); font-weight: 700; }
-    .card-overdue { color: var(--red); font-weight: 700; }
-    .card-mastered { color: var(--green); font-weight: 700; }
-    .tag { display: inline-flex; align-items: center; padding: 2px 8px; border: 1px solid var(--border); border-radius: 999px; background: rgba(110,118,129,0.12); color: var(--text2); font-size: 0.78rem; font-weight: 700; }
-    .detail { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
-    .detail.open { display: block; }
-    .detail-section { margin-bottom: 18px; }
-    .detail-section:last-child { margin-bottom: 0; }
-    .detail-section h3 { margin: 0 0 8px; color: var(--text2); font-size: 0.74rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
-    pre, code, .code-block { font-family: var(--mono); background: #0b1017; border-radius: 8px; }
-    pre, .code-block { max-height: 360px; margin: 0; padding: 14px; overflow: auto; border: 1px solid var(--border); color: #d2a8ff; font-size: 0.88rem; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
-    code { padding: 2px 5px; color: #ffdfb6; font-size: 0.9em; }
-    pre code { padding: 0; color: inherit; background: transparent; border-radius: 0; }
-    .review-area { margin-bottom: 24px; padding: 22px; border: 1px solid rgba(88,166,255,0.55); border-radius: var(--radius); background: radial-gradient(circle at top left, rgba(88,166,255,0.14), transparent 45%), var(--surface); box-shadow: 0 12px 32px rgba(1,4,9,0.32); }
-    .review-area h2 { margin: 0 0 6px; color: var(--text); font-size: 1.3rem; }
-    .review-area .subtitle, .review-area p { margin-top: 0; color: var(--text2); }
-    .rating-btns { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
-    .rating-btns button { min-width: 46px; padding: 10px 13px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface2); color: var(--text); font-weight: 800; transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease; }
-    .rating-btns button:hover { border-color: var(--accent); background: rgba(88,166,255,0.12); color: var(--accent); transform: translateY(-1px); }
-    .rating-btns button.selected { border-color: var(--accent); background: var(--accent); color: #07111f; }
-    .btn-submit-review { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 16px; border: 1px solid var(--accent); border-radius: 10px; background: var(--accent); color: #07111f; font-weight: 800; transition: filter 160ms ease, opacity 160ms ease, transform 160ms ease; }
-    .btn-submit-review:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; margin-bottom: 7px; color: var(--text); font-size: 0.9rem; font-weight: 800; }
-    input, textarea, select { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 10px; outline: none; background: #0b1017; color: var(--text); transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease; }
-    textarea { min-height: 130px; resize: vertical; }
-    input::placeholder, textarea::placeholder { color: #6e7681; }
-    input:focus, textarea:focus, select:focus { border-color: var(--accent); background: #0d1117; box-shadow: 0 0 0 3px rgba(88,166,255,0.16); }
-    .form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-    .btn-primary, .btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border-radius: 10px; font-weight: 800; line-height: 1.2; transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease, opacity 160ms ease; }
-    .btn-primary { border: 1px solid var(--accent); background: var(--accent); color: #07111f; }
-    .btn-primary:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
-    .btn-ghost { border: 1px solid var(--border); background: transparent; color: var(--text); }
-    .btn-ghost:hover:not(:disabled) { border-color: var(--accent); background: rgba(88,166,255,0.1); color: var(--accent); transform: translateY(-1px); }
-    .empty { padding: 56px 20px; text-align: center; color: var(--text2); font-size: 1.25rem; font-weight: 700; }
-    .empty small { display: block; margin-top: 8px; font-size: 0.92rem; font-weight: 500; }
-    .toast { position: fixed; right: 20px; bottom: 20px; z-index: 1000; max-width: min(360px, calc(100vw - 40px)); padding: 13px 16px; border: 1px solid rgba(88,166,255,0.5); border-radius: 10px; background: var(--surface2); color: var(--text); box-shadow: 0 16px 36px rgba(1,4,9,0.45); opacity: 0; transform: translateX(120%) translateY(8px); pointer-events: none; transition: opacity 220ms ease, transform 220ms ease; }
-    .toast.show { opacity: 1; transform: translateX(0) translateY(0); }
-    .hidden { display: none !important; }
-    ::-webkit-scrollbar { width: 10px; height: 10px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--surface2); border: 2px solid var(--bg); border-radius: 999px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--border); }
-    @media (max-width: 600px) {
-      .app { padding: 20px 14px 44px; }
-      header { flex-wrap: wrap; align-items: flex-start; }
-      header h1 { width: 100%; }
-      header .actions { width: 100%; margin-left: 0; }
-      header .actions .btn-ghost { flex: 1; }
-      .form-row { grid-template-columns: 1fr; }
-      .card-header { flex-direction: column; }
-      .toast { right: 14px; bottom: 14px; max-width: calc(100vw - 28px); }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coding Journal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--f:'Inter',system-ui,sans-serif;--r:12px;--rs:8px;--rl:16px}
+body{font-family:var(--f);-webkit-font-smoothing:antialiased;transition:background .3s,color .3s;min-height:100vh;line-height:1.5}
+button{border:none;cursor:pointer;font-family:var(--f);font-size:inherit}
+input,textarea,select{font-family:var(--f);font-size:inherit}
+.hidden{display:none!important}
+
+/* ===== LIGHT THEME ===== */
+.light{background:#faf9f7;color:#1c1c1e}
+.light .bdg{background:#ece8e2;color:#75644e}
+.light .tp{background:#eae7e2}
+.light .tp-btn{color:#75644e}
+.light .tp-btn.active{background:#fff;color:#1c1c1e;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.light .sc{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.light .sc .n{color:#1c1c1e}
+.light .sc:nth-child(1) .n{color:#2563eb}
+.light .sc:nth-child(2) .n{color:#d97706}
+.light .sc:nth-child(3) .n{color:#059669}
+.light .sc:nth-child(4) .n{color:#7c3aed}
+.light .tb{background:#eae7e2}
+.light .tb-btn{color:#75644e}
+.light .tb-btn.active{background:#fff;color:#1c1c1e;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.light .tb-btn.new-btn{background:#1c1c1e;color:#fff}
+.light .tbc{background:rgba(0,0,0,.08)}
+.light .cd{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04),0 0 0 1px rgba(0,0,0,.02)}
+.light .cd:hover{border-color:#ddd8d0}
+.light .tg{background:#eeeaf2;color:#5b4e6b}
+.light .df{background:#fef3c7;color:#92400e}
+.light .cb{background:#f5f3f1;color:#1e1e1e;border:1px solid #eeece8}
+.light .nb{background:#faf9f7;border:1px solid #eeece8;color:#333}
+.light .rp{background:#f1efec;border:1px solid #e6e2dc}
+.light .rv-card{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.light .rv-hd{background:rgba(250,249,247,.85);border-bottom:1px solid rgba(0,0,0,.06)}
+.light .rv-r{background:#f4f2ef;color:#555}
+.light .rv-r:hover{background:#eae7e2}
+.light .rv-r.selected{background:#1c1c1e;color:#fff}
+.light .btn-p{background:#1c1c1e;color:#fff}
+.light .btn-g{color:#555;border:1px solid #e0ddd8}
+.light .btn-g:hover{background:#eae7e2}
+.light .rv-progress{background:#eae7e2}
+.light .rv-fill{background:#1c1c1e}
+.light .dt{border-color:#ddd8d0}
+.light .rv-result{background:#f1efec}
+.light .fg input,.light .fg textarea,.light .fg select{background:#fff;border:1px solid #e0ddd8;color:#1c1c1e}
+.light .fg input:focus,.light .fg textarea:focus{border-color:#1c1c1e}
+.light .toast{background:#1c1c1e;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.light .rv-back{color:#555;border:1px solid #e0ddd8}
+.light .rv-back:hover{background:#eae7e2}
+
+/* ===== DARK THEME ===== */
+.dark{background:#14141c;color:#ddd9e3}
+.dark .bdg{background:#252533;color:#b0a8c0}
+.dark .tp{background:#1c1c28}
+.dark .tp-btn{color:#9a94a6}
+.dark .tp-btn.active{background:#262636;color:#e6e2ee}
+.dark .sc{background:#1c1c28;border:1px solid #262636}
+.dark .sc .n{color:#e6e2ee}
+.dark .sc:nth-child(1) .n{color:#7aa2f7}
+.dark .sc:nth-child(2) .n{color:#e0af68}
+.dark .sc:nth-child(3) .n{color:#9ece6a}
+.dark .sc:nth-child(4) .n{color:#bb9af7}
+.dark .tb{background:#1c1c28}
+.dark .tb-btn{color:#9a94a6}
+.dark .tb-btn.active{background:#262636;color:#e6e2ee}
+.dark .tb-btn.new-btn{background:#7aa2f7;color:#0f0f16}
+.dark .tbc{background:rgba(255,255,255,.1)}
+.dark .cd{background:#1c1c28;border:1px solid #262636}
+.dark .cd:hover{border-color:#3a3a52}
+.dark .tg{background:#262636;color:#c0b8d0}
+.dark .df{background:#2d281a;color:#e0af68}
+.dark .cb{background:#111118;color:#d4d0dc;border:1px solid #262636}
+.dark .nb{background:#181822;border:1px solid #262636;color:#c8c4d0}
+.dark .rp{background:#181822;border:1px solid #262636}
+.dark .rv-card{background:#1c1c28;border:1px solid #262636}
+.dark .rv-hd{background:rgba(20,20,28,.85);border-bottom:1px solid rgba(255,255,255,.05)}
+.dark .rv-r{background:#262636;color:#bbb4c8;border:1px solid #30304a}
+.dark .rv-r:hover{background:#30304a}
+.dark .rv-r.selected{background:#7aa2f7;color:#0f0f16}
+.dark .btn-p{background:#7aa2f7;color:#0f0f16}
+.dark .btn-g{color:#999;border:1px solid #262636}
+.dark .btn-g:hover{background:#262636}
+.dark .rv-progress{background:#1c1c28}
+.dark .rv-fill{background:#7aa2f7}
+.dark .dt{border-color:#262636}
+.dark .rv-result{background:#181822;border:1px solid #262636}
+.dark .fg input,.dark .fg textarea,.dark .fg select{background:#111118;border:1px solid #262636;color:#ddd9e3}
+.dark .fg input:focus,.dark .fg textarea:focus{border-color:#7aa2f7}
+.dark .toast{background:#e6e2ee;color:#14141c;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.dark .rv-back{color:#999;border:1px solid #262636}
+.dark .rv-back:hover{background:#262636}
+
+/* ===== LAYOUT (shared) ===== */
+.tp{position:fixed;top:12px;right:16px;z-index:100;display:flex;gap:4px;padding:3px;border-radius:10px}
+.tp-btn{width:30px;height:30px;border-radius:7px;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.app{max-width:680px;margin:0 auto;padding:20px 20px 48px}
+.hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-top:4px}
+.hd h1{font-size:17px;font-weight:650;display:flex;align-items:center;gap:6px}
+.bdg{font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px;text-transform:uppercase;letter-spacing:.03em}
+.date{font-size:11px;opacity:.5}
+.st{display:flex;gap:6px;margin-bottom:16px}
+.sc{flex:1;padding:10px 12px;border-radius:var(--rs);min-width:0}
+.sc .n{font-size:18px;font-weight:700;line-height:1.2}
+.sc .l{font-size:10px;opacity:.55;margin-top:1px}
+.tb{display:flex;gap:2px;margin-bottom:12px}
+.tb-btn{flex:1;padding:6px 0;text-align:center;font-size:11px;font-weight:600;border-radius:6px;transition:all .15s}
+.tb-btn.new-btn{flex:0 0 auto;padding:6px 12px;margin-left:auto;border-radius:12px;font-size:10px}
+.tbc{display:inline-block;font-size:9px;padding:0 5px;border-radius:6px;margin-left:3px;font-weight:700}
+.rp{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--rs);margin-bottom:14px}
+.rp-title{font-size:13px;font-weight:600;flex:1}
+.rp-sub{font-size:11px;opacity:.6}
+.btn-p{display:inline-block;padding:8px 18px;border-radius:var(--rs);font-size:12px;font-weight:600}
+.rp .btn-p{flex-shrink:0}
+.cd{padding:12px 14px;margin-bottom:8px;border-radius:var(--rs);cursor:pointer;transition:all .15s;border:1px solid transparent}
+.cd .tt{font-size:13px;font-weight:600;margin-bottom:4px;line-height:1.4}
+.cd .cm{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px}
+.tg{font-size:9px;padding:1px 6px;border-radius:8px;font-weight:500}
+.df{font-size:9px;padding:1px 6px;border-radius:8px;font-weight:600}
+.cd .cf{font-size:10px;display:flex;gap:10px;opacity:.65}
+.cd .sf{font-size:10px;font-weight:600}
+.dt{padding:10px 0 4px;border-top:1px solid;margin-top:8px}
+.sl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;opacity:.5}
+.cb{font-family:'SF Mono','Fira Code',monospace;font-size:12px;line-height:1.6;padding:10px 12px;border-radius:var(--rs);margin-bottom:10px;overflow-x:auto;white-space:pre;max-height:300px}
+.nb{font-size:13px;line-height:1.6;padding:10px 12px;border-radius:var(--rs);margin-bottom:10px}
+.dt .btn-g{margin-top:6px;padding:6px 14px;border-radius:6px;font-size:11px;font-weight:600}
+.empty{text-align:center;padding:40px 20px}
+.empty .e-title{font-size:15px;font-weight:600;margin-bottom:4px}
+.empty .e-sub{font-size:12px;opacity:.5}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);z-index:999;padding:10px 20px;border-radius:var(--rs);font-size:12px;font-weight:600;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* Review mode */
+.rv-hd{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;padding:12px 20px;gap:12px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.rv-back{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:all .15s;flex-shrink:0;background:transparent}
+.rv-title{font-size:15px;font-weight:600;flex:1}
+.rv-step{font-size:11px;font-weight:600;opacity:.5}
+.rv-progress{height:4px;border-radius:2px;margin:56px 20px 0;overflow:hidden}
+.rv-fill{height:100%;border-radius:2px;transition:width .4s ease}
+.rv-card{margin:20px;border-radius:var(--rl);padding:24px}
+.rv-q{font-size:18px;font-weight:700;margin-bottom:12px;line-height:1.4}
+.rv-q-small{font-size:15px;font-weight:600;margin-bottom:12px;line-height:1.4}
+.rv-meta{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px}
+.rv-hint{font-size:13px;opacity:.6;margin-bottom:20px;line-height:1.6}
+.rv-ratings{display:flex;gap:4px}
+.rv-r{flex:1;padding:12px 4px;font-size:12px;font-weight:600;border-radius:var(--rs);min-width:0;text-align:center;line-height:1.3}
+.rv-r .rv-rl{display:block;font-size:9px;font-weight:500;margin-top:2px}
+.rv-actions{display:flex;gap:8px;margin-top:18px;flex-direction:column}
+.btn-g{display:inline-block;padding:8px 18px;border-radius:var(--rs);font-size:12px;font-weight:600;text-align:center;background:transparent}
+.rv-result{margin:10px 0;padding:10px 14px;border-radius:var(--rs);font-size:12px}
+
+/* Form */
+.form{padding:0}
+.form h2{font-size:16px;font-weight:600;margin-bottom:16px}
+.fg{margin-bottom:12px}
+.fg label{display:block;font-size:11px;font-weight:600;margin-bottom:4px;opacity:.7}
+.fg input,.fg textarea,.fg select{width:100%;padding:8px 10px;border-radius:var(--rs);outline:none;transition:border-color .2s;font-size:13px}
+.fg textarea{min-height:80px;resize:vertical}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.errors{font-size:12px;color:#dc2626;margin-bottom:10px}
+.errors ul{padding-left:16px}
+
+@media(max-width:620px){
+  .st{gap:4px}
+  .sc{padding:8px 10px}
+  .sc .n{font-size:15px}
+  .rv-card{margin:16px}
+  .rv-ratings{gap:3px}
+  .rv-r{padding:10px 2px;font-size:11px}
+  .f-row{grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
-  <div class="app" id="app">
-    <header>
-      <h1>✏️ Coding Journal <span class="badge" id="dueBadge">0 due</span></h1>
-      <div class="actions">
-        <button id="exportBtn" class="btn-ghost" type="button">Export</button>
-        <button id="importBtn" class="btn-ghost" type="button">Import</button>
-        <input id="importInput" type="file" accept="application/json,.json" hidden>
-      </div>
+
+<div class="tp" id="themePicker">
+  <button class="tp-btn active" data-theme="light">☀️</button>
+  <button class="tp-btn" data-theme="dark">🌙</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="app light" id="app">
+
+  <!-- BROWSE MODE -->
+  <div id="modeBrowse">
+    <header class="hd">
+      <h1>✏️ Coding Journal <span class="bdg" id="dueBadge">0 due</span></h1>
+      <span class="date" id="todayDate"></span>
     </header>
-    <div class="stats">
-      <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total</div></div>
-      <div class="stat-card"><div class="stat-num" id="statDue" style="color:var(--orange)">0</div><div class="stat-label">Due</div></div>
-      <div class="stat-card"><div class="stat-num" id="statMastered" style="color:var(--green)">0</div><div class="stat-label">Mastered</div></div>
-      <div class="stat-card"><div class="stat-num" id="statStreak">0</div><div class="stat-label">Review streak</div></div>
+
+    <div class="st" id="stats">
+      <div class="sc"><div class="n" id="statTotal">0</div><div class="l">Total</div></div>
+      <div class="sc"><div class="n" id="statDue">0</div><div class="l">Due</div></div>
+      <div class="sc"><div class="n" id="statMastered">0</div><div class="l">Mastered</div></div>
+      <div class="sc"><div class="n" id="statStreak">0</div><div class="l">Streak</div></div>
     </div>
-    <div id="reviewArea" class="review-area hidden"></div>
-    <div class="tabs">
-      <div class="tab active" data-tab="due" onclick="switchTab('due')">Due <span class="tab-count" id="tDue">0</span></div>
-      <div class="tab" data-tab="all" onclick="switchTab('all')">All <span class="tab-count" id="tAll">0</span></div>
-      <div class="tab" data-tab="mastered" onclick="switchTab('mastered')">Mastered <span class="tab-count" id="tMastered">0</span></div>
-      <div style="flex:1"></div>
-      <div class="tab" data-tab="add" onclick="switchTab('add')" style="color:var(--accent)">+ New</div>
+
+    <div class="tb" id="tabs">
+      <button class="tb-btn active" data-tab="due">Due <span class="tbc" id="tDue">0</span></button>
+      <button class="tb-btn" data-tab="all">All <span class="tbc" id="tAll">0</span></button>
+      <button class="tb-btn" data-tab="mastered">Mastered <span class="tbc" id="tMastered">0</span></button>
+      <button class="tb-btn new-btn" data-tab="add">+ New</button>
     </div>
+
+    <div id="reviewPrompt" class="rp hidden">
+      <div class="rp-title">📝 <span id="rpCount">0</span> card(s) due</div>
+      <div class="rp-sub" id="rpNext">Next: </div>
+      <button class="btn-p" id="rpStart">Review Now →</button>
+    </div>
+
+    <div id="exportImport" style="display:flex;gap:6px;justify-content:flex-end;margin-bottom:8px">
+      <button class="btn-g" id="exportBtn" style="padding:4px 10px;font-size:10px">Export</button>
+      <button class="btn-g" id="importBtn" style="padding:4px 10px;font-size:10px">Import</button>
+      <input id="importInput" type="file" accept="application/json,.json" hidden>
+    </div>
+
     <div id="content"></div>
   </div>
-  <div class="toast" id="toast"></div>
-  <script>
-"use strict";
 
-// ================================================================
-// CJ.api - REST API module
-// ================================================================
-window.CJ = window.CJ || {};
-(function () {
-  var CJ = window.CJ;
+  <!-- REVIEW MODE -->
+  <div id="modeReview" class="hidden">
+    <div class="rv-hd">
+      <button class="rv-back" id="rvBack">←</button>
+      <div class="rv-title">Review</div>
+      <div class="rv-step" id="rvStep">1 / 1</div>
+    </div>
+    <div class="rv-progress"><div class="rv-fill" id="rvFill"></div></div>
 
-  function handleResponse(resp) {
-    if (!resp.ok) {
-      return resp.json().then(function (data) {
-        throw new Error(data.error || 'API error: ' + resp.status + ' ' + resp.statusText);
-      }, function () {
-        throw new Error('API error: ' + resp.status + ' ' + resp.statusText);
-      });
-    }
-    return resp.json().then(function (data) {
-      if (!data.ok) throw new Error(data.error || 'API returned error');
-      return data;
-    });
+    <div class="rv-card" id="rvQuestion">
+      <div class="rv-q" id="rvQTitle"></div>
+      <div class="rv-meta" id="rvQMeta"></div>
+      <div class="rv-hint">Think about the approach, then rate your recall:</div>
+      <div class="rv-ratings" id="rvRatings">
+        <button class="rv-r" data-q="1">1<br><span class="rv-rl">Forgot</span></button>
+        <button class="rv-r" data-q="2">2<br><span class="rv-rl">Vague</span></button>
+        <button class="rv-r" data-q="3">3<br><span class="rv-rl">Fair</span></button>
+        <button class="rv-r" data-q="4">4<br><span class="rv-rl">Good</span></button>
+        <button class="rv-r" data-q="5">5<br><span class="rv-rl">Perfect</span></button>
+      </div>
+    </div>
+
+    <div class="rv-card hidden" id="rvReveal">
+      <div class="rv-q-small" id="rvRevealTitle"></div>
+      <div class="sl">Your code</div>
+      <pre class="cb" id="rvCode"></pre>
+      <div class="sl">My thinking</div>
+      <div class="nb" id="rvMyThinking"></div>
+      <div class="sl">Right thinking</div>
+      <div class="nb" id="rvRightThinking"></div>
+      <div class="rv-result" id="rvResult"></div>
+      <div class="rv-actions">
+        <button class="btn-p" id="rvNext">Next Card →</button>
+        <button class="btn-g" id="rvEnd">End Session</button>
+      </div>
+    </div>
+
+    <div class="rv-card hidden" id="rvComplete">
+      <div class="rv-q" style="text-align:center">🎉 Session Complete!</div>
+      <div class="rv-hint" style="text-align:center">Great work. Stats have been updated.</div>
+      <button class="btn-p" id="rvDone" style="margin:16px auto 0;display:block">Done</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+(function(){
+  var CJ = window.CJ = window.CJ || {};
+  CJ.byId = function(id){return document.getElementById(id)};
+  CJ.esc = function(v){
+    if(v===null||v===undefined)return'';
+    return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  };
+  CJ.jsEsc = function(v){
+    return String(v===null||v===undefined?'':v).replace(/\\\\/g,'\\\\\\\\').replace(/'/g,"\\\\'").replace(/\\n/g,'\\\\n');
+  };
+  CJ.today = function(){return new Date().toISOString().split('T')[0]};
+  CJ.title = function(c){return c&&(c.title||c.question||'Untitled card')};
+  CJ.sm2 = function(c){return(c&&c.sm2)||{}};
+  CJ.toastTimer = null;
+  CJ.showToast = function(m,d){
+    d=d||2500;
+    var el=CJ.byId('toast');
+    if(!el)return;
+    el.textContent=m||'';
+    el.classList.remove('hidden');
+    el.classList.add('show');
+    if(CJ.toastTimer)clearTimeout(CJ.toastTimer);
+    CJ.toastTimer=setTimeout(function(){el.classList.remove('show');el.classList.add('hidden')},d);
+  };
+
+  // Theme
+  var theme = localStorage.getItem('cj-theme') || 'light';
+  function setTheme(t){
+    theme=t;
+    document.body.classList.remove('light','dark');
+    document.body.classList.add(t);
+    localStorage.setItem('cj-theme',t);
+    var btns=document.querySelectorAll('.tp-btn');
+    for(var i=0;i<btns.length;i++)btns[i].classList.toggle('active',btns[i].dataset.theme===t);
   }
+  CJ.setTheme=setTheme;
 
-  CJ.api = {
-    getAll: function () {
-      return fetch('/api/cards').then(handleResponse).then(function (d) { return d.cards; });
-    },
-    getDue: function () {
-      return fetch('/api/cards/due').then(handleResponse).then(function (d) { return d.cards; });
-    },
-    getMastered: function () {
-      return fetch('/api/cards/mastered').then(handleResponse).then(function (d) { return d.cards; });
-    },
-    getCard: function (id) {
-      return fetch('/api/cards/' + encodeURIComponent(id)).then(handleResponse).then(function (d) { return d.card; });
-    },
-    createCard: function (data) {
-      return fetch('/api/cards', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(handleResponse).then(function (d) { return d.card; });
-    },
-    updateCard: function (id, data) {
-      var cleanData = {};
-      for (var key in data) {
-        if (data.hasOwnProperty(key) && key !== 'sm2') {
-          cleanData[key] = data[key];
-        }
-      }
-      return fetch('/api/cards/' + encodeURIComponent(id), { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cleanData) }).then(handleResponse).then(function (d) { return d.card; });
-    },
-    deleteCard: function (id) {
-      return fetch('/api/cards/' + encodeURIComponent(id), { method: 'DELETE' }).then(handleResponse).then(function () { return true; });
-    },
-    reviewCard: function (id, quality) {
-      return fetch('/api/cards/' + encodeURIComponent(id) + '?review=1', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quality: quality }) }).then(handleResponse).then(function (d) { return d.card; });
-    },
-    getStats: function () {
-      return fetch('/api/stats').then(handleResponse).then(function (d) { return d.stats; });
-    },
-    exportData: function () {
-      return fetch('/api/export').then(function (resp) {
-        if (!resp.ok) throw new Error('Export failed');
-        return resp.blob();
-      }).then(function (blob) {
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'coding-journal-backup.json';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        return true;
-      });
-    },
-    importData: function (cards) {
-      return fetch('/api/import', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cards: cards }) }).then(handleResponse).then(function (d) { return d.count; });
+  document.addEventListener('DOMContentLoaded',function(){
+    setTheme(theme);
+    CJ.byId('todayDate').textContent=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    var tpBtns=document.querySelectorAll('.tp-btn');
+    for(var i=0;i<tpBtns.length;i++){
+      tpBtns[i].addEventListener('click',function(){setTheme(this.dataset.theme)});
     }
+  });
+})();
+</script>
+<script>
+(function(){
+  var CJ = window.CJ;
+  function handle(r){
+    if(!r.ok)return r.json().then(function(d){throw new Error(d.error||'API error')},function(){throw new Error('API error')});
+    return r.json().then(function(d){if(!d.ok)throw new Error(d.error||'API error');return d});
+  }
+  CJ.api = {
+    getAll: function(){return fetch('/api/cards').then(handle).then(function(d){return d.cards})},
+    getDue: function(){return fetch('/api/cards/due').then(handle).then(function(d){return d.cards})},
+    getMastered: function(){return fetch('/api/cards/mastered').then(handle).then(function(d){return d.cards})},
+    getCard: function(id){return fetch('/api/cards/'+encodeURIComponent(id)).then(handle).then(function(d){return d.card})},
+    createCard: function(d){return fetch('/api/cards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(handle).then(function(r){return r.card})},
+    updateCard: function(id,d){return fetch('/api/cards/'+encodeURIComponent(id),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(handle).then(function(r){return r.card})},
+    deleteCard: function(id){return fetch('/api/cards/'+encodeURIComponent(id),{method:'DELETE'}).then(handle).then(function(){return true})},
+    reviewCard: function(id,q){return fetch('/api/cards/'+encodeURIComponent(id)+'?review=1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quality:q})}).then(handle).then(function(d){return d.card})},
+    getStats: function(){return fetch('/api/stats').then(handle).then(function(d){return d.stats})},
+    exportData: function(){return fetch('/api/export').then(function(r){if(!r.ok)throw new Error('Export failed');return r.blob()}).then(function(b){var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='coding-journal-backup.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);return true})},
+    importData: function(c){return fetch('/api/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cards:c})}).then(handle).then(function(d){return d.count})}
   };
 })();
-// ================================================================
-// CJ.utils - shared helpers (defined once)
-// ================================================================
-window.CJ = window.CJ || {};
-(function () {
+</script>
+<script>
+(function(){
   var CJ = window.CJ;
+  var U = CJ;
+  var expanded = {};
 
-  CJ.utils = {
-    _toastTimer: null,
-    _toastHideTimer: null,
-    _initialized: false,
-    currentTab: "due",
-    expandedCards: {},
-
-    byId: function (id) {
-      return document.getElementById(id);
-    },
-
-    escapeHtml: function (value) {
-      if (value === null || value === undefined) return "";
-      return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    },
-
-    escapeJsString: function (value) {
-      return String(value === null || value === undefined ? "" : value)
-        .replace(/\\/g, "\\\\")
-        .replace(/'/g, "\\'")
-        .replace(/\r/g, "\\r")
-        .replace(/\n/g, "\\n");
-    },
-
-    todayString: function () {
-      return new Date().toISOString().split("T")[0];
-    },
-
-    getTitle: function (card) {
-      return card && (card.title || card.question || "Untitled card");
-    },
-
-    setText: function (id, value) {
-      var el = this.byId(id);
-      if (el) el.textContent = value;
-    },
-
-    // ===== TOAST =====
-    showToast: function (message, duration) {
-      duration = duration || 2500;
-      var el = this.byId("toast");
-      if (!el) {
-        if (typeof window.alert === "function") {
-          window.alert(message);
-        }
-        return;
-      }
-      el.textContent = message || "";
-      el.classList.remove("hidden");
-      el.classList.add("show");
-      if (this._toastTimer) window.clearTimeout(this._toastTimer);
-      if (this._toastHideTimer) window.clearTimeout(this._toastHideTimer);
-      var self = this;
-      this._toastTimer = window.setTimeout(function () {
-        el.classList.remove("show");
-        self._toastHideTimer = window.setTimeout(function () {
-          el.classList.add("hidden");
-        }, 300);
-      }, duration);
-    },
-
-    // ===== DATE/SORT HELPERS =====
-    parseDateOnly: function (dateStr) {
-      if (!dateStr) return null;
-      var match = String(dateStr).match(/^(\d{4})-(\d{2})-(\d{2})/);
-      if (!match) return null;
-      var date = new Date(Date.UTC(
-        parseInt(match[1], 10),
-        parseInt(match[2], 10) - 1,
-        parseInt(match[3], 10)
-      ));
-      return isNaN(date.getTime()) ? null : date;
-    },
-
-    daysBetween: function (dateA, dateB) {
-      return Math.round((dateA.getTime() - dateB.getTime()) / (24 * 60 * 60 * 1000));
-    },
-
-    sortNewestFirst: function (cards) {
-      var arr = Array.isArray(cards) ? cards.filter(Boolean) : [];
-      return arr.slice().sort(function (a, b) {
-        var aTime = Date.parse(a.created || a.updated || "") || 0;
-        var bTime = Date.parse(b.created || b.updated || "") || 0;
-        return bTime - aTime;
-      });
-    },
-
-    sortDueFirst: function (cards) {
-      var arr = Array.isArray(cards) ? cards.filter(Boolean) : [];
-      return arr.slice().sort(function (a, b) {
-        var aSm2 = a && a.sm2 || {};
-        var bSm2 = b && b.sm2 || {};
-        var aDate = this.parseDateOnly(aSm2.nextReview);
-        var bDate = this.parseDateOnly(bSm2.nextReview);
-        var aTime = aDate ? aDate.getTime() : Number.POSITIVE_INFINITY;
-        var bTime = bDate ? bDate.getTime() : Number.POSITIVE_INFINITY;
-        if (aTime !== bTime) return aTime - bTime;
-        var aCreated = Date.parse(a.created || a.updated || "") || 0;
-        var bCreated = Date.parse(b.created || b.updated || "") || 0;
-        return bCreated - aCreated;
-      }.bind(this));
-    },
-
-    isDue: function (card) {
-      var sm2 = card && card.sm2 || {};
-      return !!sm2.nextReview && sm2.nextReview <= this.todayString();
-    },
-
-    getSm2: function (card) {
-      return (card && card.sm2) || {};
-    },
-
-    getCardStatus: function (card) {
-      var sm2 = this.getSm2(card);
-      var repetitions = typeof sm2.repetitions === "number" ? sm2.repetitions : 0;
-      var nextReview = sm2.nextReview;
-      var today = this.todayString();
-
-      if (repetitions >= 5) {
-        return { text: "Mastered", className: "card-mastered" };
-      }
-      if (nextReview && nextReview < today) {
-        return { text: "Overdue", className: "card-overdue" };
-      }
-      if (nextReview && nextReview <= today) {
-        return { text: "Due", className: "card-due" };
-      }
-      return { text: nextReview ? "Next " + this.formatRelativeDate(nextReview) : "New", className: "card-due" };
-    },
-
-    formatRelativeDate: function (dateStr) {
-      if (!dateStr) return "";
-      var target = this.parseDateOnly(dateStr);
-      var today = this.parseDateOnly(this.todayString());
-      if (!target || !today) return String(dateStr);
-      var diff = this.daysBetween(target, today);
-      if (diff === 0) return "today";
-      if (diff === 1) return "tomorrow";
-      if (diff > 1) return "in " + diff + " days";
-      if (diff === -1) return "1 day ago";
-      return Math.abs(diff) + " days ago";
-    },
-
-    plural: function (count, one, many) {
-      return count === 1 ? one : (many || one + "s");
-    },
-
-    truncate: function (value, length) {
-      var text = String(value || "");
-      if (!text || text.length <= length) return text;
-      return text.slice(0, Math.max(0, length - 1)) + "\u2026";
-    },
-
-    tagsMarkup: function (tags) {
-      if (!Array.isArray(tags) || tags.length === 0) {
-        return '<span class="tag">untagged</span>';
-      }
-      var self = this;
-      return tags.map(function (tag) {
-        return '<span class="tag">' + self.escapeHtml(tag) + '</span>';
-      }).join(" ");
-    },
-
-    difficultyMarkup: function (difficulty) {
-      var value = difficulty || "medium";
-      return '<span class="tag">' + this.escapeHtml(value) + '</span>';
-    },
-
-    linkMarkup: function (link) {
-      if (!link) return '<span>link: none</span>';
-      return '<span>link: <a href="' + this.escapeHtml(link) + '" target="_blank" rel="noopener noreferrer" title="' + this.escapeHtml(link) + '" onclick="event.stopPropagation()">' + this.escapeHtml(this.truncate(link, 28)) + '</a></span>';
-    },
-
-    emptyStateMarkup: function (message, subMessage) {
-      return '<div class="empty">' +
-        this.escapeHtml(message || "Nothing here yet.") +
-        (subMessage ? '<small>' + this.escapeHtml(subMessage) + '</small>' : '') +
-        '</div>';
-    }
-  };
-})();// ================================================================
-// CJ.renderer - UI rendering
-// ================================================================
-(function () {
-  var CJ = window.CJ;
-  var U = CJ.utils;
-
-  function hideReviewPrompt() {
-    var reviewArea = U.byId("reviewArea");
-    if (!reviewArea) return;
-    reviewArea.classList.add("hidden");
-    reviewArea.innerHTML = "";
+  function sortDue(a,b){
+    var an=U.sm2(a).nextReview,bn=U.sm2(b).nextReview;
+    if(an!==bn){if(!an)return-1;if(!bn)return 1;return an<bn?-1:1}
+    var at=Date.parse(a.created||'')||0,bt=Date.parse(b.created||'')||0;
+    return bt-at;
+  }
+  function sortNew(a,b){
+    var at=Date.parse(a.created||a.updated||'')||0,bt=Date.parse(b.created||b.updated||'')||0;
+    return bt-at;
+  }
+  function statusText(card){
+    var s=U.sm2(card);
+    var r=typeof s.repetitions==='number'?s.repetitions:0;
+    var n=s.nextReview;
+    var t=U.today();
+    if(r>=5)return{text:'Mastered',color:'#059669'};
+    if(n&&n<t)return{text:'Overdue',color:'#dc2626'};
+    if(n&&n<=t)return{text:'Due',color:'#d97706'};
+    return{text:n?'Next '+n:'New',color:''};
+  }
+  function isDue(card){
+    var n=U.sm2(card).nextReview;
+    return !!n && n<=U.today();
   }
 
   CJ.renderer = {
-    refresh: function () {
+    tab: 'due',
+
+    refresh: function(){
       this.refreshStats();
-      this.refreshTabCounts();
-      this.refreshDueBadge();
-      this.renderCurrentTab();
+      this.refreshTabs();
+      this.renderTab();
     },
 
-    refreshStats: function () {
-      CJ.api.getStats().then(function (stats) {
-        U.setText("statTotal", String(stats.total || 0));
-        U.setText("statDue", String(stats.due || 0));
-        U.setText("statMastered", String(stats.mastered || 0));
-        U.setText("statStreak", String(stats.streak || 0));
-      }).catch(function (err) {
-        console.warn("Failed to fetch stats:", err);
+    refreshStats: function(){
+      CJ.api.getStats().then(function(s){
+        U.byId('statTotal').textContent=s.total||0;
+        U.byId('statDue').textContent=s.due||0;
+        U.byId('statMastered').textContent=s.mastered||0;
+        U.byId('statStreak').textContent=s.streak||0;
       });
     },
 
-    refreshTabCounts: function () {
-      CJ.api.getDue().then(function (cards) {
-        U.setText("tDue", String(cards ? cards.length : 0));
-      }).catch(function () {});
-      CJ.api.getAll().then(function (cards) {
-        U.setText("tAll", String(cards ? cards.length : 0));
-      }).catch(function () {});
-      CJ.api.getMastered().then(function (cards) {
-        U.setText("tMastered", String(cards ? cards.length : 0));
-      }).catch(function () {});
+    refreshTabs: function(){
+      CJ.api.getDue().then(function(c){U.byId('tDue').textContent=c?c.length:0});
+      CJ.api.getAll().then(function(c){U.byId('tAll').textContent=c?c.length:0});
+      CJ.api.getMastered().then(function(c){U.byId('tMastered').textContent=c?c.length:0});
     },
 
-    refreshDueBadge: function () {
-      CJ.api.getDue().then(function (cards) {
-        var count = cards ? cards.length : 0;
-        U.setText("dueBadge", count + " due");
-      }).catch(function () {});
+    renderDueBadge: function(count){
+      U.byId('dueBadge').textContent=count+' due';
     },
 
-    renderCardList: function (cards, options) {
-      options = options || {};
-      cards = Array.isArray(cards) ? cards.filter(Boolean) : [];
-      var content = U.byId("content");
-      if (!content) return;
-
-      if (options.showDue && cards.length) {
-        this.renderReviewPrompt(cards);
-      } else {
-        hideReviewPrompt();
+    renderTab: function(){
+      var self=this,t=this.tab;
+      if(t==='due'){
+        CJ.api.getDue().then(function(c){c=Array.isArray(c)?c:[];c.sort(sortDue);self.renderReviewPrompt(c);self.renderCardList(c,{empty:'Nothing due right now.',sub:'Nice work!'});self.renderDueBadge(c.length)});
+      }else if(t==='all'){
+        CJ.api.getAll().then(function(c){c=Array.isArray(c)?c:[];c.sort(sortNew);U.byId('reviewPrompt')&&(U.byId('reviewPrompt').classList.add('hidden'));self.renderCardList(c,{empty:'No cards yet.',sub:'Use + New to add your first card.'})});
+      }else if(t==='mastered'){
+        CJ.api.getMastered().then(function(c){c=Array.isArray(c)?c:[];c.sort(sortNew);U.byId('reviewPrompt')&&(U.byId('reviewPrompt').classList.add('hidden'));self.renderCardList(c,{empty:'No mastered cards yet.',sub:'Cards need 5 successful reps to become mastered.'})});
+      }else if(t==='add'){
+        U.byId('reviewPrompt')&&(U.byId('reviewPrompt').classList.add('hidden'));
+        CJ.form&&CJ.form.render();
       }
-
-      if (!cards.length) {
-        var emptyMsg = options.emptyMessage || "No cards found.";
-        var emptySub = options.emptySubMessage || "";
-        content.innerHTML = U.emptyStateMarkup(emptyMsg, emptySub);
-        return;
-      }
-
-      var self = this;
-      content.innerHTML = cards.map(function (card) {
-        return self.renderCard(card);
-      }).join("");
     },
 
-    renderCard: function (card) {
-      if (!card) return "";
-      var sm2 = U.getSm2(card);
-      var status = U.getCardStatus(card);
-      var repetitions = typeof sm2.repetitions === "number" ? sm2.repetitions : 0;
-      var nextReview = sm2.nextReview ? U.formatRelativeDate(sm2.nextReview) : "not scheduled";
-      var cardId = U.escapeJsString(card.id);
-      var isOpen = !!U.expandedCards[card.id];
+    renderCardList: function(cards,opts){
+      opts=opts||{};var el=U.byId('content');
+      if(!el)return;
+      if(!cards||!cards.length){el.innerHTML='<div class="empty"><div class="e-title">'+U.esc(opts.empty||'')+'</div>'+(opts.sub?'<div class="e-sub">'+U.esc(opts.sub)+'</div>':'')+'</div>';return}
+      var self=this;
+      el.innerHTML=cards.map(function(c){return self.renderCard(c)}).join('');
+    },
 
-      return '<div class="card" data-card-id="' + U.escapeHtml(card.id) + '" onclick="CJ.renderer.toggleCard(\'' + cardId + '\')">' +
-        '<div class="card-header">' +
-          '<div>' +
-            '<div class="card-title">' + U.escapeHtml(U.getTitle(card)) + ' ' + U.difficultyMarkup(card.difficulty) + '</div>' +
-            '<div class="card-meta"><span>tags: ' + U.tagsMarkup(card.tags) + '</span></div>' +
-            '<div class="card-meta">' +
-              U.linkMarkup(card.link) +
-              '<span>Reps: ' + U.escapeHtml(String(repetitions)) + '</span>' +
-              '<span>Next: ' + U.escapeHtml(nextReview) + '</span>' +
-            '</div>' +
-          '</div>' +
-          '<div class="' + U.escapeHtml(status.className) + '">' + U.escapeHtml(status.text) + '</div>' +
-        '</div>' +
-        this.renderCardDetail(card, isOpen) +
+    renderCard: function(card){
+      if(!card)return'';
+      var s=U.sm2(card),st=statusText(card),reps=typeof s.repetitions==='number'?s.repetitions:0,id=U.jsEsc(card.id),open=!!expanded[card.id];
+      var notes=card.notes?'<div class="sl">Notes</div><div class="nb">'+U.esc(card.notes).replace(/\n/g,'<br>')+'</div>':'';
+      return '<div class="cd" data-id="'+U.esc(card.id)+'" onclick="CJ.renderer.toggle(\''+id+'\')">'+
+        '<div class="tt">'+U.esc(U.title(card))+' <span class="df">'+U.esc(card.difficulty||'medium')+'</span>'+(st.color?' <span class="sf" style="color:'+st.color+'">'+U.esc(st.text)+'</span>':'')+'</div>'+
+        '<div class="cm">'+(Array.isArray(card.tags)?card.tags.map(function(t){return'<span class="tg">'+U.esc(t)+'</span>'}).join(''):'<span class="tg">untagged</span>')+'</div>'+
+        '<div class="cf"><span>Reps '+reps+'</span>'+(s.nextReview?'<span>Next: '+s.nextReview+'</span>':'<span>Not scheduled</span>')+(card.link?' <a href="'+U.esc(card.link)+'" target="_blank" style="color:inherit" onclick="event.stopPropagation()">&#x1f517;</a>':'')+'</div>'+
+        (open?'<div class="dt" onclick="event.stopPropagation()">'+
+          '<div class="sl">Your code</div><pre class="cb">'+U.esc(card.actual_code||card.code||'')+'</pre>'+
+          '<div class="sl">My thinking</div><div class="nb">'+(card.my_thinking?U.esc(card.my_thinking).replace(/\n/g,'<br>'):'<em>None</em>')+'</div>'+
+          '<div class="sl">Right thinking</div><div class="nb">'+(card.right_thinking?U.esc(card.right_thinking).replace(/\n/g,'<br>'):'<em>None</em>')+'</div>'+
+          notes+
+          (isDue(card)?'<button class="btn-p" onclick="event.stopPropagation();CJ.review&&CJ.review.startFromCard(\''+id+'\')" style="font-size:11px;padding:6px 14px;margin-top:4px">Review Now</button> ':'')+
+          '<button class="btn-g" onclick="event.stopPropagation();CJ.renderer.del(\''+id+'\')">Delete</button>'+
+        '</div>':'')+
       '</div>';
     },
 
-    renderCardDetail: function (card, forceOpen) {
-      if (!card) return "";
-      var due = U.isDue(card);
-      var openClass = forceOpen ? " open" : "";
-      var cardId = U.escapeJsString(card.id);
-      var notes = card.notes
-        ? '<div class="detail-section"><h3>Notes</h3><div>' + U.escapeHtml(card.notes).replace(/\n/g, "<br>") + '</div></div>'
-        : "";
-
-      return '<div class="detail' + openClass + '" onclick="event.stopPropagation()">' +
-        '<div class="detail-section"><h3>Your code</h3><pre><code>' + U.escapeHtml(card.actual_code || card.code || "") + '</code></pre></div>' +
-        '<div class="detail-section"><h3>My thinking</h3><div>' + (card.my_thinking ? U.escapeHtml(card.my_thinking).replace(/\n/g, "<br>") : '<em>No thinking notes yet.</em>') + '</div></div>' +
-        '<div class="detail-section"><h3>Right thinking</h3><div>' + (card.right_thinking ? U.escapeHtml(card.right_thinking).replace(/\n/g, "<br>") : '<em>No right-thinking notes yet.</em>') + '</div></div>' +
-        notes +
-        '<div class="detail-section">' +
-          (due ? '<button class="btn-primary" type="button" onclick="CJ.renderer.handleReviewNow(\'' + cardId + '\')">Review Now</button> ' : "") +
-          '<button class="btn-ghost" type="button" onclick="CJ.renderer.handleDelete(\'' + cardId + '\')">Delete</button>' +
-        '</div></div>';
+    renderReviewPrompt: function(cards){
+      var el=U.byId('reviewPrompt');if(!el)return;
+      if(!cards||!cards.length){el.classList.add('hidden');return}
+      U.byId('rpCount').textContent=cards.length;U.byId('rpNext').textContent='Next: '+U.esc(U.title(cards[0]));el.classList.remove('hidden');
     },
 
-    renderReviewPrompt: function (cards) {
-      var reviewArea = U.byId("reviewArea");
-      if (!reviewArea) return;
-      cards = U.sortDueFirst(cards);
-      if (!cards.length) {
-        reviewArea.classList.add("hidden");
-        reviewArea.innerHTML = "";
-        return;
-      }
-      if (CJ.review) {
-        try {
-          if (typeof CJ.review.renderSession === "function") {
-            CJ.review.renderSession(cards);
-            reviewArea.classList.remove("hidden");
-            return;
-          }
-          if (typeof CJ.review.renderReviewSession === "function") {
-            CJ.review.renderReviewSession(cards);
-            reviewArea.classList.remove("hidden");
-            return;
-          }
-        } catch (error) {
-          console.warn("Review renderer failed.", error);
-        }
-      }
-      var first = cards[0];
-      var count = cards.length;
-      reviewArea.classList.remove("hidden");
-      reviewArea.innerHTML = '<h2>Review session ready</h2>' +
-        '<p class="subtitle">' + count + " " + U.plural(count, "card") + ' due.</p>' +
-        '<p><strong>Next:</strong> ' + U.escapeHtml(U.getTitle(first)) + '</p>' +
-        '<button class="btn-submit-review" type="button" onclick="CJ.renderer.handleReviewNow(\'' + U.escapeJsString(first.id) + '\')">Review Now</button>';
+    toggle: function(id){expanded[id]=!expanded[id];this.renderTab()},
+
+    del: function(id){
+      if(!confirm('Delete this card?'))return;
+      var self=this;
+      CJ.api.deleteCard(id).then(function(){delete expanded[id];U.showToast('Deleted.');self.refresh()});
     },
 
-    switchTab: function (tabName) {
-      var validTabs = { due: true, all: true, mastered: true, add: true };
-      if (!validTabs[tabName]) tabName = "due";
-      U.currentTab = tabName;
-      U.expandedCards = {};
-      Array.prototype.forEach.call(document.querySelectorAll(".tab[data-tab]"), function (tab) {
-        tab.classList.toggle("active", tab.getAttribute("data-tab") === tabName);
-      });
-      this.renderCurrentTab();
-    },
-
-    renderCurrentTab: function () {
-      var tab = U.currentTab || "due";
-      var self = this;
-
-      if (tab === "due") {
-        CJ.api.getDue().then(function (cards) {
-          self.renderCardList(U.sortDueFirst(cards), {
-            showDue: true,
-            emptyMessage: "Nothing due right now.",
-            emptySubMessage: "Nice work — your reviews are caught up."
-          });
-        });
-        return;
-      }
-      if (tab === "all") {
-        CJ.api.getAll().then(function (cards) {
-          self.renderCardList(U.sortNewestFirst(cards), {
-            emptyMessage: "No cards yet.",
-            emptySubMessage: "Use + New to add your first coding journal card."
-          });
-        });
-        return;
-      }
-      if (tab === "mastered") {
-        CJ.api.getMastered().then(function (cards) {
-          self.renderCardList(U.sortNewestFirst(cards), {
-            emptyMessage: "No mastered cards yet.",
-            emptySubMessage: "Cards become mastered after 5 successful repetitions."
-          });
-        });
-        return;
-      }
-      if (tab === "add") {
-        hideReviewPrompt();
-        try {
-          if (CJ.form && typeof CJ.form.renderAddForm === "function") {
-            CJ.form.renderAddForm();
-          } else {
-            var content = U.byId("content");
-            if (content) content.innerHTML = U.emptyStateMarkup("Add form not loaded.", "Please refresh.");
-          }
-        } catch (error) {
-          console.warn("Failed to render add form.", error);
-        }
-      }
-    },
-
-    toggleCard: function (id) {
-      U.expandedCards[id] = !U.expandedCards[id];
-      this.renderCurrentTab();
-    },
-
-    handleReviewNow: function (id) {
-      if (window.event && typeof window.event.stopPropagation === "function") {
-        window.event.stopPropagation();
-      }
-      if (CJ.review) {
-        CJ.review.start(undefined, id);
-      } else {
-        U.showToast("Review workflow is not loaded yet.");
-      }
-    },
-
-    handleDelete: function (id) {
-      if (window.event && typeof window.event.stopPropagation === "function") {
-        window.event.stopPropagation();
-      }
-      if (!window.confirm("Delete this card? This cannot be undone.")) return;
-      var self = this;
-      CJ.api.deleteCard(id).then(function () {
-        delete U.expandedCards[id];
-        U.showToast("Card deleted.");
-        self.refresh();
-      }).catch(function (err) {
-        U.showToast("Failed to delete: " + err.message);
-      });
+    switchTab: function(tab){
+      this.tab=tab;expanded={};
+      var btns=document.querySelectorAll('.tb-btn');
+      for(var i=0;i<btns.length;i++)btns[i].classList.toggle('active',btns[i].dataset.tab===tab);
+      this.renderTab();
     }
   };
-
-  // Global tab switch
-  window.switchTab = function (tabName) {
-    CJ.renderer.switchTab(tabName);
-  };
-})();// ================================================================
-// CJ.review - review session workflow
-// ================================================================
-(function () {
+  var self=CJ.renderer;
+  window.switchTab=function(t){CJ.renderer.switchTab(t)};
+})();
+</script>
+<script>
+(function(){
   var CJ = window.CJ;
-  var U = CJ.utils;
-
-  function formatUrl(url) {
-    if (!url) return "No problem link saved";
-    return String(url).replace(/^https?:\/\//i, "").replace(/\/$/, "");
-  }
-
-  function formatDate(dateStr) {
-    if (!dateStr) return "not scheduled";
-    var date = U.parseDateOnly(dateStr);
-    if (!date) return String(dateStr);
-    return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-  }
-
-  function ratingLabel(quality) {
-    var labels = { 1: "Forgot", 2: "Vague", 3: "Fair", 4: "Good", 5: "Perfect" };
-    return labels[quality] || "Unknown";
-  }
-
-  function showReviewArea(html) {
-    var reviewArea = U.byId("reviewArea");
-    if (!reviewArea) return null;
-    reviewArea.innerHTML = html || "";
-    reviewArea.classList.remove("hidden");
-    return reviewArea;
-  }
-
-  function hideReviewArea() {
-    var reviewArea = U.byId("reviewArea");
-    if (!reviewArea) return;
-    reviewArea.classList.add("hidden");
-    reviewArea.innerHTML = "";
-  }
+  var U = CJ;
+  var state={cards:[],idx:0,active:false,rating:-1};
+  function hide(id){document.getElementById(id).classList.add('hidden')}
+  function show(id){document.getElementById(id).classList.remove('hidden')}
 
   CJ.review = {
-    sessionCards: [],
-    sessionIndex: 0,
-    sessionActive: false,
-    selectedRating: -1,
-
-    startSession: function () {
-      var self = this;
-      CJ.api.getDue().then(function (cards) {
-        self.sessionCards = U.sortDueFirst(cards);
-        self.sessionIndex = 0;
-        self.sessionActive = true;
-        self.selectedRating = -1;
-        if (!self.sessionCards.length) {
-          self.endSession("Nothing due right now. Nice work!");
-          return;
-        }
-        self.renderCurrentReviewCard();
-      }).catch(function () {
-        showReviewArea("<h2>Review unavailable</h2><p class=\"subtitle\">Could not load due cards.</p>");
+    start: function(fromCardId){
+      var self=this;
+      CJ.api.getDue().then(function(cards){
+        cards=Array.isArray(cards)?cards:[];
+        cards.sort(function(a,b){var an=U.sm2(a).nextReview,bn=U.sm2(b).nextReview;if(an!==bn){if(!an)return-1;if(!bn)return 1;return an<bn?-1:1}return 0});
+        state.cards=cards;state.idx=0;state.active=true;state.rating=-1;
+        if(fromCardId){for(var i=0;i<cards.length;i++){if(cards[i].id===fromCardId){state.idx=i;break}}}
+        if(!cards.length){U.showToast('Nothing due right now.');return}
+        hide('modeBrowse');hide('modeReview');show('modeReview');
+        self.renderQuestion();
       });
     },
+    startFromCard: function(id){this.start(id)},
 
-    renderSession: function (cards) {
-      if (this.sessionActive) {
-        this.renderCurrentReviewCard();
-        return;
-      }
-      cards = U.sortDueFirst(cards || []);
-      if (!cards.length) {
-        hideReviewArea();
-        return;
-      }
-      showReviewArea(
-        "<h2>Review session ready</h2>" +
-        '<p class="subtitle">' + cards.length + " due card" + (cards.length === 1 ? "" : "s") + '.</p>' +
-        "<p><strong>Next:</strong> " + U.escapeHtml(U.getTitle(cards[0])) + "</p>" +
-        '<button class="btn-submit-review" type="button" onclick="CJ.review.startSession()">Start Review \u2192</button>'
-      );
+    renderQuestion: function(){
+      var card=state.cards[state.idx];if(!card){this.end();return}
+      state.rating=-1;
+      U.byId('rvStep').textContent=(state.idx+1)+' / '+state.cards.length;
+      U.byId('rvFill').style.width=((state.idx+1)/state.cards.length*100)+'%';
+      U.byId('rvQTitle').textContent=U.title(card);
+      U.byId('rvQMeta').innerHTML=(Array.isArray(card.tags)?card.tags.map(function(t){return'<span class="tg">'+U.esc(t)+'</span>'}).join(''):'')+'<span class="df">'+U.esc(card.difficulty||'medium')+'</span>';
+      var rb=document.querySelectorAll('.rv-r');for(var i=0;i<rb.length;i++)rb[i].classList.remove('selected');
+      hide('rvReveal');hide('rvComplete');show('rvQuestion');
     },
 
-    renderReviewSession: function (cards) { this.renderSession(cards); },
-
-    renderCurrentReviewCard: function () {
-      var card = this.sessionCards[this.sessionIndex];
-      if (!card) { this.endSession(); return; }
-      this.selectedRating = -1;
-      var current = this.sessionIndex + 1;
-      var total = this.sessionCards.length;
-      var link = card.link
-        ? '<a href="' + U.escapeHtml(card.link) + '" target="_blank" rel="noopener noreferrer">\ud83d\udd17 ' + U.escapeHtml(formatUrl(card.link)) + '</a>'
-        : '<span>\ud83d\udd17 No problem link saved</span>';
-
-      showReviewArea(
-        "<h2>\ud83d\udcdd Review Session (" + current + "/" + total + ")</h2>" +
-        '<p class="subtitle">Question ' + current + " of " + total + "</p>" +
-        '<div class="card-title" style="margin-top:14px;font-size:1.35rem">' + U.escapeHtml(U.getTitle(card)) + '</div>' +
-        '<div class="card-meta">' + link + '</div>' +
-        '<div class="card-meta">' +
-          '<span>\ud83c\udff7\ufe0f ' + U.tagsMarkup(card.tags) + '</span>' +
-          '<span>\u00b7</span>' +
-          '<span class="tag">' + U.escapeHtml(card.difficulty || "medium") + '</span>' +
-        '</div>' +
-        '<hr style="border:0;border-top:1px solid var(--border);margin:22px 0">' +
-        "<p><strong>How well did you recall the approach?</strong></p>" +
-        '<p class="subtitle">1 = after seeing answer, 3 = serious difficulty, 5 = perfect.</p>' +
-        '<div class="rating-btns">' + this.renderRatingButtons() + '</div>' +
-        '<button id="revealFullCardBtn" class="btn-submit-review" type="button" onclick="CJ.review.revealAndSubmit()" disabled>Reveal Full Card \u2192</button> ' +
-        '<button class="btn-ghost" type="button" onclick="CJ.review.cancelSession()">Cancel</button>'
-      );
+    selectRating: function(q){
+      state.rating=parseInt(q,10);
+      var btns=document.querySelectorAll('.rv-r');
+      for(var i=0;i<btns.length;i++)btns[i].classList.toggle('selected',btns[i].dataset.q===String(q));
     },
 
-    selectRating: function (quality) {
-      var q = parseInt(quality, 10);
-      if (isNaN(q)) return;
-      q = Math.max(1, Math.min(5, q));
-      this.selectedRating = q;
-      Array.prototype.forEach.call(document.querySelectorAll("#reviewArea .rating-btns button"), function (b) {
-        b.classList.toggle("selected", b.getAttribute("data-quality") === String(q));
-      });
-      var btn = U.byId("revealFullCardBtn");
-      if (btn) btn.disabled = false;
+    revealAndSubmit: function(){
+      var card=state.cards[state.idx],q=state.rating;
+      if(q<1||q>5){U.showToast('Pick a rating first.');return}
+      CJ.api.reviewCard(card.id,q).then(function(r){
+        state.cards[state.idx]=r;var s=r.sm2||{};
+        U.byId('rvRevealTitle').textContent=U.title(r);
+        U.byId('rvCode').textContent=r.actual_code||r.code||'(no code)';
+        U.byId('rvMyThinking').innerHTML=r.my_thinking?U.esc(r.my_thinking).replace(/\n/g,'<br>'):'<em>None</em>';
+        U.byId('rvRightThinking').innerHTML=r.right_thinking?U.esc(r.right_thinking).replace(/\n/g,'<br>'):'<em>None</em>';
+        var labels={1:'Forgot',2:'Vague',3:'Fair',4:'Good',5:'Perfect'};
+        U.byId('rvResult').innerHTML='Rating: <strong>'+labels[q]+' ('+q+')</strong> &middot; Next: <strong>'+(s.nextReview||'not scheduled')+'</strong>';
+        hide('rvQuestion');show('rvReveal');
+      }).catch(function(e){U.showToast('Review failed: '+e.message)});
     },
 
-    revealAndSubmit: function () {
-      var card = this.sessionCards[this.sessionIndex];
-      var quality = parseInt(this.selectedRating, 10);
-      if (!card) { this.endSession(); return; }
-      if (isNaN(quality) || quality < 1 || quality > 5) {
-        U.showToast("Pick a rating first.");
-        return;
-      }
-      var self = this;
-      CJ.api.reviewCard(card.id, quality).then(function (reviewedCard) {
-        self.sessionCards[self.sessionIndex] = reviewedCard;
-        var sm2 = reviewedCard.sm2 || {};
-        var current = self.sessionIndex + 1;
-        var total = self.sessionCards.length;
-        var detailHtml = typeof CJ.renderer.renderCardDetail === "function"
-          ? CJ.renderer.renderCardDetail(reviewedCard, true) : "";
-        showReviewArea(
-          "<h2>\ud83d\udcdd Review Session (" + current + "/" + total + ")</h2>" +
-          '<p class="subtitle">Full card revealed.</p>' +
-          '<div class="card-title" style="margin-top:14px;font-size:1.35rem">' + U.escapeHtml(U.getTitle(reviewedCard)) + '</div>' +
-          '<div class="card-meta">' +
-            '<span>Rating: <strong>' + U.escapeHtml(ratingLabel(quality)) + " (" + quality + ")</strong></span>" +
-            '<span>Next: <strong>' + U.escapeHtml(formatDate(sm2.nextReview)) + "</strong></span>" +
-            '<span>Interval: ' + U.escapeHtml(String(typeof sm2.interval === "number" ? sm2.interval : 0)) + " day" + (sm2.interval === 1 ? "" : "s") + "</span>" +
-          '</div>' +
-          '<hr style="border:0;border-top:1px solid var(--border);margin:22px 0">' + detailHtml +
-          '<div class="detail-section" style="margin-top:18px">' +
-            '<button class="btn-submit-review" type="button" onclick="CJ.review.nextCard()">Next Card \u2192</button> ' +
-            '<button class="btn-ghost" type="button" onclick="CJ.review.cancelSession()">End Session</button>' +
-          "</div>"
-        );
-      }).catch(function (err) { U.showToast("Review failed: " + err.message); });
+    nextCard: function(){
+      state.idx++;state.rating=-1;
+      if(state.idx<state.cards.length){this.renderQuestion()}else{hide('rvReveal');hide('rvQuestion');show('rvComplete')}
     },
 
-    nextCard: function () {
-      this.sessionIndex += 1;
-      this.selectedRating = -1;
-      if (this.sessionIndex < this.sessionCards.length) {
-        this.renderCurrentReviewCard();
-      } else {
-        this.endSession("Session complete! \ud83c\udf89");
-      }
-    },
-
-    endSession: function (message) {
-      var msg = message || "Session complete! \ud83c\udf89";
-      this.sessionActive = false;
-      this.sessionCards = [];
-      this.sessionIndex = 0;
-      this.selectedRating = -1;
-      showReviewArea("<h2>" + U.escapeHtml(msg) + "</h2><p class=\"subtitle\">Your review stats have been updated.</p>");
-      if (CJ.renderer && typeof CJ.renderer.refresh === "function") CJ.renderer.refresh();
-      else window.setTimeout(hideReviewArea, 1200);
-    },
-
-    renderRatingButtons: function () {
-      var self = this;
-      return [1, 2, 3, 4, 5].map(function (q) {
-        var cls = self.selectedRating === q ? " selected" : "";
-        return '<button type="button" data-quality="' + q + '" class="' + cls + '" onclick="CJ.review.selectRating(' + q + ')">' +
-          U.escapeHtml(ratingLabel(q)) + " (" + q + ")" + "</button>";
-      }).join("");
-    },
-
-    cancelSession: function () {
-      this.sessionActive = false;
-      this.sessionCards = [];
-      this.sessionIndex = 0;
-      this.selectedRating = -1;
-      var ra = U.byId("reviewArea");
-      if (ra) {
-        ra.innerHTML = "<h2>Session cancelled</h2><p class=\"subtitle\">Your review session was cancelled.</p>";
-        ra.classList.remove("hidden");
-      }
-      if (CJ.renderer && typeof CJ.renderer.refresh === "function") CJ.renderer.refresh();
-    },
-
-    start: function (_, id) {
-      if (id) {
-        var self = this;
-        CJ.api.getDue().then(function (cards) {
-          self.sessionCards = U.sortDueFirst(cards);
-          var idx = -1;
-          for (var i = 0; i < self.sessionCards.length; i++) {
-            if (self.sessionCards[i].id === id) { idx = i; break; }
-          }
-          if (idx >= 0) {
-            self.sessionIndex = idx;
-            self.sessionActive = true;
-            self.selectedRating = -1;
-            self.renderCurrentReviewCard();
-          } else { self.startSession(); }
-        });
-      } else { this.startSession(); }
-    },
-
-    reviewNow: function () { this.startSession(); },
-    renderCard: function () { this.startSession(); }
-  };
-})();// ================================================================
-// CJ.form - add/edit card form
-// ================================================================
-(function () {
-  var CJ = window.CJ;
-  var U = CJ.utils;
-
-  function valueOf(id) {
-    var el = U.byId(id);
-    return el ? el.value : "";
-  }
-
-  function setValue(id, value) {
-    var el = U.byId(id);
-    if (el) el.value = value === null || value === undefined ? "" : value;
-  }
-
-  function showErrors(errors) {
-    var errorBox = U.byId("formErrors");
-    if (!errorBox) return;
-    if (!errors || !errors.length) {
-      errorBox.innerHTML = "";
-      errorBox.classList.add("hidden");
-      return;
+    end: function(){
+      state.active=false;state.cards=[];state.idx=0;state.rating=-1;
+      hide('modeBrowse');hide('modeReview');show('modeBrowse');
+      CJ.renderer.refresh();U.showToast('Session ended.');
     }
-    errorBox.innerHTML = '<ul style="margin:0; padding-left:20px;">' + errors.map(function (err) {
-      return "<li>" + U.escapeHtml(String(err)) + "</li>";
-    }).join("") + "</ul>";
-    errorBox.classList.remove("hidden");
-  }
+  };
+})();
+</script>
+<script>
+(function(){
+  var CJ = window.CJ;
+  var U = CJ;
 
   CJ.form = {
-    editCardId: null,
-    _submitting: false,
+    editId: null,
+    submitting: false,
 
-    renderAddForm: function (cardToEdit) {
-      var content = U.byId("content");
-      if (!content) return;
-      var isEdit = !!cardToEdit;
-      this.editCardId = isEdit && cardToEdit.id ? cardToEdit.id : null;
-
-      content.innerHTML = '<h2 style="margin-top:0;">' + (isEdit ? "Edit Question" : "Add New Question") + "</h2>" +
-        '<form id="questionForm" onsubmit="return CJ.form.handleSubmit(event)">' +
-          '<div class="form-row">' +
-            '<div class="form-group"><label for="formQuestion">Question *</label><input type="text" id="formQuestion" placeholder="e.g. Two Sum" required></div>' +
-            '<div class="form-group"><label for="formLink">Link</label><input type="url" id="formLink" placeholder="https://leetcode.com/..."></div>' +
-          "</div>" +
-          '<div class="form-row">' +
-            '<div class="form-group"><label for="formTags">Tags (comma-sep)</label><input type="text" id="formTags" placeholder="arrays, hash-map"></div>' +
-            '<div class="form-group"><label for="formDifficulty">Difficulty</label><select id="formDifficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select></div>' +
-          "</div>" +
-          '<div class="form-group"><label for="formMyThinking">What I Was Thinking *</label><textarea id="formMyThinking" rows="4" placeholder="Describe your initial approach."></textarea></div>' +
-          '<div class="form-group"><label for="formRightThinking">What the Right Thinking Is *</label><textarea id="formRightThinking" rows="4" placeholder="Describe the correct approach."></textarea></div>' +
-          '<div class="form-group"><label for="formActualCode">Actual Code</label><textarea id="formActualCode" rows="6" placeholder="Paste your solution code here..."></textarea></div>' +
-          '<div class="form-group"><label for="formNotes">Notes (optional)</label><textarea id="formNotes" rows="2" placeholder="Additional observations..."></textarea></div>' +
-          '<div id="formErrors" class="hidden" style="color:var(--red);margin-bottom:12px;font-size:14px;"></div>' +
-          '<button type="submit" class="btn-primary" id="formSubmit">' + (isEdit ? "Update Question" : "Save Question") + "</button>" +
-        "</form>";
-      showErrors([]);
-      if (isEdit) this.populateForm(cardToEdit);
+    render: function(card){
+      var el=U.byId('content');if(!el)return;
+      var isEdit=!!card;this.editId=isEdit?card.id:null;
+      el.innerHTML='<div class="form"><h2>'+(isEdit?'Edit':'New')+' Card</h2><form id="cardForm">'+
+        '<div class="f-row"><div class="fg"><label>Question *</label><input type="text" id="fQ" placeholder="e.g. Two Sum" required></div>'+
+        '<div class="fg"><label>Link</label><input type="url" id="fL" placeholder="https://leetcode.com/..."></div></div>'+
+        '<div class="f-row"><div class="fg"><label>Tags</label><input type="text" id="fT" placeholder="arrays, hash-map"></div>'+
+        '<div class="fg"><label>Difficulty</label><select id="fD"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select></div></div>'+
+        '<div class="fg"><label>What I Was Thinking *</label><textarea id="fMyT" rows="3" placeholder="Describe your approach..."></textarea></div>'+
+        '<div class="fg"><label>Right Thinking *</label><textarea id="fRT" rows="3" placeholder="Describe the correct approach..."></textarea></div>'+
+        '<div class="fg"><label>Code</label><textarea id="fCode" rows="5" placeholder="Paste code here..."></textarea></div>'+
+        '<div class="fg"><label>Notes</label><textarea id="fNotes" rows="2" placeholder="Observations..."></textarea></div>'+
+        '<div class="errors hidden" id="fErrors"></div>'+
+        '<button type="submit" class="btn-p" id="fSubmit">'+(isEdit?'Update':'Save')+'</button></form></div>';
+      if(isEdit)this.populate(card);this.wire();
     },
 
-    getFormData: function () {
-      var tags = valueOf("formTags").split(",").map(function (t) { return t.trim(); }).filter(function (t) { return t.length > 0; });
-      return {
-        question: valueOf("formQuestion").trim(),
-        link: valueOf("formLink").trim(),
-        tags: tags,
-        difficulty: valueOf("formDifficulty") || "medium",
-        actual_code: valueOf("formActualCode"),
-        my_thinking: valueOf("formMyThinking").trim(),
-        right_thinking: valueOf("formRightThinking").trim(),
-        notes: valueOf("formNotes")
-      };
-    },
-
-    validate: function (data) {
-      var errors = [];
-      if (!data.question || !data.question.trim()) errors.push("Question is required.");
-      if (!data.my_thinking || !data.my_thinking.trim()) errors.push("What I Was Thinking is required.");
-      if (!data.right_thinking || !data.right_thinking.trim()) errors.push("What the Right Thinking Is is required.");
-      return { valid: errors.length === 0, errors: errors };
-    },
-
-    handleSubmit: function (e) {
-      if (e && typeof e.preventDefault === "function") e.preventDefault();
-      var submitBtn = U.byId("formSubmit");
-      if (this._submitting) return false;
-      this._submitting = true;
-      if (submitBtn) submitBtn.disabled = true;
-
-      var data = this.getFormData();
-      var result = this.validate(data);
-      if (!result.valid) {
-        showErrors(result.errors);
-        this._submitting = false;
-        if (submitBtn) submitBtn.disabled = false;
-        return false;
-      }
-      showErrors([]);
-
-      var self = this;
-      var promise = this.editCardId ? CJ.api.updateCard(this.editCardId, data) : CJ.api.createCard(data);
-      promise.then(function () {
-        self.clearForm();
-        U.showToast(self.editCardId ? "Updated!" : "Saved!");
-        self._submitting = false;
-        if (submitBtn) submitBtn.disabled = false;
-        if (CJ.renderer) {
-          if (typeof CJ.renderer.switchTab === "function") CJ.renderer.switchTab("all");
-          if (typeof CJ.renderer.refresh === "function") CJ.renderer.refresh();
-        }
-      }).catch(function (err) {
-        showErrors([err.message || "Failed to save card."]);
-        self._submitting = false;
-        if (submitBtn) submitBtn.disabled = false;
+    wire: function(){
+      var self=this;
+      document.getElementById('cardForm').addEventListener('submit',function(e){
+        e.preventDefault();if(self.submitting)return;
+        var d=self.read(),errs=self.validate(d);
+        if(errs.length){document.getElementById('fErrors').innerHTML='<ul>'+errs.map(function(e){return'<li>'+U.esc(e)+'</li>'}).join('')+'</ul>';document.getElementById('fErrors').classList.remove('hidden');return}
+        document.getElementById('fErrors').classList.add('hidden');self.submitting=true;document.getElementById('fSubmit').disabled=true;
+        var p=self.editId?CJ.api.updateCard(self.editId,d):CJ.api.createCard(d);
+        p.then(function(){self.editId=null;U.showToast('Saved!');self.submitting=false;switchTab('all');CJ.renderer.refresh()})
+         .catch(function(e){document.getElementById('fErrors').innerHTML='<ul><li>'+U.esc(e.message)+'</li></ul>';document.getElementById('fErrors').classList.remove('hidden');self.submitting=false});
       });
-      return false;
     },
 
-    clearForm: function () {
-      var form = U.byId("questionForm");
-      if (form && typeof form.reset === "function") form.reset();
-      setValue("formQuestion", "");
-      setValue("formLink", "");
-      setValue("formTags", "");
-      setValue("formDifficulty", "medium");
-      setValue("formActualCode", "");
-      setValue("formMyThinking", "");
-      setValue("formRightThinking", "");
-      setValue("formNotes", "");
-      showErrors([]);
-      this.editCardId = null;
+    read: function(){
+      function v(id){var e=document.getElementById(id);return e?e.value:''}
+      return{question:v('fQ').trim(),link:v('fL').trim(),tags:v('fT').split(',').map(function(t){return t.trim()}).filter(Boolean),difficulty:v('fD')||'medium',actual_code:v('fCode'),my_thinking:v('fMyT').trim(),right_thinking:v('fRT').trim(),notes:v('fNotes')};
     },
 
-    populateForm: function (card) {
-      card = card || {};
-      setValue("formQuestion", card.question || card.title || "");
-      setValue("formLink", card.link || "");
-      setValue("formTags", Array.isArray(card.tags) ? card.tags.join(", ") : (card.tags || ""));
-      setValue("formDifficulty", card.difficulty || "medium");
-      setValue("formActualCode", card.actual_code || card.code || "");
-      setValue("formMyThinking", card.my_thinking || "");
-      setValue("formRightThinking", card.right_thinking || "");
-      setValue("formNotes", card.notes || "");
-      this.editCardId = card.id || null;
+    validate: function(d){var e=[];if(!d.question)e.push('Question required.');if(!d.my_thinking)e.push('My Thinking required.');if(!d.right_thinking)e.push('Right Thinking required.');return e},
+
+    populate: function(card){
+      function s(id,v){var e=document.getElementById(id);if(e)e.value=v||''}
+      s('fQ',card.question);s('fL',card.link);s('fT',Array.isArray(card.tags)?card.tags.join(', '):'');s('fD',card.difficulty);s('fCode',card.actual_code||card.code);s('fMyT',card.my_thinking);s('fRT',card.right_thinking);s('fNotes',card.notes);
     }
   };
 })();
+</script>
+<script>
+(function(){
+  var CJ = window.CJ, U = CJ;
 
-// ================================================================
-// CJ.utils - export/import + init
-// ================================================================
-(function () {
-  var CJ = window.CJ;
-  var U = CJ.utils;
-  var initialized = false;
-
-  function init() {
-    var exportBtn = U.byId("exportBtn");
-    var importBtn = U.byId("importBtn");
-    var importInput = U.byId("importInput");
-
-    if (exportBtn) {
-      exportBtn.addEventListener("click", function () {
-        CJ.api.exportData().then(function () {
-          U.showToast("Exported!");
-        }).catch(function (err) {
-          U.showToast("Export failed: " + err.message);
-        });
-      });
-    }
-    if (importBtn && importInput) {
-      importBtn.addEventListener("click", function () { importInput.click(); });
-    }
-    if (importInput) {
-      importInput.addEventListener("change", function (event) {
-        var file = event.target.files && event.target.files[0];
-        if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function (e) {
-          var parsed;
-          try { parsed = JSON.parse(e.target.result); }
-          catch (err) { U.showToast("Invalid JSON file."); return; }
-          if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.cards)) {
-            U.showToast("Invalid backup: missing cards array.");
-            return;
-          }
-          if (!window.confirm("Import " + parsed.cards.length + " cards?")) return;
-          CJ.api.importData(parsed.cards).then(function (count) {
-            U.showToast("Imported " + count + " cards!");
-            if (CJ.renderer && typeof CJ.renderer.refresh === "function") CJ.renderer.refresh();
-          }).catch(function (err) { U.showToast("Import failed: " + err.message); });
-        };
-        reader.readAsText(file);
-        event.target.value = "";
-      });
-    }
-
-    U.currentTab = "due";
-    if (CJ.renderer && typeof CJ.renderer.refresh === "function") CJ.renderer.refresh();
-    U.showToast("Welcome! Add your first card with + New.");
+  function isReviewing(){
+    var el=document.getElementById('modeReview');
+    return el && !el.classList.contains('hidden');
   }
 
-  U.init = init;
-})();
+  document.addEventListener('DOMContentLoaded',function(){
+    // Review buttons
+    U.byId('rpStart').addEventListener('click',function(){CJ.review.start()});
+    U.byId('rvBack').addEventListener('click',function(){CJ.review.end()});
+    U.byId('rvEnd').addEventListener('click',function(){CJ.review.end()});
+    U.byId('rvDone').addEventListener('click',function(){CJ.review.end()});
+    U.byId('rvNext').addEventListener('click',function(){CJ.review.nextCard()});
 
-// ================================================================
-// Init - DOMContentLoaded
-// ================================================================
-window.addEventListener("DOMContentLoaded", async function () {
-  await CJ.utils.init();
-});
+    // Rating buttons
+    var rbs=document.querySelectorAll('.rv-r');
+    for(var i=0;i<rbs.length;i++)(function(b){
+      b.addEventListener('click',function(){CJ.review.selectRating(this.dataset.q);CJ.review.revealAndSubmit()});
+    })(rbs[i]);
+
+    // Tab buttons
+    var tabs=document.querySelectorAll('.tb-btn');
+    for(var i=0;i<tabs.length;i++)(function(b){
+      b.addEventListener('click',function(){switchTab(this.dataset.tab)});
+    })(tabs[i]);
+
+    // Export/Import
+    var ex=U.byId('exportBtn'),im=U.byId('importBtn'),ii=U.byId('importInput');
+    if(ex)ex.addEventListener('click',function(){CJ.api.exportData().then(function(){U.showToast('Exported!')}).catch(function(e){U.showToast(e.message)})});
+    if(im&&ii)im.addEventListener('click',function(){ii.click()});
+    if(ii)ii.addEventListener('change',function(e){
+      var f=e.target.files&&e.target.files[0];if(!f)return;
+      var r=new FileReader();
+      r.onload=function(e){try{var d=JSON.parse(e.target.result);if(!d||!Array.isArray(d.cards)){U.showToast('Invalid backup.');return}if(!confirm('Import '+d.cards.length+' cards?'))return;CJ.api.importData(d.cards).then(function(c){U.showToast('Imported '+c+' cards!');CJ.renderer.refresh()}).catch(function(e){U.showToast(e.message)})}catch(e){U.showToast('Invalid JSON.')}};
+      r.readAsText(f);this.value='';
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown',function(e){
+      if(!isReviewing())return;
+      var k=parseInt(e.key,10);if(k>=1&&k<=5){CJ.review.selectRating(k);CJ.review.revealAndSubmit()}
+      if(e.key==='Enter'||e.key===' '){if(!document.getElementById('rvReveal').classList.contains('hidden')){CJ.review.nextCard();e.preventDefault()}}
+      if(e.key==='Escape'){CJ.review.end()}
+    });
+  });
+})();
 </script>
 </body>
 </html>
