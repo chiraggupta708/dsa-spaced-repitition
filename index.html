@@ -183,7 +183,7 @@ window.CJ = window.CJ || {};
       return fetch('/api/cards/' + encodeURIComponent(id), { method: 'DELETE' }).then(handleResponse).then(function () { return true; });
     },
     reviewCard: function (id, quality) {
-      return fetch('/api/cards/' + encodeURIComponent(id) + '/review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quality: quality }) }).then(handleResponse).then(function (d) { return d.card; });
+      return fetch('/api/cards/' + encodeURIComponent(id) + '?review=1', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quality: quality }) }).then(handleResponse).then(function (d) { return d.card; });
     },
     getStats: function () {
       return fetch('/api/stats').then(handleResponse).then(function (d) { return d.stats; });
