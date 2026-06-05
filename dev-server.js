@@ -16,11 +16,11 @@ app.use(express.json());
 
 /* ------------------------------------------------------------------ */
 /*  API routes                                                         */
-/*  The [cardId].js handler self-parses the URL for cardId & review    */
+/*  The [...cardId].js handler self-parses the URL for cardId & review  */
 /*  so we just route all paths it knows about                          */
 /* ------------------------------------------------------------------ */
 
-const cardHandler = (await import('./api/cards/[cardId].js')).default;
+const cardHandler = (await import('./api/cards/[...cardId].js')).default;
 
 app.all('/api/health',             (await import('./api/health.js')).default);
 app.all('/api/cards/due',          (await import('./api/cards/due.js')).default);
