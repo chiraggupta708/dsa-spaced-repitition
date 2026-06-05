@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coding Journal — UI Preview</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--font:'Inter',system-ui,sans-serif;--r:12px;--rs:8px;--rl:16px}
+body{font-family:var(--font);transition:background .3s,color .3s;min-height:100vh;line-height:1.5}
+h1,h2,h3{font-weight:600}
+button{border:none;cursor:pointer;font-family:var(--font)}
+
+/* Theme Picker */
+.tp{position:fixed;top:0;left:0;right:0;z-index:999;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 16px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,.06);flex-wrap:wrap}
+.tp input{display:none}
+.tp label{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:16px;cursor:pointer;font-size:12px;font-weight:500;transition:all .2s;border:1.5px solid transparent;letter-spacing:.01em}
+.tp .dot{display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.tp input:checked+label{border-color:currentColor}
+
+.aw{max-width:680px;margin:0 auto;padding:76px 20px 60px}
+
+/* Header */
+.hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.hd h1{font-size:20px;font-weight:650;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+.hd .bdg{font-size:10px;font-weight:600;padding:3px 10px;border-radius:12px;text-transform:uppercase;letter-spacing:.04em}
+.hd .time{font-size:12px;opacity:.65}
+
+/* Stats */
+.st{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+.sc{padding:12px 14px;border-radius:var(--r);transition:all .2s}
+.sc .n{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+.sc .l{font-size:11px;font-weight:500;opacity:.6;margin-top:2px}
+
+/* Tabs */
+.tb{display:flex;gap:3px;margin-bottom:18px;padding:3px;border-radius:var(--rs)}
+.tb .btn{flex:1;padding:7px 0;border:none;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;font-family:var(--font);background:transparent;text-align:center}
+.tb .btn.act{font-weight:700}
+.tb .btn.nc{flex:0 0 auto;padding:7px 14px;margin-left:auto;border-radius:16px;font-size:11px}
+
+/* Card */
+.cd{border-radius:var(--rl);padding:18px 20px;transition:all .25s;margin-bottom:14px}
+.ct{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+.ct .tt{font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.4}
+.cm{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.tg{font-size:10px;font-weight:500;padding:2px 8px;border-radius:12px}
+.df{font-size:10px;font-weight:600;padding:2px 8px;border-radius:12px}
+.cf{display:flex;align-items:center;gap:14px;font-size:11px;opacity:.7}
+
+/* Detail sections */
+.dt{padding:14px 0 0}
+.sl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;opacity:.6}
+.cb{font-family:'SF Mono','Fira Code','Cascadia Code',monospace;font-size:12px;line-height:1.6;padding:12px 14px;border-radius:var(--rs);margin-bottom:14px;overflow-x:auto;white-space:pre}
+.nb{font-size:13px;line-height:1.6;padding:12px 14px;border-radius:var(--rs);margin-bottom:10px}
+
+/* Review */
+.rv{border-radius:var(--rl);padding:18px 20px;margin-top:18px}
+.rv .q{font-size:14px;font-weight:600;margin-bottom:14px;line-height:1.4}
+.rg{display:flex;gap:5px;flex-wrap:wrap}
+.rg button{flex:1;min-width:52px;padding:9px 6px;border:none;border-radius:var(--rs);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;font-family:var(--font)}
+.rev-btn{display:inline-block;padding:9px 22px;border:none;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:var(--font);margin-top:10px}
+.br{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:14px}
+.sec{border-top:1px solid;margin:18px 0;opacity:.12}
+
+/* ===== THEME 1 — Clean White ===== */
+.tw{background:#faf9f7;color:#1c1c1e}
+.tw .hd h1{color:#1c1c1e}
+.tw .bdg{background:#ece8e2;color:#75644e}
+.tw .sc{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.tw .sc:nth-child(1) .n{color:#2563eb}
+.tw .sc:nth-child(2) .n{color:#d97706}
+.tw .sc:nth-child(3) .n{color:#059669}
+.tw .sc:nth-child(4) .n{color:#7c3aed}
+.tw .tb{background:#eae7e2}
+.tw .tb .btn{color:#75644e}
+.tw .tb .btn.act{background:#fff;color:#1c1c1e;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.tw .tb .btn.nc{background:#1c1c1e;color:#fff}
+.tw .cd{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04),0 0 0 1px rgba(0,0,0,.02)}
+.tw .tg{background:#eeeaf2;color:#5b4e6b}
+.tw .df{background:#fef3c7;color:#92400e}
+.tw .cb{background:#f5f3f1;color:#1e1e1e;border:1px solid #eeece8}
+.tw .nb{background:#faf9f7;border:1px solid #eeece8;color:#333}
+.tw .rv{background:#f1efec;border:1px solid #e6e2dc}
+.tw .rg button{background:#fff;color:#1c1c1e;box-shadow:0 1px 1px rgba(0,0,0,.03)}
+.tw .rg button:hover{background:#eae7e2}
+.tw .rev-btn{background:#1c1c1e;color:#fff}
+.tw .sec{border-color:#ddd8d0}
+
+/* ===== THEME 2 — Soft Dark ===== */
+.ts{background:#14141c;color:#ddd9e3}
+.ts .hd h1{color:#e6e2ee}
+.ts .bdg{background:#252533;color:#b0a8c0}
+.ts .sc{background:#1c1c28;border:1px solid #262636}
+.ts .sc:nth-child(1) .n{color:#7aa2f7}
+.ts .sc:nth-child(2) .n{color:#e0af68}
+.ts .sc:nth-child(3) .n{color:#9ece6a}
+.ts .sc:nth-child(4) .n{color:#bb9af7}
+.ts .tb{background:#1c1c28}
+.ts .tb .btn{color:#9a94a6}
+.ts .tb .btn.act{background:#262636;color:#e6e2ee}
+.ts .tb .btn.nc{background:#7aa2f7;color:#0f0f16}
+.ts .cd{background:#1c1c28;border:1px solid #262636}
+.ts .tg{background:#262636;color:#c0b8d0}
+.ts .df{background:#2d281a;color:#e0af68}
+.ts .cb{background:#111118;color:#d4d0dc;border:1px solid #262636}
+.ts .nb{background:#181822;border:1px solid #262636;color:#c8c4d0}
+.ts .rv{background:#181822;border:1px solid #262636}
+.ts .rg button{background:#262636;color:#ddd9e3;border:1px solid #30304a}
+.ts .rg button:hover{background:#30304a}
+.ts .rev-btn{background:#7aa2f7;color:#0f0f16}
+.ts .sec{border-color:#262636}
+
+/* ===== THEME 3 — Minimal Neutral ===== */
+.tn{background:#f4f4f4;color:#1a1a1a}
+.tn .hd h1{color:#1a1a1a}
+.tn .bdg{background:#e0e0e0;color:#555}
+.tn .sc{background:#fff;border:1px solid #eaeaea}
+.tn .sc:nth-child(1) .n{color:#555}
+.tn .sc:nth-child(2) .n{color:#888}
+.tn .sc:nth-child(3) .n{color:#555}
+.tn .sc:nth-child(4) .n{color:#888}
+.tn .tb{background:#eaeaea}
+.tn .tb .btn{color:#777}
+.tn .tb .btn.act{background:#fff;color:#1a1a1a;box-shadow:0 1px 1px rgba(0,0,0,.03)}
+.tn .tb .btn.nc{background:#1a1a1a;color:#fff}
+.tn .cd{background:#fff;border:1px solid #eaeaea}
+.tn .tg{background:#eee;color:#555}
+.tn .df{background:#eee;color:#555}
+.tn .cb{background:#f0f0f0;color:#1a1a1a;border:1px solid #eaeaea}
+.tn .nb{background:#f8f8f8;border:1px solid #eaeaea;color:#333}
+.tn .rv{background:#efefef;border:1px solid #e4e4e4}
+.tn .rg button{background:#fff;color:#1a1a1a;border:1px solid #e0e0e0}
+.tn .rg button:hover{background:#eaeaea}
+.tn .rg button:nth-child(1){color:#888}
+.tn .rg button:nth-child(2){color:#888}
+.tn .rg button:nth-child(3){color:#888}
+.tn .rg button:nth-child(4){color:#888}
+.tn .rg button:nth-child(5){color:#888}
+.tn .rev-btn{background:#1a1a1a;color:#fff;border-radius:20px}
+.tn .sec{border-color:#eaeaea}
+
+/* ===== THEME 4 — Warm Sand ===== */
+.tm{background:#f7f2eb;color:#2c2418}
+.tm .hd h1{color:#2c2418}
+.tm .bdg{background:#ede3d5;color:#8b7355}
+.tm .sc{background:#fcf8f3;box-shadow:0 1px 2px rgba(162,136,98,.08)}
+.tm .sc:nth-child(1) .n{color:#a67c52}
+.tm .sc:nth-child(2) .n{color:#c94f2b}
+.tm .sc:nth-child(3) .n{color:#5a8f5a}
+.tm .sc:nth-child(4) .n{color:#8b6914}
+.tm .tb{background:#ede3d5}
+.tm .tb .btn{color:#8b7355}
+.tm .tb .btn.act{background:#fcf8f3;color:#2c2418;box-shadow:0 1px 2px rgba(162,136,98,.06)}
+.tm .tb .btn.nc{background:#a67c52;color:#fcf8f3}
+.tm .cd{background:#fcf8f3;box-shadow:0 1px 2px rgba(162,136,98,.08)}
+.tm .tg{background:#ede3d5;color:#6b5a40}
+.tm .df{background:#f7efe3;color:#a67c52}
+.tm .cb{background:#f3ece3;color:#2c2418;border:1px solid #e6dacb}
+.tm .nb{background:#faf6f0;border:1px solid #e6dacb;color:#3d3324}
+.tm .rv{background:#f3ece3;border:1px solid #e6dacb}
+.tm .rg button{background:#fcf8f3;color:#2c2418;box-shadow:0 1px 1px rgba(162,136,98,.06)}
+.tm .rg button:hover{background:#ede3d5}
+.tm .rev-btn{background:#a67c52;color:#fcf8f3}
+.tm .sec{border-color:#e6dacb}
+
+@media(max-width:620px){
+  .st{grid-template-columns:repeat(2,1fr)}
+  .hd{flex-wrap:wrap;gap:8px}
+  .ct{flex-direction:column}
+  .rg button{min-width:40px;font-size:10px;padding:7px 4px}
+}
+</style>
+</head>
+<body>
+
+<div class="tp" id="tp">
+  <input type="radio" name="th" value="tw" id="tw" checked>
+  <label for="tw"><span class="dot" style="background:#2563eb"></span> Clean White</label>
+  <input type="radio" name="th" value="ts" id="ts">
+  <label for="ts"><span class="dot" style="background:#7aa2f7"></span> Soft Dark</label>
+  <input type="radio" name="th" value="tn" id="tn">
+  <label for="tn"><span class="dot" style="background:#888"></span> Neutral</label>
+  <input type="radio" name="th" value="tm" id="tm">
+  <label for="tm"><span class="dot" style="background:#a67c52"></span> Warm Sand</label>
+</div>
+
+<div class="aw tw" id="app">
+  <!-- Header -->
+  <div class="hd">
+    <h1>✏️ Coding Journal <span class="bdg" id="dueBadge">2 due</span></h1>
+    <span class="time">Today, Jun 5</span>
+  </div>
+
+  <!-- Stats -->
+  <div class="st">
+    <div class="sc"><div class="n">24</div><div class="l">Total cards</div></div>
+    <div class="sc"><div class="n">2</div><div class="l">Due for review</div></div>
+    <div class="sc"><div class="n">8</div><div class="l">Mastered</div></div>
+    <div class="sc"><div class="n">5</div><div class="l">Day streak</div></div>
+  </div>
+
+  <!-- Review Area -->
+  <div class="rv">
+    <div class="q">📝 Review Session (1/2)</div>
+    <div style="margin-bottom:6px;font-size:15px;font-weight:600">Two Sum II — Input Array Is Sorted</div>
+    <div class="cm">
+      <span class="tg">arrays</span>
+      <span class="tg">two-pointers</span>
+      <span class="tg">binary-search</span>
+      <span class="df">medium</span>
+    </div>
+    <hr class="sec">
+    <div style="font-size:13px;margin-bottom:8px"><strong>How well did you recall the approach?</strong></div>
+    <div class="rg">
+      <button>Forgot (1)</button>
+      <button>Vague (2)</button>
+      <button>Fair (3)</button>
+      <button>Good (4)</button>
+      <button>Perfect (5)</button>
+    </div>
+    <button class="rev-btn">Reveal Full Card →</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tb">
+    <button class="btn act">Due <span style="opacity:.5;margin-left:3px">2</span></button>
+    <button class="btn">All <span style="opacity:.5;margin-left:3px">24</span></button>
+    <button class="btn">Mastered <span style="opacity:.5;margin-left:3px">8</span></button>
+    <button class="btn nc">+ New</button>
+  </div>
+
+  <!-- Card 1 -->
+  <div class="cd">
+    <div class="ct">
+      <div class="tt">Two Sum II — Input Array Is Sorted</div>
+      <span class="df" style="background:#fef3c7;color:#92400e;flex-shrink:0">medium</span>
+    </div>
+    <div class="cm">
+      <span class="tg">arrays</span>
+      <span class="tg">two-pointers</span>
+      <span class="tg">binary-search</span>
+    </div>
+    <div class="cf">
+      <span>↻ Reps: 3</span>
+      <span>📅 Next: tomorrow</span>
+      <span style="color:#d97706;font-weight:600">Due</span>
+    </div>
+  </div>
+
+  <!-- Card 2 (expanded) -->
+  <div class="cd">
+    <div class="ct">
+      <div class="tt">Maximum Subarray (Kadane's Algorithm)</div>
+      <span class="df" style="background:#fef3c7;color:#92400e;flex-shrink:0">medium</span>
+    </div>
+    <div class="cm">
+      <span class="tg">arrays</span>
+      <span class="tg">dp</span>
+      <span class="tg">divide-conquer</span>
+    </div>
+    <div class="cf" style="margin-bottom:10px">
+      <span>↻ Reps: 5</span>
+      <span>📅 Next: in 6 days</span>
+      <span style="color:#059669;font-weight:600">Mastered</span>
+    </div>
+    <div class="dt">
+      <div class="sl">Your code</div>
+      <div class="cb">var maxSubArray = function(nums) {
+  let max = nums[0];
+  let cur = nums[0];
+  for (let i = 1; i &lt; nums.length; i++) {
+    cur = Math.max(nums[i], cur + nums[i]);
+    max = Math.max(max, cur);
+  }
+  return max;
+};</div>
+      <div class="sl">My thinking</div>
+      <div class="nb">I attempted brute force O(n²) initially, tracking all subarray sums. Realized it's too slow for large inputs but couldn't figure out the optimal pattern on my own.</div>
+      <div class="sl">Right thinking</div>
+      <div class="nb">Kadane's algorithm: iterate once, keeping a running sum. At each position, decide whether to extend the current subarray or start fresh. The max of all running sums is the answer. O(n) time, O(1) space.</div>
+      <div class="sl">Notes</div>
+      <div class="nb">Key insight: if the running sum drops below 0, reset to 0. The subarray always starts at a positive position.</div>
+    </div>
+  </div>
+
+  <!-- Card 3 -->
+  <div class="cd">
+    <div class="ct">
+      <div class="tt">Valid Parentheses</div>
+      <span class="df" style="background:#dcfce7;color:#166534;flex-shrink:0">easy</span>
+    </div>
+    <div class="cm">
+      <span class="tg">stack</span>
+      <span class="tg">strings</span>
+    </div>
+    <div class="cf">
+      <span>↻ Reps: 7</span>
+      <span>📅 Next: in 14 days</span>
+      <span style="color:#059669;font-weight:600">Mastered</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var app = document.getElementById('app');
+  var inputs = document.querySelectorAll('.tp input');
+
+  function apply(v){
+    var classes = ['tw','ts','tn','tm'];
+    app.classList.remove.apply(app.classList, classes);
+    app.classList.add(v);
+  }
+
+  for(var i=0;i<inputs.length;i++){
+    inputs[i].addEventListener('change',function(){
+      if(this.checked) apply(this.value);
+    });
+  }
+})();
+</script>
+</body>
+</html>
