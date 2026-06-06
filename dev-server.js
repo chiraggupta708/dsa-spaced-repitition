@@ -28,17 +28,22 @@ app.all('/api/cards/mastered',     (await import('./api/cards/mastered.js')).def
 app.all('/api/stats',              (await import('./api/stats.js')).default);
 app.all('/api/export',             (await import('./api/export.js')).default);
 app.all('/api/import',             (await import('./api/import.js')).default);
+app.all('/api/leetcode/fetch',      (await import('./api/leetcode/fetch.js')).default);
+app.all('/api/migrate',             (await import('./api/migrate.js')).default);
 app.all('/api/cards',              (await import('./api/cards.js')).default);
 app.all('/api/cards/:cardId',      cardHandler);
 app.post('/api/cards/:cardId/review', cardHandler);
+
+// Serve index.html (must be before 404 catch-all)
+import fs from 'node:fs';
+app.get('/', (req, res) => {
+  res.type('html').send(fs.readFileSync(path.resolve(import.meta.dirname, 'index.html'), 'utf-8'));
+});
 
 // 404 catch-all
 app.use((req, res) => {
   res.status(404).json({ ok: false, error: 'Not found' });
 });
-
-// Serve index.html
-app.get('/', (req, res) => res.sendFile(path.resolve(import.meta.dirname, 'index.html')));
 
 app.listen(PORT, () => {
   console.log(`\n  🦾 Coding Journal — local dev server`);
