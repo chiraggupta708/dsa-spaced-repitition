@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UI Preview — Library + LeetCode in Current App</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#faf9f7;color:#1c1c1e;-webkit-font-smoothing:antialiased;display:flex;justify-content:center;padding:20px;min-height:100vh}
+
+/* ── App mockup ── */
+.app{width:460px;border:1px solid #e6e2dc;border-radius:16px;background:#fff;padding:12px 16px;position:relative;box-shadow:0 4px 24px rgba(0,0,0,.04)}
+.app-hd{display:flex;align-items:center;justify-content:space-between;margin:0 0 2px}
+.app-hd h1{font-size:16px;font-weight:650}
+.app-hd h1 .badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;background:#ece8e2;color:#75644e;margin-left:4px;text-transform:uppercase;letter-spacing:.03em}
+.app-hd .date-right{font-size:11px;color:#888}
+
+/* ── Stats ── */
+.stats{display:flex;gap:4px;margin:6px 0 8px}
+.sc{flex:1;text-align:center;padding:6px 0;background:#f5f3f1;border-radius:8px}
+.sc .n{font-size:15px;font-weight:700}
+.sc .l{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-top:1px}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:2px;background:#eae7e2;padding:3px;border-radius:8px;margin-bottom:8px}
+.tab{flex:1;padding:6px 0;text-align:center;font-size:11px;font-weight:600;border:none;border-radius:6px;cursor:pointer;background:transparent;color:#75644e;font-family:'Inter',sans-serif}
+.tab.active{background:#fff;color:#1c1c1e;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.tab.highlight{background:#f0f0ff;color:#4444aa}
+.tab .cnt{background:rgba(0,0,0,.08);padding:0 5px;border-radius:6px;font-size:9px;margin-left:2px}
+
+/* ── Review prompt ── */
+.rp{padding:10px 14px;background:#eeeaf2;border-radius:10px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.rp-l{font-size:12px;font-weight:600}
+.rp-l sub{font-size:10px;color:#75644e;font-weight:400}
+.rp-btn{padding:5px 12px;border:none;border-radius:6px;background:#1c1c1e;color:#fff;font-size:10px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif}
+
+/* ── Header row (search + library button) ── */
+.toolbar{display:flex;gap:6px;margin-bottom:8px;align-items:center}
+.toolbar .sb{flex:1;display:flex;align-items:center;border:1px solid #eeece8;border-radius:8px;padding:0 10px}
+.toolbar .sb input{border:none;outline:none;width:100%;padding:7px 0;font-size:12px;font-family:'Inter',sans-serif;background:transparent;color:#1c1c1e}
+.toolbar .sb input::placeholder{color:#aaa}
+.lib-btn{width:32px;height:32px;border-radius:8px;border:1px solid #eeece8;background:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lib-btn:hover{background:#f5f3f1}
+
+/* ── Filter chips ── */
+.chips{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.chip{padding:3px 8px;border-radius:6px;font-size:9px;font-weight:600;background:#f5f3f1;color:#555;cursor:pointer;border:none;font-family:'Inter',sans-serif}
+.chip.active{background:#1c1c1e;color:#fff}
+
+/* ── Card list ── */
+.card-list{}
+.card{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid #eeece8;border-radius:8px;margin-bottom:4px;cursor:pointer}
+.card:hover{border-color:#ddd8d0}
+.c-title{font-size:12px;font-weight:600;margin-bottom:1px}
+.c-meta{font-size:9px;color:#888}
+.c-tags{display:flex;gap:3px;flex-wrap:wrap}
+.c-tag{font-size:8px;padding:1px 5px;border-radius:4px;background:#f0eef4;color:#75644e}
+.c-due{font-size:9px;color:#888;flex-shrink:0;text-align:right}
+.c-difficulty{font-size:8px;padding:1px 5px;border-radius:4px;font-weight:600}
+.c-difficulty.easy{background:#dcfce7;color:#166534}
+.c-difficulty.medium{background:#fef3c7;color:#92400e}
+.c-difficulty.hard{background:#fee2e2;color:#991b1b}
+
+.card.library{background:#f8f4fe;border-color:#dcd4ec}
+.card.library .lib-icon{font-size:20px;width:32px;text-align:center}
+
+/* ── Modals / Panels ── */
+.panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.15);z-index:100;display:none}
+.panel-overlay.open{display:block}
+
+.panel{position:fixed;top:0;right:0;bottom:0;width:380px;background:#fff;z-index:101;box-shadow:-4px 0 24px rgba(0,0,0,.08);display:none;overflow-y:auto}
+.panel.open{display:block}
+.panel-inner{padding:20px}
+
+.p-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.p-hd h2{font-size:15px;font-weight:600}
+.p-close{width:28px;height:28px;border-radius:6px;border:none;background:#f5f3f1;font-size:14px;cursor:pointer;font-family:'Inter',sans-serif}
+.lc{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #eeece8;border-radius:8px;margin-bottom:6px;cursor:pointer}
+.lc:hover{border-color:#ddd8d0}
+.lc-icon{font-size:18px;width:28px;text-align:center}
+.lc-info{flex:1;min-width:0}
+.lc-title{font-size:12px;font-weight:600}
+.lc-meta{font-size:9px;color:#888;margin-top:1px}
+.lc-progress{height:3px;border-radius:2px;background:#eae7e2;margin-top:5px;overflow:hidden}
+.lc-progress .fill{height:100%;border-radius:2px;background:#7c3aed;transition:width .3s}
+.lc-side{text-align:right}
+.lc-badge{font-size:8px;padding:2px 5px;border-radius:4px;background:#ece8e2;color:#75644e;font-weight:600}
+
+/* ── Problem list detail ── */
+.list-detail{padding:4px 0}
+.topic-hd{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#888;margin:10px 0 4px;padding-top:6px;border-top:1px solid #eeece8}
+.topic-hd:first-child{border-top:none;margin-top:0;padding-top:0}
+.prob{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f5f3f1}
+.prob:last-child{border-bottom:none}
+.p-title{font-size:11px;font-weight:600}
+.p-meta{font-size:9px;color:#888}
+.p-btn{width:26px;height:26px;border-radius:6px;border:1px solid #e0ddd8;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;font-family:'Inter',sans-serif}
+.p-btn:hover{background:#f5f3f1}
+.p-btn.done{background:#7c3aed;color:#fff;border-color:#7c3aed}
+
+/* ── List detail header ── */
+.ld-hd{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #eeece8}
+.ld-back{width:28px;height:28px;border-radius:6px;border:none;background:#f5f3f1;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif}
+.ld-info{flex:1}
+.ld-title{font-size:14px;font-weight:600}
+.ld-meta{font-size:10px;color:#888;margin-top:1px}
+.ld-progress{width:100px;height:4px;border-radius:2px;background:#eae7e2;overflow:hidden}
+.ld-progress .fill{height:100%;border-radius:2px;background:#7c3aed}
+
+/* ── Modal (Add from LeetCode) ── */
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:200}
+.modal.open{display:flex}
+.modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.12)}
+.modal-box{position:relative;background:#fff;border-radius:12px;width:420px;max-width:90vw;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,.1)}
+.m-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.m-hd h2{font-size:14px;font-weight:600}
+.m-close{width:28px;height:28px;border-radius:6px;border:none;background:#f5f3f1;font-size:14px;cursor:pointer;font-family:'Inter',sans-serif}
+.m-field{margin-bottom:10px}
+.m-field label{display:block;font-size:10px;color:#888;margin-bottom:3px;font-weight:600}
+.m-field input,.m-field select{width:100%;padding:7px 9px;border:1px solid #e0ddd8;border-radius:6px;font-size:12px;outline:none;font-family:'Inter',sans-serif;background:#fff}
+.m-field input:focus,.m-field select:focus{border-color:#888}
+.m-field textarea{width:100%;padding:7px 9px;border:1px solid #e0ddd8;border-radius:6px;font-size:12px;outline:none;resize:vertical;font-family:'Inter',sans-serif}
+.m-field .auto-badge{display:inline-block;font-size:8px;padding:1px 5px;border-radius:4px;background:#059669;color:#fff;font-weight:600;margin-bottom:3px}
+.m-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:12px}
+.m-btn{padding:7px 16px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif}
+.m-btn.primary{background:#1c1c1e;color:#fff}
+.m-btn.ghost{background:transparent;color:#555}
+
+/* ── Pills ── */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:600;background:#f5f3f1;color:#555;border:none;cursor:pointer;font-family:'Inter',sans-serif}
+
+/* ── Toggle ── */
+.view-toggle{display:flex;gap:2px;background:#eae7e2;padding:3px;border-radius:8px}
+.vt-btn{padding:4px 10px;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;background:transparent;color:#75644e;font-family:'Inter',sans-serif}
+.vt-btn.active{background:#fff;color:#1c1c1e;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+
+/* ── Annotation ── */
+.annot{font-size:9px;color:#059669;margin-top:3px;font-style:italic}
+
+/* ── Highlight marker ── */
+.highlight-ring{border:2px dashed #7c3aed;border-radius:10px;position:relative}
+.highlight-ring::after{content:"NEW";position:absolute;top:-8px;right:-8px;font-size:8px;font-weight:700;color:#fff;background:#7c3aed;padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="app" id="mainApp">
+  <!-- Header -->
+  <div class="app-hd">
+    <h1>✏️ Coding Journal <span class="badge">3 due</span></h1>
+    <span class="date-right">Jun 5</span>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="sc"><div class="n">42</div><div class="l">Total</div></div>
+    <div class="sc"><div class="n">3</div><div class="l">Due</div></div>
+    <div class="sc"><div class="n">18</div><div class="l">Mastered</div></div>
+    <div class="sc"><div class="n">7</div><div class="l">Streak</div></div>
+  </div>
+
+  <!-- Tabs (unchanged) -->
+  <div class="tabs">
+    <button class="tab active">Due <span class="cnt">3</span></button>
+    <button class="tab">All <span class="cnt">42</span></button>
+    <button class="tab">Mastered <span class="cnt">18</span></button>
+    <button class="tab" style="flex:0 0 auto;padding:6px 12px;background:#1c1c1e;color:#fff;border-radius:12px;font-size:10px">+ New</button>
+  </div>
+
+  <!-- Review prompt (existing) -->
+  <div class="rp">
+    <div class="rp-l">📝 3 cards due <sub>next: Two Sum in 2h</sub></div>
+    <button class="rp-btn">Review Now →</button>
+  </div>
+
+  <!-- Toolbar: Search + Library button (highlighted as new) -->
+  <div class="toolbar highlight-ring" style="position:relative">
+    <div class="sb"><input type="text" placeholder="Search cards..."></div>
+    <button class="lib-btn" id="libToggleBtn" style="background:#f0ecf9;border-color:#dcd4ec">📚</button>
+    <!-- The ring label -->
+    <div style="position:absolute;top:-8px;right:-2px;font-size:8px;font-weight:700;color:#fff;background:#7c3aed;padding:1px 5px;border-radius:4px;z-index:5">NEW</div>
+  </div>
+
+  <!-- Filter chips (existing, below search) -->
+  <div class="chips">
+    <button class="chip">all</button>
+    <button class="chip active">easy</button>
+    <button class="chip">medium</button>
+    <button class="chip">hard</button>
+    <button class="chip">sort: due ↑</button>
+  </div>
+
+  <!-- Card list -->
+  <div class="card-list">
+    <div class="card highlight-ring" style="position:relative;border-color:#dcd4ec">
+      <div style="font-size:18px;width:28px;text-align:center">📚</div>
+      <div style="flex:1">
+        <div class="c-title">Blind 75</div>
+        <div class="c-meta">12 / 75 solved · 4 topics</div>
+      </div>
+      <div style="text-align:right">
+        <div class="lc-progress" style="width:50px"><div class="fill" style="width:16%"></div></div>
+      </div>
+      <div style="position:absolute;top:-8px;right:-2px;font-size:8px;font-weight:700;color:#fff;background:#7c3aed;padding:1px 5px;border-radius:4px;z-index:5">NEW</div>
+    </div>
+    <div class="card">
+      <div style="flex:1">
+        <div class="c-title">Two Sum <span class="c-difficulty easy">Easy</span></div>
+        <div class="c-tags" style="margin-top:3px"><span class="c-tag">array</span><span class="c-tag">hash-map</span></div>
+      </div>
+      <div class="c-due">due in 2h</div>
+    </div>
+    <div class="card">
+      <div style="flex:1">
+        <div class="c-title">LRU Cache <span class="c-difficulty medium">Medium</span></div>
+        <div class="c-tags" style="margin-top:3px"><span class="c-tag">design</span><span class="c-tag">linked-list</span></div>
+      </div>
+      <div class="c-due">due tomorrow</div>
+    </div>
+    <div class="card">
+      <div style="flex:1">
+        <div class="c-title">Median of Two Sorted Arrays <span class="c-difficulty hard">Hard</span></div>
+        <div class="c-tags" style="margin-top:3px"><span class="c-tag">binary-search</span><span class="c-tag">divide-conquer</span></div>
+      </div>
+      <div class="c-due">due in 5d</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ LIBRARY PANEL ════ -->
+<div class="panel" id="libPanel">
+  <div class="panel-inner">
+    <div class="p-hd">
+      <h2>📚 Problem Lists</h2>
+      <div style="display:flex;gap:4px;align-items:center">
+        <span style="font-size:9px;color:#888">4 lists</span>
+        <button class="p-close" id="libClose">✕</button>
+      </div>
+    </div>
+
+    <div class="lc">
+      <div class="lc-icon">👁️</div>
+      <div class="lc-info">
+        <div class="lc-title">Blind 75</div>
+        <div class="lc-meta">12 / 75 solved · Last: Two Sum</div>
+        <div class="lc-progress"><div class="fill" style="width:16%"></div></div>
+      </div>
+      <div class="lc-side"><span class="lc-badge">Popular</span></div>
+    </div>
+
+    <div class="lc" id="lcDetail">
+      <div class="lc-icon">🆕</div>
+      <div class="lc-info">
+        <div class="lc-title">NeetCode 150</div>
+        <div class="lc-meta">5 / 150 solved</div>
+        <div class="lc-progress"><div class="fill" style="width:3.3%"></div></div>
+      </div>
+      <div class="lc-side"><span class="lc-badge">150</span></div>
+    </div>
+
+    <div class="lc">
+      <div class="lc-icon">🔥</div>
+      <div class="lc-info">
+        <div class="lc-title">Grind 169</div>
+        <div class="lc-meta">0 / 169 solved</div>
+        <div class="lc-progress"><div class="fill" style="width:0%"></div></div>
+      </div>
+      <div class="lc-side"><span class="lc-badge">169</span></div>
+    </div>
+
+    <div class="lc">
+      <div class="lc-icon">🗄️</div>
+      <div class="lc-info">
+        <div class="lc-title">SQL Patterns</div>
+        <div class="lc-meta">2 / 25 solved</div>
+        <div class="lc-progress"><div class="fill" style="width:8%"></div></div>
+      </div>
+      <div class="lc-side"><span class="lc-badge">SQL</span></div>
+    </div>
+
+    <!-- Detail view for Blind 75 (shown when clicked) -->
+    <div id="listDetail" style="display:none;margin-top:16px">
+      <div class="ld-hd">
+        <button class="ld-back" id="ldBack">←</button>
+        <div class="ld-info">
+          <div class="ld-title">Blind 75</div>
+          <div class="ld-meta">75 problems · 15 topics</div>
+        </div>
+        <div class="ld-progress"><div class="fill" style="width:16%"></div></div>
+      </div>
+
+      <div class="list-detail">
+        <div class="topic-hd">Arrays &amp; Hashing</div>
+        <div class="prob">
+          <div style="flex:1"><div class="p-title">Two Sum</div><div class="p-meta">Easy · array, hash-table</div></div>
+          <button class="p-btn done">✓</button>
+        </div>
+        <div class="prob">
+          <div style="flex:1"><div class="p-title">Contains Duplicate</div><div class="p-meta">Easy · array, hash-table</div></div>
+          <button class="p-btn">+</button>
+        </div>
+        <div class="prob">
+          <div style="flex:1"><div class="p-title">Valid Anagram</div><div class="p-meta">Easy · hash-table, string</div></div>
+          <button class="p-btn done">✓</button>
+        </div>
+
+        <div class="topic-hd">Two Pointers</div>
+        <div class="prob">
+          <div style="flex:1"><div class="p-title">Valid Palindrome</div><div class="p-meta">Easy · two-pointer, string</div></div>
+          <button class="p-btn done">✓</button>
+        </div>
+        <div class="prob">
+          <div style="flex:1"><div class="p-title">3Sum</div><div class="p-meta">Medium · two-pointer, sorting</div></div>
+          <button class="p-btn">+</button>
+        </div>
+
+        <div class="topic-hd">Trees</div>
+        <div class="prob">
+          <div style="flex:1"><div class="p-title">Invert Binary Tree</div><div class="p-meta">Easy · tree, recursion</div></div>
+          <button class="p-btn">+</button>
+        </div>
+
+        <div style="margin-top:12px;padding:8px 12px;background:#f5f3f1;border-radius:8px;font-size:9px;color:#555">
+          Click <strong>+</strong> to import a problem to your review queue. ✓ means already added.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: Add from LeetCode (shown when clicking "From LeetCode") ════ -->
+<div class="modal" id="leetModal">
+  <div class="modal-bg" id="leetBg"></div>
+  <div class="modal-box">
+    <div class="m-hd">
+      <h2>🔗 Add from LeetCode</h2>
+      <button class="m-close" id="leetClose">✕</button>
+    </div>
+
+    <div class="m-field">
+      <label>LeetCode URL</label>
+      <input type="text" placeholder="https://leetcode.com/problems/two-sum/" value="https://leetcode.com/problems/two-sum/" id="leetUrl" style="border-color:#059669">
+      <div class="annot">✓ Fetched — Two Sum · Easy · array, hash-table</div>
+    </div>
+
+    <div class="m-field">
+      <label>Question *</label>
+      <input type="text" value="Two Sum" id="leetQ">
+    </div>
+
+    <div class="m-field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div>
+        <label>Tags</label>
+        <input type="text" value="array, hash-table" id="leetTags">
+      </div>
+      <div>
+        <label>Difficulty</label>
+        <select id="leetDiff"><option>Easy</option><option selected>Medium</option><option>Hard</option></select>
+      </div>
+    </div>
+
+    <div class="m-field">
+      <label>My Approach *</label>
+      <textarea rows="2" placeholder="Your thinking notes..."></textarea>
+    </div>
+
+    <div class="m-field">
+      <label>Code</label>
+      <textarea rows="3" placeholder="Paste your solution..."></textarea>
+    </div>
+
+    <div class="m-actions">
+      <button class="m-btn ghost" id="leetCancel">Cancel</button>
+      <button class="m-btn primary">Save Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ ANNOTATION ════ -->
+<div style="width:460px;margin-top:12px;padding:12px;background:#f5f3f1;border-radius:10px;font-size:11px;color:#555;line-height:1.5">
+  <strong>What's new (highlighted with dashed border):</strong><br>
+  ① <strong>📚 Library button</strong> in toolbar — sits next to search bar. Opens the side panel with lists.<br>
+  ② <strong>Blind 75 card</strong> appears in your card list (like a "folder" card showing progress).<br>
+  ③ Click a list → <strong>problem detail view</strong> — problems grouped by topic. Click + to add a card.<br>
+  ④ Actually +New can have a "From LeetCode" option that <strong>auto-fills the form</strong> from a URL.<br><br>
+  <strong>Unchanged:</strong> Tab bar (Due | All | Mastered | +New), stats, review flow, search/filters.
+</div>
+
+<script>
+(function(){
+  var libBtn = document.getElementById('libToggleBtn');
+  var libPanel = document.getElementById('libPanel');
+  var libClose = document.getElementById('libClose');
+
+  libBtn.addEventListener('click', function(){
+    libPanel.classList.toggle('open');
+  });
+  libClose.addEventListener('click', function(){
+    libPanel.classList.remove('open');
+  });
+
+  // Click a list to show detail
+  document.querySelectorAll('.lc').forEach(function(el, i){
+    el.addEventListener('click', function(){
+      var detail = document.getElementById('listDetail');
+      detail.style.display = detail.style.display === 'none' ? 'block' : 'none';
+      // Scroll to detail after toggle
+      if(detail.style.display === 'block'){
+        setTimeout(function(){ detail.scrollIntoView({behavior:'smooth', block:'start'}) }, 50);
+      }
+    });
+  });
+
+  document.getElementById('ldBack').addEventListener('click', function(e){
+    document.getElementById('listDetail').style.display = 'none';
+    e.stopPropagation();
+  });
+})();
+</script>
+
+</body>
+</html>
