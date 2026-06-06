@@ -249,6 +249,51 @@ async function testImport() {
   assert(found, `imported card not found after import`);
 }
 
+/* ================================================================ */
+/*  LEETCODE FETCH TESTS                                            */
+/* ================================================================ */
+
+async function testLeetCodeFetch() {
+  const { status, data } = await request('POST', '/api/leetcode/fetch', {
+    url: 'https://leetcode.com/problems/two-sum/'
+  });
+  if (status !== 200) throw new Error(`Expected 200, got ${status}`);
+  if (!data.ok) throw new Error(`Expected ok=true, got ${JSON.stringify(data)}`);
+  if (!data.data) throw new Error('Expected data field');
+  if (!data.data.title || data.data.title !== 'Two Sum') throw new Error(`Expected title "Two Sum", got "${data.data.title}"`);
+  if (!data.data.difficulty || !['easy', 'medium', 'hard'].includes(data.data.difficulty)) throw new Error(`Invalid difficulty "${data.data.difficulty}"`);
+  if (!Array.isArray(data.data.tags) || data.data.tags.length === 0) throw new Error('Expected tags array');
+  if (!data.data.description || data.data.description.length < 10) throw new Error(`Description too short: "${data.data.description}"`);
+  if (!data.data.url || !data.data.url.includes('two-sum')) throw new Error(`Invalid url "${data.data.url}"`);
+}
+
+async function testLeetCodeFetchInvalid() {
+  const { status, data } = await request('POST', '/api/leetcode/fetch', {
+    url: 'https://google.com/'
+  });
+  if (status !== 400) throw new Error(`Expected 400, got ${status}`);
+  if (data.ok) throw new Error('Expected ok=false');
+}
+
+async function testLeetCodeFetchEmpty() {
+  const { status, data } = await request('POST', '/api/leetcode/fetch', {});
+  if (status !== 400) throw new Error(`Expected 400, got ${status}`);
+  if (data.ok) throw new Error('Expected ok=false');
+}
+
+async function testLeetCodeFetchNotFound() {
+  const { status, data } = await request('POST', '/api/leetcode/fetch', {
+    url: 'https://leetcode.com/problems/xyznonexistentproblem999/'
+  });
+  if (status !== 404) throw new Error(`Expected 404, got ${status}`);
+  if (data.ok) throw new Error('Expected ok=false');
+}
+
+async function testLeetCodeFetchMethod() {
+  const { status } = await request('GET', '/api/leetcode/fetch');
+  if (status !== 405) throw new Error(`Expected 405, got ${status}`);
+}
+
 async function testHealthAfterImport() {
   // Just ensure everything still works
   const { status, data } = await request('GET', '/api/health');
@@ -283,6 +328,13 @@ async function runAll() {
   await test('DELETE /api/cards/:id (404)', testDeleteCardNotFound);
   await test('PUT  /api/cards/:id (404)', testUpdateCardNotFound);
   await test('POST /api/import', testImport);
+  // --- LeetCode fetch tests ---
+  await test('POST /api/leetcode/fetch (valid URL)', testLeetCodeFetch);
+  await test('POST /api/leetcode/fetch (invalid URL)', testLeetCodeFetchInvalid);
+  await test('POST /api/leetcode/fetch (empty body)', testLeetCodeFetchEmpty);
+  await test('POST /api/leetcode/fetch (non-existent slug)', testLeetCodeFetchNotFound);
+  await test('POST /api/leetcode/fetch (method not allowed)', testLeetCodeFetchMethod);
+
   await test('GET  /api/health (post-import)', testHealthAfterImport);
 
   console.log(`\n  ──────────────────────────────────────`);
