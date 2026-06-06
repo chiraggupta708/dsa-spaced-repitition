@@ -33,6 +33,7 @@ export default async function handler(req, res) {
         my_thinking: body.my_thinking || '',
         right_thinking: body.right_thinking || '',
         notes: body.notes || '',
+        questionDescription: body.questionDescription || '',
         sm2: defaultSm2()
       };
       var cData = await load();
