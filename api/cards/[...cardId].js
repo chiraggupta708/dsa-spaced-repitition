@@ -107,6 +107,7 @@ export default async function handler(req, res) {
       if (body.my_thinking !== undefined) existing.my_thinking = body.my_thinking;
       if (body.right_thinking !== undefined) existing.right_thinking = body.right_thinking;
       if (body.notes !== undefined) existing.notes = body.notes;
+      if (body.questionDescription !== undefined) existing.questionDescription = body.questionDescription;
       existing.updated = todayISO();
       uData.cards[idx] = existing;
       await save(uData);
