@@ -813,7 +813,14 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
     },
 
     openNew: function(kind){
-      CJ.renderer.switchTab('designs');
+      // Mark the Designs tab active WITHOUT calling renderTab() — that would
+      // kick off renderList()'s async paint which races and clobbers the form.
+      var r = CJ.renderer;
+      r.tab = 'designs';
+      try { localStorage.setItem('cj-last-tab', 'designs'); } catch(e){}
+      var btns = document.querySelectorAll('.tb-btn');
+      for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].dataset.tab==='designs');
+      var rp = U.byId('reviewPrompt'); if(rp) rp.classList.add('hidden');
       this.renderForm({ kind: kind || 'lld' });
     },
 
