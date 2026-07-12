@@ -1562,6 +1562,11 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
       return;
     }
 
+    if (t === 'designs') {
+      origRenderTab.call(self);
+      return;
+    }
+
     var fetchFn, emptyText, emptySub, sortFn;
     if (t === 'due') {
       fetchFn = CJ.api.getDue;
