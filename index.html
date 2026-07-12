@@ -285,11 +285,11 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 
 /* ===== MODERN STUDIO REVAMP ===== */
 :root{
-  --accent:#6366f1;--accent2:#a855f7;
-  --accent-grad:linear-gradient(135deg,#6366f1 0%,#8b5cf6 55%,#a855f7 100%);
-  --accent-grad-d:linear-gradient(135deg,#818cf8 0%,#a78bfa 55%,#e9d5ff 100%);
+  --accent:#2563eb;--accent2:#06b6d4;
+  --accent-grad:linear-gradient(135deg,#2563eb 0%,#3b82f6 55%,#06b6d4 100%);
+  --accent-grad-d:linear-gradient(135deg,#60a5fa 0%,#7dd3fc 55%,#67e8f9 100%);
   --shadow:0 1px 2px rgba(17,17,26,.05),0 6px 18px rgba(17,17,26,.07);
-  --shadow-hover:0 10px 28px rgba(99,102,241,.22);
+  --shadow-hover:0 10px 28px rgba(37,99,235,.22);
   --rs:10px;--r:14px;--rl:18px
 }
 /* Gradient brand title */
@@ -323,7 +323,7 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 .dark .tpkr-btn.active{background:var(--accent-grad-d);color:#0f0f16}
 /* Accent active tab (bottom underline) */
 .light .tb-btn.active{color:var(--accent);box-shadow:inset 0 -2px 0 var(--accent)}
-.dark .tb-btn.active{color:#c4b5fd;box-shadow:inset 0 -2px 0 #8b5cf6}
+.dark .tb-btn.active{color:#93c5fd;box-shadow:inset 0 -2px 0 #3b82f6}
 /* Form section lift */
 .light .fs{border-color:#ece8e2;box-shadow:var(--shadow)}
 .dark .fs{border-color:#262636;box-shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.2)}
@@ -336,19 +336,120 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 .dark .rv-fill{background:var(--accent-grad-d)}
 .light .rv-r.selected{background:var(--accent-grad);color:#fff}
 .dark .rv-r.selected{background:var(--accent-grad-d);color:#0f0f16}
+
+/* ===== MODERN STUDIO — SIDEBAR + BENTO LAYOUT ===== */
+.shell{display:flex;min-height:100vh;max-width:1120px;margin:0 auto}
+/* Sidebar */
+.light .sb{background:var(--surface);border-right:1px solid var(--line)}
+.dark .sb{background:var(--surface);border-right:1px solid var(--line)}
+.sb{width:240px;flex-shrink:0;padding:22px 16px;position:sticky;top:0;height:100vh;
+  display:flex;flex-direction:column}
+.sb-brand{font-size:19px;font-weight:800;letter-spacing:-.3px;margin:0 0 3px;
+  background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+.dark .sb-brand{background:var(--accent-grad-d);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.sb-sub{font-size:11px;color:var(--muted);margin-bottom:22px;font-weight:600}
+.sb-nav{display:flex;flex-direction:column;gap:4px}
+.sb-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;
+  border:none;background:transparent;color:var(--muted);font-weight:700;font-size:14px;
+  cursor:pointer;text-align:left;width:100%;transition:.15s}
+.sb-item .ic{font-size:16px;width:20px;text-align:center}
+.sb-item:hover{background:var(--surface2);color:var(--text)}
+.sb-item.active{background:var(--accent-grad);color:#fff;box-shadow:0 4px 14px rgba(37,99,235,.28)}
+.dark .sb-item.active{background:var(--accent-grad-d);color:#0f0f16}
+.sb-c{margin-left:auto;font-size:10px;font-weight:800;background:rgba(0,0,0,.08);
+  padding:1px 7px;border-radius:999px}
+.dark .sb-c{background:rgba(255,255,255,.18)}
+.sb-item.active .sb-c{background:rgba(255,255,255,.25)}
+.sb-foot{margin-top:auto;display:flex;flex-direction:column;gap:10px}
+.sb-new{display:flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--accent-grad);color:#fff;border:none;border-radius:11px;padding:12px;
+  font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(37,99,235,.3)}
+.dark .sb-new{background:var(--accent-grad-d);color:#0f0f16}
+.light .sb .tp{position:static;display:flex;gap:6px;padding:0}
+.dark .sb .tp{position:static;display:flex;gap:6px;padding:0}
+.sb .tp-btn{flex:1;background:var(--surface2);border:1px solid var(--line);color:var(--muted)}
+/* Main */
+.mn{flex:1;min-width:0;padding:26px 28px 40px}
+.light .hd{margin-bottom:18px}
+/* Bento stats */
+.light .st{gap:14px;margin-bottom:18px}
+.dark .st{gap:14px;margin-bottom:18px}
+.light .sc{border-radius:var(--radius-sm);padding:16px}
+.dark .sc{border-radius:var(--radius-sm);padding:16px}
+.sc .n{font-size:24px}
+.sc.lead{background:var(--accent-grad);border:none;color:#fff;box-shadow:0 6px 20px rgba(37,99,235,.3)}
+.dark .sc.lead{background:var(--accent-grad-d);color:#0f0f16}
+.sc.lead .l{color:rgba(255,255,255,.85)}
+.dark .sc.lead .l{color:rgba(15,15,22,.7)}
+.sc.lead .n{text-shadow:none}
+.sc:nth-child(2) .n{color:#2563eb;text-shadow:0 0 18px rgba(37,99,235,.25)}
+.sc:nth-child(3) .n{color:#059669;text-shadow:0 0 18px rgba(5,150,105,.25)}
+.sc:nth-child(4) .n{color:#7c3aed;text-shadow:0 0 18px rgba(124,58,237,.35)}
+/* Momentum bar */
+.momentum{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:14px 16px;margin-bottom:18px;box-shadow:var(--shadow)}
+.momentum .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+.momentum .t{font-size:13px;font-weight:700}
+.momentum .v{font-size:12px;color:var(--muted);font-weight:600}
+.momentum .bar{height:9px;border-radius:999px;background:var(--surface2);overflow:hidden;border:1px solid var(--line)}
+.momentum .bar > i{display:block;height:100%;background:var(--accent-grad);border-radius:999px;transition:width .3s}
+.momentum .hint{font-size:11px;color:var(--muted);margin-top:8px}
+/* Bento card grid */
+.light #content{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.dark #content{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.light #content .cd{margin-bottom:0;box-shadow:var(--shadow)}
+.dark #content .cd{margin-bottom:0}
+.light #content .empty{grid-column:1/-1}
+.dark #content .empty{grid-column:1/-1}
+/* Mobile bottom nav */
+.bn-bar{display:none}
+@media(max-width:880px){
+  .shell{flex-direction:column}
+  .sb{display:none}
+  .mn{padding:18px 14px 84px}
+  .light .st{grid-template-columns:repeat(2,1fr)}
+  .dark .st{grid-template-columns:repeat(2,1fr)}
+  .light #content{grid-template-columns:1fr}
+  .dark #content{grid-template-columns:1fr}
+  .bn-bar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:400;
+    background:var(--surface);border-top:1px solid var(--line);padding:8px 4px;justify-content:space-around}
+  .bn{flex:1;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:700;
+    display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0}
+  .bn .ic{font-size:18px}
+  .bn.active{color:var(--accent)}
+  .bn.plus{color:#fff;background:var(--accent-grad);border-radius:12px;box-shadow:0 4px 14px rgba(37,99,235,.3)}
+  .dark .bn.plus{background:var(--accent-grad-d);color:#0f0f16}
+}
 </style>
 </head>
 <body>
 
-<div class="tp" id="themePicker">
-  <button class="tp-btn active" data-theme="light">☀️</button>
-  <button class="tp-btn" data-theme="dark">🌙</button>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <div class="app light" id="app">
+ <div class="shell">
 
+  <!-- SIDEBAR -->
+  <aside class="sb">
+    <div class="sb-brand">✏️ Coding Journal</div>
+    <div class="sb-sub">Spaced-repetition log</div>
+    <nav class="sb-nav" id="sbNav">
+      <button class="sb-item active" data-tab="due"><span class="ic">⏰</span>Due <span class="sb-c" id="tDue">0</span></button>
+      <button class="sb-item" data-tab="all"><span class="ic">📚</span>All cards</button>
+      <button class="sb-item" data-tab="designs"><span class="ic">🧩</span>Designs</button>
+      <button class="sb-item" data-tab="mastered"><span class="ic">⭐</span>Mastered</button>
+    </nav>
+    <div class="sb-foot">
+      <button class="sb-new" data-tab="add">＋ New entry</button>
+      <div class="tp" id="themePicker">
+        <button class="tp-btn active" data-theme="light">☀️</button>
+        <button class="tp-btn" data-theme="dark">🌙</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="mn">
   <!-- BROWSE MODE -->
   <div id="modeBrowse">
     <!-- Loading shim -->
@@ -358,19 +459,25 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
       </div>
     </div>
     <header class="hd">
-      <h1>✏️ Coding Journal <span class="bdg" id="dueBadge">0 due</span></h1>
+      <h1><span class="bdg" id="dueBadge">0 due</span></h1>
       <span class="date" id="todayDate"></span>
     </header>
 
     <div class="st" id="stats">
+      <div class="sc lead"><div class="n" id="statDue">0</div><div class="l">Due</div></div>
       <div class="sc"><div class="n" id="statTotal">0</div><div class="l">Total</div></div>
-      <div class="sc"><div class="n" id="statDue">0</div><div class="l">Due</div></div>
       <div class="sc"><div class="n" id="statMastered">0</div><div class="l">Mastered</div></div>
       <div class="sc"><div class="n" id="statStreak">0</div><div class="l">Streak</div></div>
     </div>
 
+    <div class="momentum" id="momentum">
+      <div class="row"><span class="t">📈 Review momentum</span><span class="v" id="momentumV">3 / 10 today</span></div>
+      <div class="bar"><i id="momentumFill" style="width:30%"></i></div>
+      <div class="hint" id="momentumHint">Reviews left to hit your daily goal.</div>
+    </div>
+
     <div class="tb" id="tabs">
-      <button class="tb-btn active" data-tab="due">Due <span class="tbc" id="tDue">0</span></button>
+      <button class="tb-btn active" data-tab="due">Due <span class="tbc" id="tDue2">0</span></button>
       <button class="tb-btn" data-tab="all">All <span class="tbc" id="tAll">0</span></button>
       <button class="tb-btn" data-tab="mastered">Mastered <span class="tbc" id="tMastered">0</span></button>
       <button class="tb-btn" data-tab="designs">Designs</button>
@@ -437,7 +544,20 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
       <button class="btn-p" id="rvDone" style="margin:16px auto 0;display:block">Done</button>
     </div>
   </div>
-</div>
+  </div>
+  </main>
+ </div>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="bn-bar">
+    <button class="bn active" data-tab="due"><span class="ic">⏰</span>Due</button>
+    <button class="bn" data-tab="all"><span class="ic">📚</span>All</button>
+    <button class="bn plus" data-tab="add"><span class="ic">＋</span>New</button>
+    <button class="bn" data-tab="designs"><span class="ic">🧩</span>Designs</button>
+    <button class="bn" data-tab="mastered"><span class="ic">⭐</span>Done</button>
+  </nav>
+
+
 
 
 <script>
@@ -573,6 +693,14 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
         U.byId('statDue').textContent=s.due||0;
         U.byId('statMastered').textContent=s.mastered||0;
         U.byId('statStreak').textContent=s.streak||0;
+        // Review-momentum bar (Goal Gradient): reviewedToday / goal
+        var done=typeof s.reviewedToday==='number'?s.reviewedToday:0;
+        var goal=typeof s.dailyGoal==='number'&&s.dailyGoal>0?s.dailyGoal:10;
+        var pct=Math.max(0,Math.min(100,Math.round(done/goal*100)));
+        var fill=U.byId('momentumFill'); if(fill)fill.style.width=pct+'%';
+        var v=U.byId('momentumV'); if(v)v.textContent=done+' / '+goal+' today';
+        var hint=U.byId('momentumHint');
+        if(hint)hint.textContent=(goal-done>0?(goal-done)+' more to hit your daily goal — keep the streak alive.':'Daily goal reached. Nice!');
       });
     },
 
@@ -1001,11 +1129,26 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
       b.addEventListener('click',function(){CJ.review.selectRating(this.dataset.q);CJ.review.revealAndSubmit()});
     })(rbs[i]);
 
-    // Tab buttons
+    // Tab buttons (top bar)
     var tabs=document.querySelectorAll('.tb-btn');
     for(var i=0;i<tabs.length;i++)(function(b){
       b.addEventListener('click',function(){switchTab(this.dataset.tab)});
     })(tabs[i]);
+
+    // Sidebar + mobile bottom-nav buttons → reuse switchTab (preserves all hooks)
+    var navBtns=document.querySelectorAll('.sb-item,.bn');
+    for(var n=0;n<navBtns.length;n++)(function(b){
+      b.addEventListener('click',function(){switchTab(this.dataset.tab)});
+    })(navBtns[n]);
+
+    // Reflect the active tab into the sidebar + bottom nav
+    var _switch=CJ.renderer.switchTab;
+    CJ.renderer.switchTab=function(tab){
+      _switch.call(CJ.renderer,tab);
+      document.querySelectorAll('.sb-item').forEach(function(s){s.classList.toggle('active',s.dataset.tab===tab)});
+      document.querySelectorAll('.bn').forEach(function(s){s.classList.toggle('active',s.dataset.tab===tab)});
+    };
+    window.switchTab=function(t){CJ.renderer.switchTab(t)};
 
     // Design launcher buttons (LLD / HLD) in the Add Card template picker
     document.addEventListener('click',function(e){
