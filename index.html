@@ -25,11 +25,6 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 .light .sc:nth-child(2) .n{color:#d97706}
 .light .sc:nth-child(3) .n{color:#059669}
 .light .sc:nth-child(4) .n{color:#7c3aed}
-.light .tb{background:#eae7e2}
-.light .tb-btn{color:#75644e}
-.light .tb-btn.active{background:#fff;color:#1c1c1e;box-shadow:0 1px 2px rgba(0,0,0,.05)}
-.light .tb-btn.new-btn{background:#1c1c1e;color:#fff}
-.light .tbc{background:rgba(0,0,0,.08)}
 .light .cd{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04),0 0 0 1px rgba(0,0,0,.02)}
 .light .cd:hover{border-color:#ddd8d0}
 .light .tg{background:#eeeaf2;color:#5b4e6b}
@@ -67,11 +62,6 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 .dark .sc:nth-child(2) .n{color:#e0af68}
 .dark .sc:nth-child(3) .n{color:#9ece6a}
 .dark .sc:nth-child(4) .n{color:#bb9af7}
-.dark .tb{background:#1c1c28}
-.dark .tb-btn{color:#9a94a6}
-.dark .tb-btn.active{background:#262636;color:#e6e2ee}
-.dark .tb-btn.new-btn{background:#7aa2f7;color:#0f0f16}
-.dark .tbc{background:rgba(255,255,255,.1)}
 .dark .cd{background:#1c1c28;border:1px solid #262636}
 .dark .cd:hover{border-color:#3a3a52}
 .dark .tg{background:#262636;color:#c0b8d0}
@@ -109,10 +99,6 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 .sc{flex:1;padding:10px 12px;border-radius:var(--rs);min-width:0}
 .sc .n{font-size:18px;font-weight:700;line-height:1.2}
 .sc .l{font-size:10px;opacity:.55;margin-top:1px}
-.tb{display:flex;gap:2px;margin-bottom:12px}
-.tb-btn{flex:1;padding:6px 0;text-align:center;font-size:11px;font-weight:600;border-radius:6px;transition:all .15s}
-.tb-btn.new-btn{flex:0 0 auto;padding:6px 12px;margin-left:auto;border-radius:12px;font-size:10px}
-.tbc{display:inline-block;font-size:9px;padding:0 5px;border-radius:6px;margin-left:3px;font-weight:700}
 .rp{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--rs);margin-bottom:14px}
 .rp-title{font-size:13px;font-weight:600;flex:1}
 .rp-sub{font-size:11px;opacity:.6}
@@ -309,7 +295,6 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 .sb-item.has-due{color:#ef4444}
 .sb-item.has-due.active{background:linear-gradient(135deg,#ef4444,#f97316);color:#fff}
 .bn.has-due{color:#ef4444}
-.tb-btn.has-due{color:#ef4444;font-weight:800}
 /* Card shadow + hover lift */
 .light .cd{box-shadow:var(--shadow);border:1px solid #ece8e2;transition:transform .18s ease,box-shadow .18s ease}
 .light .cd:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover);border-color:#ddd6fe}
@@ -326,17 +311,13 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 /* Accent primary actions */
 .light .btn-p{background:var(--accent-grad);color:#fff;border:none;box-shadow:0 4px 14px rgba(99,102,241,.3);transition:transform .15s,box-shadow .15s}
 .light .btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(99,102,241,.42)}
-.light .tb-btn.new-btn{background:var(--accent-grad);color:#fff;box-shadow:0 4px 14px rgba(99,102,241,.3)}
 .light .tpkr-design{background:var(--accent-grad);color:#fff;box-shadow:none;font-weight:600}
 .light .tpkr-btn.active{background:var(--accent-grad);color:#fff}
 .dark .btn-p{background:var(--accent-grad-d);color:#0f0f16;border:none;box-shadow:0 4px 16px rgba(139,92,246,.35);transition:transform .15s,box-shadow .15s}
 .dark .btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(139,92,246,.5)}
-.dark .tb-btn.new-btn{background:var(--accent-grad-d);color:#0f0f16}
 .dark .tpkr-design{background:var(--accent-grad-d);color:#0f0f16;box-shadow:none;font-weight:600}
 .dark .tpkr-btn.active{background:var(--accent-grad-d);color:#0f0f16}
 /* Accent active tab (bottom underline) */
-.light .tb-btn.active{color:var(--accent);box-shadow:inset 0 -2px 0 var(--accent)}
-.dark .tb-btn.active{color:#93c5fd;box-shadow:inset 0 -2px 0 #3b82f6}
 /* Form section lift */
 .light .fs{border-color:#ece8e2;box-shadow:var(--shadow)}
 .dark .fs{border-color:#262636;box-shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.2)}
@@ -441,8 +422,7 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
   .bn.plus{color:#fff;background:var(--accent-grad);border-radius:12px;box-shadow:0 4px 14px rgba(37,99,235,.3)}
   .dark .bn.plus{background:var(--accent-grad-d);color:#0f0f16}
 
-  /* Mobile tap-targets — redundant top tabs hidden (bottom nav owns nav) */
-  .tb{display:none}
+  /* Mobile tap-targets — bottom nav owns navigation on small screens */
   #exportImport{margin-bottom:10px}
   #exportBtn,#importBtn{padding:11px 16px!important;font-size:13px!important;min-height:42px;border-radius:10px}
   .lc-fetch-btn{height:44px!important;padding:8px 18px!important;font-size:13px!important}
@@ -512,13 +492,6 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
       <div class="hint" id="momentumHint">Reviews left to hit your daily goal.</div>
     </div>
 
-    <div class="tb" id="tabs">
-      <button class="tb-btn active" data-tab="due">Due <span class="tbc" id="tDue2">0</span></button>
-      <button class="tb-btn" data-tab="all">All <span class="tbc" id="tAll">0</span></button>
-      <button class="tb-btn" data-tab="mastered">Mastered <span class="tbc" id="tMastered">0</span></button>
-      <button class="tb-btn" data-tab="designs">Designs</button>
-      <button class="tb-btn new-btn" data-tab="add">+ New</button>
-    </div>
 
     <div id="reviewPrompt" class="rp hidden">
       <div class="rp-title">📝 <span id="rpCount">0</span> card(s) due</div>
@@ -742,8 +715,6 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 
     refreshTabs: function(){
       CJ.api.getDue().then(function(c){U.byId('tDue').textContent=c?c.length:0});
-      CJ.api.getAll().then(function(c){U.byId('tAll').textContent=c?c.length:0});
-      CJ.api.getMastered().then(function(c){U.byId('tMastered').textContent=c?c.length:0});
     },
 
     renderDueBadge: function(count){
@@ -754,7 +725,7 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
         b.classList.toggle('clear',count===0);
       }
       // Loss-aversion reinforcement: flag the Due nav entries red when there's a backlog
-      var dueNav=document.querySelectorAll('.sb-item[data-tab="due"], .tb-btn[data-tab="due"]');
+      var dueNav=document.querySelectorAll('.sb-item[data-tab="due"]');
       if(dueNav.forEach)dueNav.forEach(function(n){n.classList.toggle('has-due',count>0)});
     },
 
@@ -830,8 +801,6 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 
     switchTab: function(tab){
       this.tab=tab;expanded={};
-      var btns=document.querySelectorAll('.tb-btn');
-      for(var i=0;i<btns.length;i++)btns[i].classList.toggle('active',btns[i].dataset.tab===tab);
       this.renderTab();localStorage.setItem('cj-last-tab',this.tab);
     }
   };
@@ -1051,8 +1020,8 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
       var r = CJ.renderer;
       r.tab = 'designs';
       try { localStorage.setItem('cj-last-tab', 'designs'); } catch(e){}
-      var btns = document.querySelectorAll('.tb-btn');
-      for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].dataset.tab==='designs');
+      var navs = document.querySelectorAll('.sb-item, .bn');
+      for(var i=0;i<navs.length;i++) navs[i].classList.toggle('active', navs[i].dataset.tab==='designs');
       var rp = U.byId('reviewPrompt'); if(rp) rp.classList.add('hidden');
       this.renderForm({ kind: kind || 'lld' });
     },
@@ -1172,12 +1141,6 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
     for(var i=0;i<rbs.length;i++)(function(b){
       b.addEventListener('click',function(){CJ.review.selectRating(this.dataset.q);CJ.review.revealAndSubmit()});
     })(rbs[i]);
-
-    // Tab buttons (top bar)
-    var tabs=document.querySelectorAll('.tb-btn');
-    for(var i=0;i<tabs.length;i++)(function(b){
-      b.addEventListener('click',function(){switchTab(this.dataset.tab)});
-    })(tabs[i]);
 
     // Sidebar + mobile bottom-nav buttons → reuse switchTab (preserves all hooks)
     var navBtns=document.querySelectorAll('.sb-item,.bn');
