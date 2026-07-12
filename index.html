@@ -295,8 +295,21 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 /* Gradient brand title */
 .hd h1{background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
 .dark .hd h1{background:var(--accent-grad-d);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.hd h1 .bdg{-webkit-text-fill-color:#75644e;color:#75644e;background:#ece8e2}
-.dark .hd h1 .bdg{-webkit-text-fill-color:#b0a8c0;color:#b0a8c0;background:#252533}
+/* Due badge state (loss-aversion nudge) */
+.light .bdg{background:#ece8e2;color:#75644e}
+.dark .bdg{background:#252533;color:#b0a8c0}
+.hd h1 .bdg{-webkit-text-fill-color:inherit;background:transparent;font-size:13px;font-weight:800;
+  letter-spacing:.01em;padding:4px 12px;border-radius:999px;border:1px solid transparent}
+.bdg.urgent{background:linear-gradient(135deg,#ef4444,#f97316)!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+  border-color:rgba(239,68,68,.4);box-shadow:0 4px 16px rgba(239,68,68,.4);animation:badgePulse 1.8s ease-in-out infinite}
+.bdg.clear{background:linear-gradient(135deg,#10b981,#06b6d4)!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+  border-color:rgba(16,185,129,.4);box-shadow:0 4px 16px rgba(16,185,129,.3)}
+@keyframes badgePulse{0%,100%{transform:scale(1);box-shadow:0 4px 16px rgba(239,68,68,.35)}50%{transform:scale(1.04);box-shadow:0 6px 22px rgba(239,68,68,.55)}}
+/* Due nav entries turn red when a backlog exists */
+.sb-item.has-due{color:#ef4444}
+.sb-item.has-due.active{background:linear-gradient(135deg,#ef4444,#f97316);color:#fff}
+.bn.has-due{color:#ef4444}
+.tb-btn.has-due{color:#ef4444;font-weight:800}
 /* Card shadow + hover lift */
 .light .cd{box-shadow:var(--shadow);border:1px solid #ece8e2;transition:transform .18s ease,box-shadow .18s ease}
 .light .cd:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover);border-color:#ddd6fe}
@@ -711,7 +724,15 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
     },
 
     renderDueBadge: function(count){
-      U.byId('dueBadge').textContent=count+' due';
+      var b=U.byId('dueBadge');
+      if(b){
+        b.textContent=count>0?('🔴 '+count+' due today'):'✓ All caught up';
+        b.classList.toggle('urgent',count>0);
+        b.classList.toggle('clear',count===0);
+      }
+      // Loss-aversion reinforcement: flag the Due nav entries red when there's a backlog
+      var dueNav=document.querySelectorAll('.sb-item[data-tab="due"], .tb-btn[data-tab="due"]');
+      if(dueNav.forEach)dueNav.forEach(function(n){n.classList.toggle('has-due',count>0)});
     },
 
     renderTab: function(){
