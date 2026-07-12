@@ -134,6 +134,14 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 .empty .e-title{font-size:15px;font-weight:600;margin-bottom:4px}
 .empty .e-sub{font-size:12px;opacity:.5}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);z-index:999;padding:10px 20px;border-radius:var(--rs);font-size:12px;font-weight:600;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+.form{padding:2px}
+.form .fg{margin-bottom:9px}
+.form .fg:last-child{margin-bottom:0}
+.fs{margin-bottom:12px;padding:12px 14px;border-radius:var(--rs);border:1px solid}
+.fs:last-of-type{margin-bottom:0}
+.fs-h{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;opacity:.55;margin-bottom:9px}
+.light .fs{background:#fff;border-color:#ece8e2}
+.dark .fs{background:#1c1c28;border-color:#262636}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
 /* Review mode */
@@ -836,26 +844,36 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
       var d = design || {};
       var kind = d.kind || 'lld';
       el.innerHTML = '<div class="form"><h2>'+(isEdit?'Edit':'New')+' Design</h2>'+
-        '<div class="f-row">'+
-          '<div class="fg"><label>Type *</label><select id="dKind">'+
-            '<option value="lld"'+(kind==='lld'?' selected':'')+'>LLD</option>'+
-            '<option value="hld"'+(kind==='hld'?' selected':'')+'>HLD</option>'+
-          '</select></div>'+
-          '<div class="fg"><label>Title *</label><input type="text" id="dTitle" placeholder="Vending Machine / URL Shortener" value="'+U.esc(d.title||'')+'"></div>'+
+        '<div class="fs"><div class="fs-h">Overview</div>'+
+          '<div class="f-row">'+
+            '<div class="fg"><label>Type *</label><select id="dKind">'+
+              '<option value="lld"'+(kind==='lld'?' selected':'')+'>LLD</option>'+
+              '<option value="hld"'+(kind==='hld'?' selected':'')+'>HLD</option>'+
+            '</select></div>'+
+            '<div class="fg"><label>Title *</label><input type="text" id="dTitle" placeholder="Vending Machine / URL Shortener" value="'+U.esc(d.title||'')+'"></div>'+
+          '</div>'+
+          '<div class="fg"><label>Tags</label><input type="text" id="dTags" placeholder="state-pattern, interviewed-amazon" value="'+U.esc(Array.isArray(d.tags)?d.tags.join(', '):'')+'"></div>'+
+          '<div class="fg"><label>Requirements</label><textarea id="dRequirements" rows="2" placeholder="Functional + non-functional scope...">'+U.esc(d.requirements||'')+'</textarea></div>'+
         '</div>'+
-        '<div class="fg"><label>Tags</label><input type="text" id="dTags" placeholder="state-pattern, interviewed-amazon" value="'+U.esc(Array.isArray(d.tags)?d.tags.join(', '):'')+'"></div>'+
-        '<div class="fg"><label>Requirements</label><textarea id="dRequirements" rows="2" placeholder="Functional + non-functional scope...">'+U.esc(d.requirements||'')+'</textarea></div>'+
-        '<div class="fg"><label>My Approach (your sketch) *</label><textarea id="dMy" rows="4" placeholder="What you drew first...">'+U.esc(d.my_approach||'')+'</textarea></div>'+
-        '<div class="fg"><label>Canonical Approach</label><textarea id="dCanon" rows="4" placeholder="The reference answer you compared against...">'+U.esc(d.canonical_approach||'')+'</textarea></div>'+
-        '<div class="fg" id="dComponentsWrap"><label>Components / Classes</label><textarea id="dComponents" rows="3" placeholder="LLD: classes + methods. HLD: architecture boxes.">'+U.esc(d.components||'')+'</textarea></div>'+
-        '<div class="fg" id="dRelationshipsWrap"><label>Relationships</label><textarea id="dRelationships" rows="2" placeholder="association / inheritance / composition...">'+U.esc(d.relationships||'')+'</textarea></div>'+
-        '<div class="fg" id="dPatternsWrap"><label>Patterns / Infra</label><textarea id="dPatterns" rows="2" placeholder="LLD: Strategy, State. HLD: cache, queue, CDN">'+U.esc(d.patterns||'')+'</textarea></div>'+
-        '<div class="fg" id="dApiWrap"><label>API</label><textarea id="dApi" rows="2" placeholder="POST /shorten ...">'+U.esc(d.api||'')+'</textarea></div>'+
-        '<div class="fg" id="dEstimationsWrap"><label>Estimations</label><textarea id="dEstimations" rows="2" placeholder="DAU / QPS / storage">'+U.esc(d.estimations||'')+'</textarea></div>'+
-        '<div class="fg"><label>Tradeoffs</label><textarea id="dTradeoffs" rows="3" placeholder="Why this over that...">'+U.esc(d.tradeoffs||'')+'</textarea></div>'+
-        '<div class="fg"><label>Notes</label><textarea id="dNotes" rows="2">'+U.esc(d.notes||'')+'</textarea></div>'+
+        '<div class="fs"><div class="fs-h">Your Approach</div>'+
+          '<div class="fg"><label>My Approach (your sketch) *</label><textarea id="dMy" rows="4" placeholder="What you drew first...">'+U.esc(d.my_approach||'')+'</textarea></div>'+
+        '</div>'+
+        '<div class="fs"><div class="fs-h">Reference Answer</div>'+
+          '<div class="fg"><label>Canonical Approach</label><textarea id="dCanon" rows="4" placeholder="The reference answer you compared against...">'+U.esc(d.canonical_approach||'')+'</textarea></div>'+
+        '</div>'+
+        '<div class="fs"><div class="fs-h">Design Details</div>'+
+          '<div class="fg" id="dComponentsWrap"><label>Components / Classes</label><textarea id="dComponents" rows="3" placeholder="LLD: classes + methods. HLD: architecture boxes.">'+U.esc(d.components||'')+'</textarea></div>'+
+          '<div class="fg" id="dRelationshipsWrap"><label>Relationships</label><textarea id="dRelationships" rows="2" placeholder="association / inheritance / composition...">'+U.esc(d.relationships||'')+'</textarea></div>'+
+          '<div class="fg" id="dPatternsWrap"><label>Patterns / Infra</label><textarea id="dPatterns" rows="2" placeholder="LLD: Strategy, State. HLD: cache, queue, CDN">'+U.esc(d.patterns||'')+'</textarea></div>'+
+          '<div class="fg" id="dApiWrap"><label>API</label><textarea id="dApi" rows="2" placeholder="POST /shorten ...">'+U.esc(d.api||'')+'</textarea></div>'+
+          '<div class="fg" id="dEstimationsWrap"><label>Estimations</label><textarea id="dEstimations" rows="2" placeholder="DAU / QPS / storage">'+U.esc(d.estimations||'')+'</textarea></div>'+
+        '</div>'+
+        '<div class="fs"><div class="fs-h">Reflection</div>'+
+          '<div class="fg"><label>Tradeoffs</label><textarea id="dTradeoffs" rows="3" placeholder="Why this over that...">'+U.esc(d.tradeoffs||'')+'</textarea></div>'+
+          '<div class="fg"><label>Notes</label><textarea id="dNotes" rows="2">'+U.esc(d.notes||'')+'</textarea></div>'+
+        '</div>'+
         '<div class="errors hidden" id="dErrors"></div>'+
-        '<button type="button" class="btn-p" id="dSubmit">'+(isEdit?'Update':'Save')+'</button></div>';
+        '<button type="button" class="btn-p" id="dSubmit" style="margin-top:12px">'+(isEdit?'Update':'Save')+'</button></div>';
       this.syncKindFields(kind);
       U.byId('dKind').addEventListener('change',function(){CJ.designs.syncKindFields(this.value)});
       U.byId('dSubmit').addEventListener('click',function(){CJ.designs.submit(d)});
