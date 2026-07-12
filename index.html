@@ -403,6 +403,12 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 .dark #content .cd{margin-bottom:0}
 .light #content .empty{grid-column:1/-1}
 .dark #content .empty{grid-column:1/-1}
+/* Buttery tab-switch: content children slide+fade in on every repaint.
+   transform/opacity only → GPU-composited, no layout thrash. New child
+   nodes are created by each innerHTML swap, so the animation replays. */
+@keyframes cj-content-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+#content.switching>.cd,#content.switching>.empty,#content.switching>.form{animation:cj-content-in .26s cubic-bezier(.22,.61,.36,1) both}
+@media (prefers-reduced-motion:reduce){#content.switching>.cd,#content.switching>.empty,#content.switching>.form{animation:none}}
 /* Mobile bottom nav */
 .bn-bar{display:none}
 @media(max-width:880px){
@@ -416,7 +422,8 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
   .bn-bar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:400;
     background:var(--surface);border-top:1px solid var(--line);padding:8px 4px;justify-content:space-around}
   .bn{flex:1;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:700;
-    display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0}
+    display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0;
+    transition:color .18s ease,background .18s ease}
   .bn .ic{font-size:18px}
   .bn.active{color:var(--accent)}
   .bn.plus{color:#fff;background:var(--accent-grad);border-radius:12px;box-shadow:0 4px 14px rgba(37,99,235,.3)}
@@ -801,7 +808,9 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 
     switchTab: function(tab){
       this.tab=tab;expanded={};
+      var c=U.byId('content');if(c)c.classList.add('switching');
       this.renderTab();localStorage.setItem('cj-last-tab',this.tab);
+      if(c)setTimeout(function(){c.classList.remove('switching')},320);
     }
   };
   var self=CJ.renderer;
@@ -1023,7 +1032,9 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
       var navs = document.querySelectorAll('.sb-item, .bn');
       for(var i=0;i<navs.length;i++) navs[i].classList.toggle('active', navs[i].dataset.tab==='designs');
       var rp = U.byId('reviewPrompt'); if(rp) rp.classList.add('hidden');
+      var c = U.byId('content'); if(c) c.classList.add('switching');
       this.renderForm({ kind: kind || 'lld' });
+      if(c) setTimeout(function(){ c.classList.remove('switching'); }, 320);
     },
 
     renderForm: function(design){
