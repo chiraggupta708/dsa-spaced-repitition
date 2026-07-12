@@ -1,48 +1,55 @@
--- ============================================================================
--- Coding Journal — Neon Postgres schema
--- Reconstructed from lib/db.js SQL (load/save/countStreak).
--- Types chosen to match exactly what the queries read/write:
---   - card.id / tag.id are TEXT (generated via Date.now().toString(36)+random,
---     and crypto.randomUUID() respectively — both stored as strings, not UUID).
---   - ON CONFLICT (name) on tags requires a UNIQUE constraint on tags.name.
---   - cards_tags is the junction; PK (card_id, tag_id) enforces one link each.
--- ============================================================================
+-- Schema for dsa-spaced-repetition (Neon Postgres)
+-- Run via scripts/setup-db.mjs at build time. Idempotent.
 
--- Cards ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS cards (
-  id                 TEXT PRIMARY KEY,
-  created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
-  question           TEXT NOT NULL DEFAULT '',
-  link               TEXT NOT NULL DEFAULT '',
-  difficulty         TEXT NOT NULL DEFAULT 'medium',
-  actual_code        TEXT NOT NULL DEFAULT '',
-  my_thinking        TEXT NOT NULL DEFAULT '',
-  right_thinking     TEXT NOT NULL DEFAULT '',
-  notes              TEXT NOT NULL DEFAULT '',
-  question_description TEXT NOT NULL DEFAULT '',
-  easiness_factor    DOUBLE PRECISION NOT NULL DEFAULT 2.5,
-  interval           INTEGER NOT NULL DEFAULT 0,
-  repetitions        INTEGER NOT NULL DEFAULT 0,
-  next_review        TIMESTAMPTZ,
-  last_review        TIMESTAMPTZ,
-  last_quality       INTEGER
+  id                  TEXT PRIMARY KEY,
+  created_at          TIMESTAMPTZ DEFAULT NOW(),
+  updated_at          TIMESTAMPTZ DEFAULT NOW(),
+  question            TEXT NOT NULL,
+  answer              TEXT NOT NULL,
+  link                TEXT DEFAULT '',
+  difficulty          TEXT DEFAULT 'medium',
+  actual_code         TEXT DEFAULT '',
+  my_thinking         TEXT DEFAULT '',
+  right_thinking      TEXT DEFAULT '',
+  notes               TEXT DEFAULT '',
+  question_description TEXT DEFAULT '',
+  easiness_factor     REAL DEFAULT 2.5,
+  interval            INTEGER DEFAULT 0,
+  repetitions         INTEGER DEFAULT 0,
+  next_review         TIMESTAMPTZ,
+  last_review         TIMESTAMPTZ,
+  last_quality        INTEGER
 );
 
--- Tags ----------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS tags (
   id   TEXT PRIMARY KEY,
-  name TEXT NOT NULL UNIQUE
+  name TEXT UNIQUE NOT NULL
 );
 
--- Junction (card <-> tag, many-to-many) -------------------------------------
 CREATE TABLE IF NOT EXISTS cards_tags (
   card_id TEXT NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
   tag_id  TEXT NOT NULL REFERENCES tags(id)  ON DELETE CASCADE,
   PRIMARY KEY (card_id, tag_id)
 );
 
--- Indexes the GROUP BY / JOINs in load() benefit from ----------------------
-CREATE INDEX IF NOT EXISTS idx_cards_created_at ON cards (created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_cards_tags_card_id ON cards_tags (card_id);
-CREATE INDEX IF NOT EXISTS idx_cards_tags_tag_id  ON cards_tags (tag_id);
+CREATE INDEX IF NOT EXISTS idx_cards_due   ON cards (next_review);
+CREATE INDEX IF NOT EXISTS idx_cards_tags_tag  ON cards_tags (tag_id);
+CREATE INDEX IF NOT EXISTS idx_cards_tags_card ON cards_tags (card_id);
+
+-- Patch existing tables: add columns that predate this schema (idempotent).
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS updated_at          TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS answer              TEXT DEFAULT '';
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS link                TEXT DEFAULT '';
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS difficulty          TEXT DEFAULT 'medium';
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS actual_code         TEXT DEFAULT '';
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS my_thinking         TEXT DEFAULT '';
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS right_thinking      TEXT DEFAULT '';
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS notes               TEXT DEFAULT '';
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS question_description TEXT DEFAULT '';
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS easiness_factor     REAL DEFAULT 2.5;
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS interval            INTEGER DEFAULT 0;
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS repetitions         INTEGER DEFAULT 0;
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS next_review         TIMESTAMPTZ;
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS last_review         TIMESTAMPTZ;
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS last_quality        INTEGER;
