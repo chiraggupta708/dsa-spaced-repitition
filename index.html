@@ -832,7 +832,7 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
           CJ.designs.renderForm(d);
         }).catch(function(e){ U.showToast('Load failed: '+e.message); });
       }
-      var isEdit = !!design; this.editId = isEdit ? design.id : null;
+      var isEdit = !!(design && design.id); this.editId = isEdit ? design.id : null;
       var d = design || {};
       var kind = d.kind || 'lld';
       el.innerHTML = '<div class="form"><h2>'+(isEdit?'Edit':'New')+' Design</h2>'+
