@@ -409,6 +409,13 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 @keyframes cj-content-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 #content.switching>.cd,#content.switching>.empty,#content.switching>.form{animation:cj-content-in .26s cubic-bezier(.22,.61,.36,1) both}
 @media (prefers-reduced-motion:reduce){#content.switching>.cd,#content.switching>.empty,#content.switching>.form{animation:none}}
+/* Instant skeleton so a tab switch never leaves the old tab's content on
+   screen during the async fetch (no "reload current page then load next"). */
+@keyframes cj-shimmer{0%{background-position:-320px 0}100%{background-position:320px 0}}
+.sk{height:118px;border-radius:14px;border:1px solid var(--line);
+  background:linear-gradient(90deg,var(--surface) 0%,var(--surface2) 50%,var(--surface) 100%);
+  background-size:640px 100%;animation:cj-shimmer 1.1s linear infinite}
+@media (prefers-reduced-motion:reduce){.sk{animation:none}}
 /* Mobile bottom nav */
 .bn-bar{display:none}
 @media(max-width:880px){
@@ -808,7 +815,10 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 
     switchTab: function(tab){
       this.tab=tab;expanded={};
-      var c=U.byId('content');if(c)c.classList.add('switching');
+      var c=U.byId('content');
+      if(c){c.classList.add('switching');
+        if(tab==='due'||tab==='all'||tab==='mastered'||tab==='designs')
+          c.innerHTML='<div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div>';}
       this.renderTab();localStorage.setItem('cj-last-tab',this.tab);
       if(c)setTimeout(function(){c.classList.remove('switching')},320);
     }
@@ -1880,6 +1890,10 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
       }
 
       self.renderCardList(c, {empty: emptyText, sub: emptySub});
+    }).catch(function(){
+      CJ.showLoading(false);
+      var el=U.byId('content');
+      if(el) el.innerHTML='<div class="empty"><div class="e-title">Couldn\u2019t load.</div><div class="e-sub">Check your connection and try again.</div></div>';
     });
   };
 
