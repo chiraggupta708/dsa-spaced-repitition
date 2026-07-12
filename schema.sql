@@ -1,5 +1,7 @@
 -- Schema for dsa-spaced-repetition (Neon Postgres)
 -- Run via scripts/setup-db.mjs at build time. Idempotent.
+-- Order matters: CREATE TABLE -> ALTER ADD COLUMN (patch existing tables)
+-- -> CREATE INDEX (indexes reference columns that the ALTERs guarantee exist).
 
 CREATE TABLE IF NOT EXISTS cards (
   id                  TEXT PRIMARY KEY,
@@ -33,11 +35,8 @@ CREATE TABLE IF NOT EXISTS cards_tags (
   PRIMARY KEY (card_id, tag_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_cards_due   ON cards (next_review);
-CREATE INDEX IF NOT EXISTS idx_cards_tags_tag  ON cards_tags (tag_id);
-CREATE INDEX IF NOT EXISTS idx_cards_tags_card ON cards_tags (card_id);
-
 -- Patch existing tables: add columns that predate this schema (idempotent).
+-- MUST run before CREATE INDEX below, since idx_cards_due references next_review.
 ALTER TABLE cards ADD COLUMN IF NOT EXISTS updated_at          TIMESTAMPTZ DEFAULT NOW();
 ALTER TABLE cards ADD COLUMN IF NOT EXISTS answer              TEXT DEFAULT '';
 ALTER TABLE cards ADD COLUMN IF NOT EXISTS link                TEXT DEFAULT '';
@@ -53,3 +52,8 @@ ALTER TABLE cards ADD COLUMN IF NOT EXISTS repetitions         INTEGER DEFAULT 0
 ALTER TABLE cards ADD COLUMN IF NOT EXISTS next_review         TIMESTAMPTZ;
 ALTER TABLE cards ADD COLUMN IF NOT EXISTS last_review         TIMESTAMPTZ;
 ALTER TABLE cards ADD COLUMN IF NOT EXISTS last_quality        INTEGER;
+
+-- Indexes last: every referenced column is guaranteed to exist by now.
+CREATE INDEX IF NOT EXISTS idx_cards_due        ON cards (next_review);
+CREATE INDEX IF NOT EXISTS idx_cards_tags_tag   ON cards_tags (tag_id);
+CREATE INDEX IF NOT EXISTS idx_cards_tags_card  ON cards_tags (card_id);
