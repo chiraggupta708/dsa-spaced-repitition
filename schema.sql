@@ -57,3 +57,35 @@ ALTER TABLE cards ADD COLUMN IF NOT EXISTS last_quality        INTEGER;
 CREATE INDEX IF NOT EXISTS idx_cards_due        ON cards (next_review);
 CREATE INDEX IF NOT EXISTS idx_cards_tags_tag   ON cards_tags (tag_id);
 CREATE INDEX IF NOT EXISTS idx_cards_tags_card  ON cards_tags (card_id);
+
+-- =========================================================================
+-- Designs (LLD + HLD) — one shared table, `kind` column distinguishes them.
+-- Reuses the existing `tags` table via `designs_tags`.
+-- =========================================================================
+CREATE TABLE IF NOT EXISTS designs (
+  id            TEXT PRIMARY KEY,
+  kind          TEXT NOT NULL CHECK (kind IN ('lld', 'hld')),
+  title         TEXT NOT NULL,
+  requirements  TEXT DEFAULT '',
+  my_approach   TEXT DEFAULT '',
+  canonical_approach TEXT DEFAULT '',
+  components    TEXT DEFAULT '',
+  relationships TEXT DEFAULT '',
+  patterns      TEXT DEFAULT '',
+  api           TEXT DEFAULT '',
+  estimations   TEXT DEFAULT '',
+  tradeoffs     TEXT DEFAULT '',
+  notes         TEXT DEFAULT '',
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS designs_tags (
+  design_id TEXT NOT NULL REFERENCES designs(id) ON DELETE CASCADE,
+  tag_id    TEXT NOT NULL REFERENCES tags(id)    ON DELETE CASCADE,
+  PRIMARY KEY (design_id, tag_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_designs_kind  ON designs (kind);
+CREATE INDEX IF NOT EXISTS idx_designs_tags_tag  ON designs_tags (tag_id);
+CREATE INDEX IF NOT EXISTS idx_designs_tags_design ON designs_tags (design_id);

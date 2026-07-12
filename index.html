@@ -310,6 +310,7 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
       <button class="tb-btn active" data-tab="due">Due <span class="tbc" id="tDue">0</span></button>
       <button class="tb-btn" data-tab="all">All <span class="tbc" id="tAll">0</span></button>
       <button class="tb-btn" data-tab="mastered">Mastered <span class="tbc" id="tMastered">0</span></button>
+      <button class="tb-btn" data-tab="designs">Designs</button>
       <button class="tb-btn new-btn" data-tab="add">+ New</button>
     </div>
 
@@ -454,6 +455,13 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
     exportData: function(){return fetch('/api/export').then(function(r){if(!r.ok)throw new Error('Export failed');return r.blob()}).then(function(b){var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='coding-journal-backup.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);return true})},
     importData: function(c){return fetch('/api/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cards:c})}).then(handle).then(function(d){return d.count})}
   };
+  CJ.apiDesigns = {
+    getAll: function(kind){return fetch('/api/designs'+(kind?('?kind='+encodeURIComponent(kind)):'')).then(handle).then(function(d){return d.designs})},
+    get: function(id){return fetch('/api/designs/'+encodeURIComponent(id)).then(handle).then(function(d){return d.design})},
+    create: function(d){return fetch('/api/designs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(handle).then(function(r){return r.id})},
+    update: function(id,d){return fetch('/api/designs/'+encodeURIComponent(id),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(handle).then(function(r){return r.id})},
+    delete: function(id){return fetch('/api/designs/'+encodeURIComponent(id),{method:'DELETE'}).then(handle).then(function(){return true})}
+  };
 })();
 </script>
 <script>
@@ -526,6 +534,9 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
       }else if(t==='add'){
         U.byId('reviewPrompt')&&(U.byId('reviewPrompt').classList.add('hidden'));
         CJ.form&&CJ.form.render();
+      }else if(t==='designs'){
+        U.byId('reviewPrompt')&&(U.byId('reviewPrompt').classList.add('hidden'));
+        CJ.designs&&CJ.designs.renderList();
       }
     },
 
@@ -721,6 +732,159 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 <script>
 (function(){
   var CJ = window.CJ, U = CJ;
+  var expanded = {};
+
+  // Fields shown only for HLD (architecture-focused)
+  var HLD_ONLY = { api: 1, estimations: 1 };
+  // Fields shown only for LLD (class/relationship-focused)
+  var LLD_ONLY = { relationships: 1 };
+
+  function fieldBlock(key, label, val, isCode){
+    var content = (val && String(val).trim()) ? (isCode ? '<pre class="cb">'+U.esc(val)+'</pre>' : U.esc(val).replace(/\n/g,'<br>')) : '<em>None</em>';
+    return '<div class="sl">'+U.esc(label)+'</div><div class="nb">'+content+'</div>';
+  }
+
+  CJ.designs = {
+    filterKind: null,
+    editId: null,
+
+    setKindFilter: function(kind){
+      this.filterKind = kind;
+      this.renderList();
+    },
+
+    renderList: function(){
+      var self = this, el = U.byId('content');
+      if(!el) return;
+      var bar = '<div class="f-row" style="margin-bottom:10px">'+
+        '<button class="btn-g'+(!self.filterKind?' active':'' )+'" data-dk="all">All</button> '+
+        '<button class="btn-g'+(self.filterKind==='lld'?' active':'')+'" data-dk="lld">LLD</button> '+
+        '<button class="btn-g'+(self.filterKind==='hld'?' active':'')+'" data-dk="hld">HLD</button> '+
+        '<button class="btn-p" style="margin-left:auto" onclick="CJ.designs.renderForm()">+ New Design</button>'+
+        '</div>';
+      CJ.apiDesigns.getAll(self.filterKind).then(function(designs){
+        designs = Array.isArray(designs) ? designs : [];
+        if(!designs.length){
+          el.innerHTML = '<div class="empty"><div class="e-title">No designs yet.</div><div class="e-sub">Use + New Design to log an LLD or HLD.</div></div>';
+          return;
+        }
+        el.innerHTML = bar + designs.map(function(d){return self.renderCard(d)}).join('');
+        var btns = el.querySelectorAll('[data-dk]');
+        for(var i=0;i<btns.length;i++)(function(b){
+          b.addEventListener('click',function(){CJ.designs.setKindFilter(b.dataset.dk==='all'?null:b.dataset.dk)});
+        })(btns[i]);
+      }).catch(function(e){el.innerHTML='<div class="empty"><div class="e-title">Failed to load.</div><div class="e-sub">'+U.esc(e.message)+'</div></div>'});
+    },
+
+    renderCard: function(d){
+      if(!d) return '';
+      var id = U.jsEsc(d.id), open = !!expanded[d.id];
+      var kindBadge = d.kind==='hld' ? 'HLD' : 'LLD';
+      var tags = (Array.isArray(d.tags)?d.tags:[]).map(function(t){return '<span class="tg">'+U.esc(t)+'</span>'}).join('') || '<span class="tg">untagged</span>';
+      var body = open ? '<div class="dt" onclick="event.stopPropagation()">'+
+        (d.requirements ? fieldBlock('requirements','Requirements',d.requirements) : '')+
+        fieldBlock('my_approach','My Approach (sketch)',d.my_approach)+
+        fieldBlock('canonical_approach','Canonical Approach',d.canonical_approach)+
+        fieldBlock('components','Components / Classes',d.components,true)+
+        (d.kind!=='hld' ? fieldBlock('relationships','Relationships',d.relationships) : '')+
+        fieldBlock('patterns','Patterns / Infra',d.patterns)+
+        (d.kind==='hld' ? fieldBlock('api','API',d.api,true) : '')+
+        (d.kind==='hld' ? fieldBlock('estimations','Estimations',d.estimations) : '')+
+        fieldBlock('tradeoffs','Tradeoffs',d.tradeoffs)+
+        (d.notes ? fieldBlock('notes','Notes',d.notes) : '')+
+        '<button class="btn-g" onclick="event.stopPropagation();CJ.designs.renderForm(\''+id+'\')">Edit</button> '+
+        '<button class="btn-g" onclick="event.stopPropagation();CJ.designs.del(\''+id+'\')">Delete</button>'+
+        '</div>' : '';
+      return '<div class="cd" data-id="'+U.esc(d.id)+'" onclick="CJ.designs.toggle(\\''+id+'\\')">'+
+        '<div class="tt">'+U.esc(d.title)+' <span class="df">'+kindBadge+'</span></div>'+
+        '<div class="cm">'+tags+'</div>'+
+        body+
+        '</div>';
+    },
+
+    toggle: function(id){ expanded[id]=!expanded[id]; this.renderList(); },
+
+    del: function(id){
+      if(!confirm('Delete this design?')) return;
+      CJ.apiDesigns.delete(id).then(function(){ U.showToast('Deleted.'); CJ.designs.renderList(); })
+        .catch(function(e){ U.showToast('Delete failed: '+e.message); });
+    },
+
+    renderForm: function(design){
+      var el = U.byId('content'); if(!el) return;
+      // Accept an id string (from Edit button) -> fetch the full design first.
+      if(typeof design === 'string'){
+        return CJ.apiDesigns.get(design).then(function(d){
+          CJ.designs.renderForm(d);
+        }).catch(function(e){ U.showToast('Load failed: '+e.message); });
+      }
+      var isEdit = !!design; this.editId = isEdit ? design.id : null;
+      var d = design || {};
+      var kind = d.kind || 'lld';
+      el.innerHTML = '<div class="form"><h2>'+(isEdit?'Edit':'New')+' Design</h2>'+
+        '<div class="f-row">'+
+          '<div class="fg"><label>Type *</label><select id="dKind">'+
+            '<option value="lld"'+(kind==='lld'?' selected':'')+'>LLD</option>'+
+            '<option value="hld"'+(kind==='hld'?' selected':'')+'>HLD</option>'+
+          '</select></div>'+
+          '<div class="fg"><label>Title *</label><input type="text" id="dTitle" placeholder="Vending Machine / URL Shortener" value="'+U.esc(d.title||'')+'"></div>'+
+        '</div>'+
+        '<div class="fg"><label>Tags</label><input type="text" id="dTags" placeholder="state-pattern, interviewed-amazon" value="'+U.esc(Array.isArray(d.tags)?d.tags.join(', '):'')+'"></div>'+
+        '<div class="fg"><label>Requirements</label><textarea id="dRequirements" rows="2" placeholder="Functional + non-functional scope...">'+U.esc(d.requirements||'')+'</textarea></div>'+
+        '<div class="fg"><label>My Approach (your sketch) *</label><textarea id="dMy" rows="4" placeholder="What you drew first...">'+U.esc(d.my_approach||'')+'</textarea></div>'+
+        '<div class="fg"><label>Canonical Approach</label><textarea id="dCanon" rows="4" placeholder="The reference answer you compared against...">'+U.esc(d.canonical_approach||'')+'</textarea></div>'+
+        '<div class="fg"><label>Components / Classes</label><textarea id="dComponents" rows="3" placeholder="LLD: classes + methods. HLD: architecture boxes.">'+U.esc(d.components||'')+'</textarea></div>'+
+        '<div class="fg" id="dRelationshipsWrap"><label>Relationships</label><textarea id="dRelationships" rows="2" placeholder="association / inheritance / composition...">'+U.esc(d.relationships||'')+'</textarea></div>'+
+        '<div class="fg"><label>Patterns / Infra</label><textarea id="dPatterns" rows="2" placeholder="LLD: Strategy, State. HLD: cache, queue, CDN">'+U.esc(d.patterns||'')+'</textarea></div>'+
+        '<div class="fg" id="dApiWrap"><label>API</label><textarea id="dApi" rows="2" placeholder="POST /shorten ...">'+U.esc(d.api||'')+'</textarea></div>'+
+        '<div class="fg" id="dEstimationsWrap"><label>Estimations</label><textarea id="dEstimations" rows="2" placeholder="DAU / QPS / storage">'+U.esc(d.estimations||'')+'</textarea></div>'+
+        '<div class="fg"><label>Tradeoffs</label><textarea id="dTradeoffs" rows="3" placeholder="Why this over that...">'+U.esc(d.tradeoffs||'')+'</textarea></div>'+
+        '<div class="fg"><label>Notes</label><textarea id="dNotes" rows="2">'+U.esc(d.notes||'')+'</textarea></div>'+
+        '<div class="errors hidden" id="dErrors"></div>'+
+        '<button type="button" class="btn-p" id="dSubmit">'+(isEdit?'Update':'Save')+'</button></div>';
+      this.syncKindFields(kind);
+      U.byId('dKind').addEventListener('change',function(){CJ.designs.syncKindFields(this.value)});
+      U.byId('dSubmit').addEventListener('click',function(){CJ.designs.submit(d)});
+    },
+
+    syncKindFields: function(kind){
+      var rel = U.byId('dRelationshipsWrap'), api = U.byId('dApiWrap'), est = U.byId('dEstimationsWrap');
+      if(rel) rel.style.display = kind==='hld' ? 'none' : '';
+      if(api) api.style.display = kind==='lld' ? 'none' : '';
+      if(est) est.style.display = kind==='lld' ? 'none' : '';
+    },
+
+    submit: function(orig){
+      function v(id){var e=document.getElementById(id);return e?e.value:''}
+      var d = {
+        kind: v('dKind'),
+        title: v('dTitle').trim(),
+        tags: v('dTags').split(',').map(function(t){return t.trim()}).filter(Boolean),
+        requirements: v('dRequirements'),
+        my_approach: v('dMy'),
+        canonical_approach: v('dCanon'),
+        components: v('dComponents'),
+        relationships: v('dRelationships'),
+        patterns: v('dPatterns'),
+        api: v('dApi'),
+        estimations: v('dEstimations'),
+        tradeoffs: v('dTradeoffs'),
+        notes: v('dNotes')
+      };
+      var errs = [];
+      if(!d.title) errs.push('Title required.');
+      if(!d.my_approach.trim()) errs.push('My Approach required (your sketch).');
+      if(errs.length){ var e=U.byId('dErrors'); e.innerHTML='<ul>'+errs.map(function(x){return '<li>'+U.esc(x)+'</li>'}).join('')+'</ul>'; e.classList.remove('hidden'); return; }
+      var p = this.editId ? CJ.apiDesigns.update(this.editId, d) : CJ.apiDesigns.create(d);
+      p.then(function(){ U.showToast('Saved!'); CJ.designs.editId=null; CJ.designs.renderList(); })
+       .catch(function(e){ var er=U.byId('dErrors'); er.innerHTML='<ul><li>'+U.esc(e.message)+'</li></ul>'; er.classList.remove('hidden'); });
+    }
+  };
+})();
+</script>
+<script>
+(function(){
+  var CJ = window.CJ, U = CJ;
 
   function isReviewing(){
     var el=document.getElementById('modeReview');
@@ -760,7 +924,7 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 
     // Remember last tab
     var savedTab = localStorage.getItem('cj-last-tab');
-    if(savedTab && ['due','all','mastered','add'].indexOf(savedTab)>=0 && savedTab !== 'due'){CJ.renderer.switchTab(savedTab);}
+    if(savedTab && ['due','all','mastered','add','designs'].indexOf(savedTab)>=0 && savedTab !== 'due'){CJ.renderer.switchTab(savedTab);}
 
     // Global keyboard shortcuts
     document.addEventListener('keydown', function(e) {
