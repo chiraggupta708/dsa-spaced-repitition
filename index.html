@@ -797,7 +797,7 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
         '<button class="btn-g" onclick="event.stopPropagation();CJ.designs.renderForm(\''+id+'\')">Edit</button> '+
         '<button class="btn-g" onclick="event.stopPropagation();CJ.designs.del(\''+id+'\')">Delete</button>'+
         '</div>' : '';
-      return '<div class="cd" data-id="'+U.esc(d.id)+'" onclick="CJ.designs.toggle(\'+id+\')">'+
+      return '<div class="cd" data-id="'+U.esc(d.id)+'" onclick="CJ.designs.toggle(\''+id+'\')">'+
         '<div class="tt">'+U.esc(d.title)+' <span class="df">'+kindBadge+'</span></div>'+
         '<div class="cm">'+tags+'</div>'+
         body+
