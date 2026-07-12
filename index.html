@@ -847,9 +847,9 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
         '<div class="fg"><label>Requirements</label><textarea id="dRequirements" rows="2" placeholder="Functional + non-functional scope...">'+U.esc(d.requirements||'')+'</textarea></div>'+
         '<div class="fg"><label>My Approach (your sketch) *</label><textarea id="dMy" rows="4" placeholder="What you drew first...">'+U.esc(d.my_approach||'')+'</textarea></div>'+
         '<div class="fg"><label>Canonical Approach</label><textarea id="dCanon" rows="4" placeholder="The reference answer you compared against...">'+U.esc(d.canonical_approach||'')+'</textarea></div>'+
-        '<div class="fg"><label>Components / Classes</label><textarea id="dComponents" rows="3" placeholder="LLD: classes + methods. HLD: architecture boxes.">'+U.esc(d.components||'')+'</textarea></div>'+
+        '<div class="fg" id="dComponentsWrap"><label>Components / Classes</label><textarea id="dComponents" rows="3" placeholder="LLD: classes + methods. HLD: architecture boxes.">'+U.esc(d.components||'')+'</textarea></div>'+
         '<div class="fg" id="dRelationshipsWrap"><label>Relationships</label><textarea id="dRelationships" rows="2" placeholder="association / inheritance / composition...">'+U.esc(d.relationships||'')+'</textarea></div>'+
-        '<div class="fg"><label>Patterns / Infra</label><textarea id="dPatterns" rows="2" placeholder="LLD: Strategy, State. HLD: cache, queue, CDN">'+U.esc(d.patterns||'')+'</textarea></div>'+
+        '<div class="fg" id="dPatternsWrap"><label>Patterns / Infra</label><textarea id="dPatterns" rows="2" placeholder="LLD: Strategy, State. HLD: cache, queue, CDN">'+U.esc(d.patterns||'')+'</textarea></div>'+
         '<div class="fg" id="dApiWrap"><label>API</label><textarea id="dApi" rows="2" placeholder="POST /shorten ...">'+U.esc(d.api||'')+'</textarea></div>'+
         '<div class="fg" id="dEstimationsWrap"><label>Estimations</label><textarea id="dEstimations" rows="2" placeholder="DAU / QPS / storage">'+U.esc(d.estimations||'')+'</textarea></div>'+
         '<div class="fg"><label>Tradeoffs</label><textarea id="dTradeoffs" rows="3" placeholder="Why this over that...">'+U.esc(d.tradeoffs||'')+'</textarea></div>'+
@@ -863,9 +863,20 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 
     syncKindFields: function(kind){
       var rel = U.byId('dRelationshipsWrap'), api = U.byId('dApiWrap'), est = U.byId('dEstimationsWrap');
+      var comp = U.byId('dComponentsWrap'), pat = U.byId('dPatternsWrap');
       if(rel) rel.style.display = kind==='hld' ? 'none' : '';
       if(api) api.style.display = kind==='lld' ? 'none' : '';
       if(est) est.style.display = kind==='lld' ? 'none' : '';
+      if(comp){
+        comp.querySelector('label').textContent = kind==='hld' ? 'Services / Nodes' : 'Classes / Methods';
+        var ci = U.byId('dComponents');
+        if(ci) ci.placeholder = kind==='hld' ? 'Bounded contexts, services, nodes...' : 'LLD: classes + their methods/signatures...';
+      }
+      if(pat){
+        pat.querySelector('label').textContent = kind==='hld' ? 'Infra / Middleware' : 'Design Patterns';
+        var pi = U.byId('dPatterns');
+        if(pi) pi.placeholder = kind==='hld' ? 'cache, queue, CDN, load balancer' : 'Strategy, State, Factory...';
+      }
     },
 
     submit: function(orig){
