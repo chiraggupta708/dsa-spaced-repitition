@@ -377,6 +377,14 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
 .sb-new{display:flex;align-items:center;justify-content:center;gap:8px;
   background:var(--accent-grad);color:#fff;border:none;border-radius:11px;padding:12px;
   font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(37,99,235,.3)}
+.sb-quick{display:flex;gap:6px}
+.sb-q{flex:1;background:var(--surface2);border:1px solid var(--line);color:var(--text);
+  border-radius:9px;padding:9px 4px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;white-space:nowrap}
+.sb-q:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
+.dark .sb-q{background:var(--surface2);border-color:var(--line)}
+.sb-hint{font-size:10px;color:var(--muted);text-align:center;line-height:1.5}
+.sb-hint b{color:var(--accent);background:var(--surface2);border:1px solid var(--line);
+  border-radius:5px;padding:0 5px;font-size:10px}
 .dark .sb-new{background:var(--accent-grad-d);color:#0f0f16}
 .light .sb .tp{position:static;display:flex;gap:6px;padding:0}
 .dark .sb .tp{position:static;display:flex;gap:6px;padding:0}
@@ -454,6 +462,12 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
     </nav>
     <div class="sb-foot">
       <button class="sb-new" data-tab="add">＋ New entry</button>
+      <div class="sb-quick">
+        <button class="sb-q" data-quick="card">＋ Card</button>
+        <button class="sb-q" data-quick="lld">＋ LLD</button>
+        <button class="sb-q" data-quick="hld">＋ HLD</button>
+      </div>
+      <div class="sb-hint">Shortcuts: <b>C</b> card · <b>L</b> lld · <b>H</b> hld</div>
       <div class="tp" id="themePicker">
         <button class="tp-btn active" data-theme="light">☀️</button>
         <button class="tp-btn" data-theme="dark">🌙</button>
@@ -1175,6 +1189,12 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
     document.addEventListener('click',function(e){
       var b=e.target.closest && e.target.closest('[data-design]');
       if(b) CJ.designs.openNew(b.dataset.design);
+      var q=e.target.closest && e.target.closest('[data-quick]');
+      if(q){
+        var k=q.dataset.quick;
+        if(k==='card') switchTab('add');
+        else if(k==='lld'||k==='hld') CJ.designs.openNew(k);
+      }
     });
 
     // Export/Import
@@ -1204,6 +1224,9 @@ input,textarea,select{font-family:var(--f);font-size:inherit}
         e.preventDefault();
         switchTab('add');
       }
+      if(e.key === 'c' || e.key === 'C'){ e.preventDefault(); switchTab('add'); }
+      if(e.key === 'l' || e.key === 'L'){ e.preventDefault(); CJ.designs.openNew('lld'); }
+      if(e.key === 'h' || e.key === 'H'){ e.preventDefault(); CJ.designs.openNew('hld'); }
       if(e.key === 's' || e.key === 'S'){
         e.preventDefault();
         var searchEl = document.getElementById('cjSearch');
