@@ -4,12 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "node scripts/setup-db.mjs"
   },
   "engines": {
     "node": "20.x"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0"
+  },
+  "devDependencies": {
+    "express": "^4.22.2"
   }
 }

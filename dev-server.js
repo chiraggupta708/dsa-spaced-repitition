@@ -34,6 +34,10 @@ app.all('/api/cards',              (await import('./api/cards.js')).default);
 app.all('/api/cards/:cardId',      cardHandler);
 app.post('/api/cards/:cardId/review', cardHandler);
 
+// Designs (LLD/HLD) — added with the Designs feature
+app.all('/api/designs',           (await import('./api/designs.js')).default);
+app.all('/api/designs/:id',       (await import('./api/designs/[id].js')).default);
+
 // Serve index.html (must be before 404 catch-all)
 import fs from 'node:fs';
 app.get('/', (req, res) => {
