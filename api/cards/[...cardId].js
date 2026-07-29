@@ -27,8 +27,8 @@ export default async function handler(req, res) {
     try {
       var body = getBody(req);
       var quality = body.quality;
-      if (quality === undefined || quality === null || !Number.isInteger(Number(quality)) || quality < 0 || quality > 5) {
-        sendJSON(res, 400, { ok: false, error: 'quality must be an integer 0-5' });
+      if (quality === undefined || quality === null || !Number.isInteger(Number(quality)) || quality < 1 || quality > 5) {
+        sendJSON(res, 400, { ok: false, error: 'quality must be an integer 1-5' });
         return;
       }
       quality = Number(quality);
@@ -86,6 +86,10 @@ export default async function handler(req, res) {
   if (req.method === 'PUT') {
     try {
       var body = getBody(req);
+      if (body.question !== undefined && (typeof body.question !== 'string' || !body.question.trim())) {
+        sendJSON(res, 400, { ok: false, error: 'question is required' });
+        return;
+      }
       var uData = await load();
       var idx = -1;
       for (var ui = 0; ui < uData.cards.length; ui++) {
@@ -100,6 +104,7 @@ export default async function handler(req, res) {
       }
       var existing = uData.cards[idx];
       if (body.question !== undefined) existing.question = body.question;
+      if (body.answer !== undefined) existing.answer = body.answer;
       if (body.link !== undefined) existing.link = body.link;
       if (body.tags !== undefined) existing.tags = body.tags;
       if (body.difficulty !== undefined) existing.difficulty = body.difficulty;

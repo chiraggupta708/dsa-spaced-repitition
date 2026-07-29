@@ -21,11 +21,16 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       var body = getBody(req);
+      if (typeof body.question !== 'string' || !body.question.trim()) {
+        sendJSON(res, 400, { ok: false, error: 'question is required' });
+        return;
+      }
       var card = {
         id: generateId(),
         created: todayISO(),
         updated: todayISO(),
-        question: body.question || '',
+        question: body.question,
+        answer: body.answer || '',
         link: body.link || '',
         tags: Array.isArray(body.tags) ? body.tags : [],
         difficulty: body.difficulty || 'medium',
