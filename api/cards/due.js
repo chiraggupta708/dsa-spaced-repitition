@@ -1,8 +1,18 @@
 import { load, todayISO } from '../../lib/db.js';
-import { handleOptions, sendJSON } from '../../lib/api.js';
+import { requireAuth } from '../../lib/auth.js';
+import { handleOptions, sendAuthError, sendJSON } from '../../lib/api.js';
 
 export default async function handler(req, res) {
   if (handleOptions(req, res)) return;
+
+  var auth;
+  try {
+    auth = await requireAuth(req);
+  } catch (error) {
+    sendAuthError(res, error);
+    return;
+  }
+  var userId = auth.userId;
 
   if (req.method !== 'GET') {
     sendJSON(res, 404, { ok: false, error: 'Not found' });
@@ -10,7 +20,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    var dueData = await load();
+    var dueData = await load(userId);
     var todayDue = todayISO();
     var dueCards = dueData.cards.filter(function (c) {
       return !c.sm2 || !c.sm2.nextReview || c.sm2.nextReview <= todayDue;

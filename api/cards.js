@@ -1,12 +1,22 @@
-import { load, save, todayISO, generateId, defaultSm2 } from '../lib/db.js';
-import { handleOptions, sendJSON, getBody, badBodyError } from '../lib/api.js';
+import { load, upsertCard, upsertUser, todayISO, generateId, defaultSm2 } from '../lib/db.js';
+import { requireAuth } from '../lib/auth.js';
+import { handleOptions, sendAuthError, sendJSON, getBody, badBodyError } from '../lib/api.js';
 
 export default async function handler(req, res) {
   if (handleOptions(req, res)) return;
 
+  var auth;
+  try {
+    auth = await requireAuth(req);
+  } catch (error) {
+    sendAuthError(res, error);
+    return;
+  }
+  var userId = auth.userId;
+
   if (req.method === 'GET') {
     try {
-      var cardsData = await load();
+      var cardsData = await load(userId);
       var sorted = cardsData.cards.slice().sort(function (a, b) {
         return a.created > b.created ? -1 : a.created < b.created ? 1 : 0;
       });
@@ -25,6 +35,7 @@ export default async function handler(req, res) {
         sendJSON(res, 400, { ok: false, error: 'question is required' });
         return;
       }
+      await upsertUser({ clerkId: userId });
       var card = {
         id: generateId(),
         created: todayISO(),
@@ -41,9 +52,7 @@ export default async function handler(req, res) {
         questionDescription: body.questionDescription || '',
         sm2: defaultSm2()
       };
-      var cData = await load();
-      cData.cards.push(card);
-      await save(cData);
+      await upsertCard(card, userId);
       sendJSON(res, 201, { ok: true, card: card });
     } catch (err) {
       console.error('[cards POST] Error:', err);

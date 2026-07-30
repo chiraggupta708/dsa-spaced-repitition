@@ -3,8 +3,17 @@
 -- Order matters: CREATE TABLE -> ALTER ADD COLUMN (patch existing tables)
 -- -> CREATE INDEX (indexes reference columns that the ALTERs guarantee exist).
 
+CREATE TABLE IF NOT EXISTS users (
+  clerk_id     TEXT PRIMARY KEY,
+  email        TEXT,
+  display_name TEXT,
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS cards (
   id                  TEXT PRIMARY KEY,
+  owner_id            TEXT REFERENCES users(clerk_id) ON DELETE RESTRICT,
   created_at          TIMESTAMPTZ DEFAULT NOW(),
   updated_at          TIMESTAMPTZ DEFAULT NOW(),
   question            TEXT NOT NULL,
@@ -52,9 +61,12 @@ ALTER TABLE cards ADD COLUMN IF NOT EXISTS repetitions         INTEGER DEFAULT 0
 ALTER TABLE cards ADD COLUMN IF NOT EXISTS next_review         TIMESTAMPTZ;
 ALTER TABLE cards ADD COLUMN IF NOT EXISTS last_review         TIMESTAMPTZ;
 ALTER TABLE cards ADD COLUMN IF NOT EXISTS last_quality        INTEGER;
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS owner_id            TEXT REFERENCES users(clerk_id) ON DELETE RESTRICT;
 
 -- Indexes last: every referenced column is guaranteed to exist by now.
 CREATE INDEX IF NOT EXISTS idx_cards_due        ON cards (next_review);
+CREATE INDEX IF NOT EXISTS idx_cards_owner      ON cards (owner_id);
+CREATE INDEX IF NOT EXISTS idx_cards_owner_due  ON cards (owner_id, next_review);
 CREATE INDEX IF NOT EXISTS idx_cards_tags_tag   ON cards_tags (tag_id);
 CREATE INDEX IF NOT EXISTS idx_cards_tags_card  ON cards_tags (card_id);
 
@@ -64,6 +76,7 @@ CREATE INDEX IF NOT EXISTS idx_cards_tags_card  ON cards_tags (card_id);
 -- =========================================================================
 CREATE TABLE IF NOT EXISTS designs (
   id            TEXT PRIMARY KEY,
+  owner_id      TEXT REFERENCES users(clerk_id) ON DELETE RESTRICT,
   kind          TEXT NOT NULL CHECK (kind IN ('lld', 'hld')),
   title         TEXT NOT NULL,
   requirements  TEXT DEFAULT '',
@@ -80,6 +93,8 @@ CREATE TABLE IF NOT EXISTS designs (
   updated_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
+ALTER TABLE designs ADD COLUMN IF NOT EXISTS owner_id TEXT REFERENCES users(clerk_id) ON DELETE RESTRICT;
+
 CREATE TABLE IF NOT EXISTS designs_tags (
   design_id TEXT NOT NULL REFERENCES designs(id) ON DELETE CASCADE,
   tag_id    TEXT NOT NULL REFERENCES tags(id)    ON DELETE CASCADE,
@@ -87,5 +102,7 @@ CREATE TABLE IF NOT EXISTS designs_tags (
 );
 
 CREATE INDEX IF NOT EXISTS idx_designs_kind  ON designs (kind);
+CREATE INDEX IF NOT EXISTS idx_designs_owner ON designs (owner_id);
+CREATE INDEX IF NOT EXISTS idx_designs_owner_kind ON designs (owner_id, kind);
 CREATE INDEX IF NOT EXISTS idx_designs_tags_tag  ON designs_tags (tag_id);
 CREATE INDEX IF NOT EXISTS idx_designs_tags_design ON designs_tags (design_id);

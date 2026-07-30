@@ -1,8 +1,18 @@
 import { load, todayISO, countStreak } from '../lib/db.js';
-import { handleOptions, sendJSON } from '../lib/api.js';
+import { requireAuth } from '../lib/auth.js';
+import { handleOptions, sendAuthError, sendJSON } from '../lib/api.js';
 
 export default async function handler(req, res) {
   if (handleOptions(req, res)) return;
+
+  var auth;
+  try {
+    auth = await requireAuth(req);
+  } catch (error) {
+    sendAuthError(res, error);
+    return;
+  }
+  var userId = auth.userId;
 
   if (req.method !== 'GET') {
     sendJSON(res, 404, { ok: false, error: 'Not found' });
@@ -10,7 +20,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    var dataStats = await load();
+    var dataStats = await load(userId);
     var allCards = dataStats.cards;
     var total = allCards.length;
     var mastered = 0;
@@ -20,15 +30,10 @@ export default async function handler(req, res) {
       if (c.sm2 && c.sm2.repetitions >= 5) mastered++;
       if (!c.sm2 || !c.sm2.nextReview || c.sm2.nextReview <= todayStr) due++;
     });
-    var streak = await countStreak(allCards);
+    var streak = await countStreak(userId, allCards);
     sendJSON(res, 200, {
       ok: true,
-      stats: {
-        total: total,
-        due: due,
-        mastered: mastered,
-        streak: streak
-      }
+      stats: { total: total, due: due, mastered: mastered, streak: streak }
     });
   } catch (e) {
     console.error('[stats] Error:', e);

@@ -1,6 +1,7 @@
-import { load, save, todayISO } from '../../lib/db.js';
+import { load, upsertCard, deleteCard, todayISO } from '../../lib/db.js';
 import { sm2Calc } from '../../lib/sm2.js';
-import { handleOptions, sendJSON, getBody, badBodyError } from '../../lib/api.js';
+import { requireAuth } from '../../lib/auth.js';
+import { handleOptions, sendAuthError, sendJSON, getBody, badBodyError } from '../../lib/api.js';
 
 function getCardId(req) {
   if (req.query && req.query.cardId) {
@@ -12,14 +13,28 @@ function getCardId(req) {
   return parts[2];
 }
 
+function findCard(cards, cardId) {
+  for (var i = 0; i < cards.length; i++) {
+    if (cards[i].id === cardId) return cards[i];
+  }
+  return null;
+}
+
 export default async function handler(req, res) {
   if (handleOptions(req, res)) return;
 
+  var auth;
+  try {
+    auth = await requireAuth(req);
+  } catch (error) {
+    sendAuthError(res, error);
+    return;
+  }
+  var userId = auth.userId;
   var cardId = getCardId(req);
   var url = req.url || '';
   var pathname = url.split('?')[0];
   var pathParts = pathname.split('/').filter(Boolean);
-
   var isReviewPath = (pathParts.length === 4 && pathParts[3] === 'review') ||
     (req.query && (req.query.review === '1' || req.query.review === 'true'));
 
@@ -32,24 +47,15 @@ export default async function handler(req, res) {
         return;
       }
       quality = Number(quality);
-      var rData = await load();
-      var rIdx = -1;
-      for (var ri = 0; ri < rData.cards.length; ri++) {
-        if (rData.cards[ri].id === cardId) {
-          rIdx = ri;
-          break;
-        }
-      }
-      if (rIdx === -1) {
+      var reviewData = await load(userId);
+      var card = findCard(reviewData.cards, cardId);
+      if (!card) {
         sendJSON(res, 404, { ok: false, error: 'Card not found' });
         return;
       }
-      var card = rData.cards[rIdx];
-      var newSm2 = sm2Calc(quality, card.sm2 || {});
-      card.sm2 = newSm2;
+      card.sm2 = sm2Calc(quality, card.sm2 || {});
       card.updated = todayISO();
-      rData.cards[rIdx] = card;
-      await save(rData);
+      await upsertCard(card, userId);
       sendJSON(res, 200, { ok: true, card: card });
     } catch (err) {
       sendJSON(res, 400, { ok: false, error: badBodyError(err) });
@@ -64,14 +70,8 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      var gData = await load();
-      var found = null;
-      for (var gi = 0; gi < gData.cards.length; gi++) {
-        if (gData.cards[gi].id === cardId) {
-          found = gData.cards[gi];
-          break;
-        }
-      }
+      var getData = await load(userId);
+      var found = findCard(getData.cards, cardId);
       if (!found) {
         sendJSON(res, 404, { ok: false, error: 'Card not found' });
         return;
@@ -90,19 +90,12 @@ export default async function handler(req, res) {
         sendJSON(res, 400, { ok: false, error: 'question is required' });
         return;
       }
-      var uData = await load();
-      var idx = -1;
-      for (var ui = 0; ui < uData.cards.length; ui++) {
-        if (uData.cards[ui].id === cardId) {
-          idx = ui;
-          break;
-        }
-      }
-      if (idx === -1) {
+      var updateData = await load(userId);
+      var existing = findCard(updateData.cards, cardId);
+      if (!existing) {
         sendJSON(res, 404, { ok: false, error: 'Card not found' });
         return;
       }
-      var existing = uData.cards[idx];
       if (body.question !== undefined) existing.question = body.question;
       if (body.answer !== undefined) existing.answer = body.answer;
       if (body.link !== undefined) existing.link = body.link;
@@ -114,8 +107,7 @@ export default async function handler(req, res) {
       if (body.notes !== undefined) existing.notes = body.notes;
       if (body.questionDescription !== undefined) existing.questionDescription = body.questionDescription;
       existing.updated = todayISO();
-      uData.cards[idx] = existing;
-      await save(uData);
+      await upsertCard(existing, userId);
       sendJSON(res, 200, { ok: true, card: existing });
     } catch (err) {
       sendJSON(res, 400, { ok: false, error: badBodyError(err) });
@@ -125,20 +117,11 @@ export default async function handler(req, res) {
 
   if (req.method === 'DELETE') {
     try {
-      var dData = await load();
-      var dIdx = -1;
-      for (var di = 0; di < dData.cards.length; di++) {
-        if (dData.cards[di].id === cardId) {
-          dIdx = di;
-          break;
-        }
-      }
-      if (dIdx === -1) {
+      var deleted = await deleteCard(cardId, userId);
+      if (!deleted.deleted) {
         sendJSON(res, 404, { ok: false, error: 'Card not found' });
         return;
       }
-      dData.cards.splice(dIdx, 1);
-      await save(dData);
       sendJSON(res, 200, { ok: true });
     } catch (e) {
       sendJSON(res, 500, { ok: false, error: 'Internal error' });
