@@ -1,5 +1,8 @@
-import { load } from '../lib/db.js';
 import { handleOptions, sendJSON } from '../lib/api.js';
+
+const databaseConfigured = Boolean(
+  process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL
+);
 
 export default async function handler(req, res) {
   if (handleOptions(req, res)) return;
@@ -9,10 +12,5 @@ export default async function handler(req, res) {
     return;
   }
 
-  try {
-    var data = await load();
-    sendJSON(res, 200, { status: 'ok', cards: data.cards.length });
-  } catch (e) {
-    sendJSON(res, 500, { ok: false, error: 'Internal error' });
-  }
+  sendJSON(res, 200, { status: 'ok', databaseConfigured });
 }

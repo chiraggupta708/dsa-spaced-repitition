@@ -1,8 +1,15 @@
 import { extractSlug, fetchProblem } from '../../lib/leetcode.js';
-import { handleOptions, sendJSON, getBody } from '../../lib/api.js';
+import { requireAuth } from '../../lib/auth.js';
+import { handleOptions, sendAuthError, sendJSON, getBody } from '../../lib/api.js';
 
 export default async function handler(req, res) {
   if (handleOptions(req, res)) return;
+
+  try {
+    await requireAuth(req);
+  } catch (error) {
+    return sendAuthError(res, error);
+  }
 
   if (req.method !== 'POST') {
     return sendJSON(res, 405, { ok: false, error: 'Method not allowed' });

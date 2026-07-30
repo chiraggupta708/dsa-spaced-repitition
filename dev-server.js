@@ -23,6 +23,9 @@ app.use(express.json());
 const cardHandler = (await import('./api/cards/[...cardId].js')).default;
 
 app.all('/api/health',             (await import('./api/health.js')).default);
+app.all('/api/auth/config',        (await import('./api/auth/config.js')).default);
+app.all('/api/auth/me',            (await import('./api/auth/me.js')).default);
+app.all('/api/auth/claim-legacy',  (await import('./api/auth/claim-legacy.js')).default);
 app.all('/api/cards/due',          (await import('./api/cards/due.js')).default);
 app.all('/api/cards/mastered',     (await import('./api/cards/mastered.js')).default);
 app.all('/api/stats',              (await import('./api/stats.js')).default);
