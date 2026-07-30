@@ -2,5 +2,9 @@
   "version": 2,
   "buildCommand": null,
   "outputDirectory": ".",
-  "framework": null
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/health", "destination": "/api/system/health" },
+    { "source": "/api/migrate", "destination": "/api/system/migrate" }
+  ]
 }
