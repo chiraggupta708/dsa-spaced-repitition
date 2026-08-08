@@ -24,6 +24,7 @@ The isolated development project has a separate database and is the place for di
 - Recall → Reveal → Rate → Continue review flow
 - Owner-scoped JSON export and confirmed import
 - Responsive layout and dark mode
+- Installable PWA shell with network-only private journal data
 
 ## Architecture
 
@@ -170,4 +171,4 @@ The build command skips schema setup when no database variable is present. Do no
 - Take and verify a fresh production export before a data-model or ownership change.
 - Never test `/api/import` casually against production.
 
-PWA installability and friends/sharing are future milestones and are not currently implemented.
+The PWA shell is implemented for installability and offline app-shell loading. It deliberately does not cache Clerk traffic or authenticated `/api/` responses, so private journal data still requires a network connection and a valid session. Friends/sharing remains a future milestone.
