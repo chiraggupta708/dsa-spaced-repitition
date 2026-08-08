@@ -5,3 +5,6 @@ data/journal.json
 .vercel
 _subagent-logs/
 test/api-test.js
+_bugs.md
+mockup.html
+mockup-modern.html
