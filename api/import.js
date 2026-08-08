@@ -1,4 +1,4 @@
-import { replaceCardsForOwner } from '../lib/db.js';
+import { replaceCardsForOwner, upsertUser } from '../lib/db.js';
 import { requireAuth } from '../lib/auth.js';
 import { handleOptions, sendAuthError, sendJSON, getBody, badBodyError } from '../lib/api.js';
 
@@ -24,6 +24,9 @@ export default async function handler(req, res) {
     if (!body || !Array.isArray(body.cards)) {
       sendJSON(res, 400, { ok: false, error: 'Body must have a cards array' });
       return;
+    }
+    if (body.cards.length > 0) {
+      await upsertUser({ clerkId: userId });
     }
     var result = await replaceCardsForOwner(body.cards, userId);
     sendJSON(res, 200, { ok: true, count: result.count });
