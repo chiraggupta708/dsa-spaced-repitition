@@ -43,6 +43,13 @@ app.all('/api/designs/:id',       (await import('./api/designs/[id].js')).defaul
 
 // Serve index.html (must be before 404 catch-all)
 import fs from 'node:fs';
+app.get('/manifest.webmanifest', (req, res) => {
+  res.type('application/manifest+json').sendFile(path.resolve(import.meta.dirname, 'manifest.webmanifest'));
+});
+app.get('/sw.js', (req, res) => {
+  res.type('application/javascript').sendFile(path.resolve(import.meta.dirname, 'sw.js'));
+});
+app.use('/icons', express.static(path.resolve(import.meta.dirname, 'icons'), { index: false }));
 app.get('/', (req, res) => {
   res.type('html').send(fs.readFileSync(path.resolve(import.meta.dirname, 'index.html'), 'utf-8'));
 });

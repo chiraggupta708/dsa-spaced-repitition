@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Coding Journal</title>
+  <desc id="desc">A quiet study desk book mark</desc>
+  <rect width="512" height="512" rx="112" fill="#2563eb"/>
+  <path fill="#fff" d="M103 137c49-24 102-18 153 17 51-35 104-41 153-17v247c-49-25-102-20-153 15-51-35-104-40-153-15V137Z"/>
+  <path fill="#2563eb" d="M256 154v245c-51-35-104-40-153-15V163c49-20 102-14 153 20Zm0 0c51-34 104-40 153-20v221c-49-25-102-20-153 15V154Z"/>
+  <path fill="#fff" d="M256 174v205c-45-27-91-31-135-14V181c44-13 90-8 135 15Zm0 0c45-23 91-28 135-15v184c-44-17-90-13-135 14V174Z"/>
+  <path fill="#2563eb" d="M150 216h75v16h-75zm0 40h75v16h-75zm137-40h75v16h-75zm0 40h75v16h-75z"/>
+</svg>
