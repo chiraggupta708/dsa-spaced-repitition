@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { LLD_ATTEMPT_PHASES } from '../lib/lld-phases.js';
 
 const source = readFileSync(new URL('../lib/lld-attempts-db.js', import.meta.url), 'utf8');
 
@@ -14,13 +15,18 @@ function check(name, callback) {
   }
 }
 
-check('attempts use a fixed six-phase guided flow', () => {
-  assert.match(source, /key: 'scope'/);
-  assert.match(source, /key: 'model'/);
-  assert.match(source, /key: 'code'/);
-  assert.match(source, /key: 'diagram'/);
-  assert.match(source, /key: 'flow_tradeoffs'/);
-  assert.match(source, /key: 'review'/);
+check('attempts use a fixed phasewise flow with separate requirements checkpoints', () => {
+  assert.deepEqual(LLD_ATTEMPT_PHASES.map((phase) => phase.key), [
+    'functional_requirements',
+    'nfr',
+    'model',
+    'code',
+    'diagram',
+    'flow_tradeoffs',
+    'review',
+  ]);
+  assert.match(source, /from '\.\/lld-phases\.js'/);
+  assert.match(source, /legacyAnswers/);
 });
 
 check('attempt reads and writes are owner-scoped', () => {

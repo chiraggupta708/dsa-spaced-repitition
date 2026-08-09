@@ -72,6 +72,10 @@ check('attempt answers have a unique composite parent key', () => {
 });
 
 check('V1 constraints cover diagrams, lifecycle, review, and timed attempts', () => {
+  assert.match(lldSchema, /section_key IN \('functional_requirements', 'nfr', 'model', 'diagram', 'flow_tradeoffs', 'review', 'scope'\)/);
+  assert.match(lldSchema, /phase_key IS NULL OR phase_key IN \('functional_requirements', 'nfr', 'model', 'code', 'diagram', 'flow_tradeoffs', 'review', 'scope'\)/);
+  assert.match(lldSchema, /DROP CONSTRAINT IF EXISTS lld_sections_section_key_check/);
+  assert.match(lldSchema, /DROP CONSTRAINT IF EXISTS lld_ai_turns_phase_key_check/);
   assert.match(lldSchema, /diagram_type\s+TEXT\s+NOT NULL CHECK \(diagram_type IN \('class', 'sequence'\)\)/);
   assert.match(lldSchema, /lifecycle_state\s+TEXT\s+NOT NULL DEFAULT 'draft'/);
   assert.match(lldSchema, /dimension_key\s+TEXT\s+NOT NULL/);

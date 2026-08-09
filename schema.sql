@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS lld_sections (
   design_id   TEXT NOT NULL,
   owner_id    TEXT NOT NULL,
   section_key TEXT NOT NULL
-    CHECK (section_key IN ('scope', 'model', 'diagram', 'flow_tradeoffs', 'review')),
+    CHECK (section_key IN ('functional_requirements', 'nfr', 'model', 'diagram', 'flow_tradeoffs', 'review', 'scope')),
   title       TEXT NOT NULL,
   prompt      TEXT NOT NULL DEFAULT '',
   position    INTEGER NOT NULL DEFAULT 0 CHECK (position >= 0),
@@ -192,6 +192,9 @@ CREATE TABLE IF NOT EXISTS lld_code_artifacts (
 
 ALTER TABLE lld_code_artifacts ADD COLUMN IF NOT EXISTS skeleton_md TEXT NOT NULL DEFAULT '';
 ALTER TABLE lld_code_artifacts ADD COLUMN IF NOT EXISTS method_signatures_md TEXT NOT NULL DEFAULT '';
+ALTER TABLE lld_sections DROP CONSTRAINT IF EXISTS lld_sections_section_key_check;
+ALTER TABLE lld_sections ADD CONSTRAINT lld_sections_section_key_check
+  CHECK (section_key IN ('functional_requirements', 'nfr', 'model', 'diagram', 'flow_tradeoffs', 'review', 'scope'));
 
 CREATE TABLE IF NOT EXISTS lld_code_artifact_versions (
   id                    TEXT PRIMARY KEY,
@@ -261,13 +264,16 @@ CREATE TABLE IF NOT EXISTS lld_ai_turns (
   assessment        TEXT NOT NULL DEFAULT 'partial' CHECK (assessment IN ('missed', 'partial', 'clear')),
   provider          TEXT NOT NULL DEFAULT 'fallback',
   created_at        TIMESTAMPTZ DEFAULT NOW(),
-  CHECK (phase_key IS NULL OR phase_key IN ('scope', 'model', 'code', 'diagram', 'flow_tradeoffs', 'review')),
+  CHECK (phase_key IS NULL OR phase_key IN ('functional_requirements', 'nfr', 'model', 'code', 'diagram', 'flow_tradeoffs', 'review', 'scope')),
   FOREIGN KEY (attempt_id, owner_id) REFERENCES lld_attempts(id, owner_id) ON DELETE CASCADE,
   FOREIGN KEY (design_id, owner_id) REFERENCES lld_designs(id, owner_id) ON DELETE CASCADE
 );
 
 ALTER TABLE lld_ai_turns ADD COLUMN IF NOT EXISTS top_improvements JSONB NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE lld_ai_turns ADD COLUMN IF NOT EXISTS next_drill TEXT NOT NULL DEFAULT '';
+ALTER TABLE lld_ai_turns DROP CONSTRAINT IF EXISTS lld_ai_turns_phase_key_check;
+ALTER TABLE lld_ai_turns ADD CONSTRAINT lld_ai_turns_phase_key_check
+  CHECK (phase_key IS NULL OR phase_key IN ('functional_requirements', 'nfr', 'model', 'code', 'diagram', 'flow_tradeoffs', 'review', 'scope'));
 
 CREATE TABLE IF NOT EXISTS lld_review_dimensions (
   id          TEXT PRIMARY KEY,

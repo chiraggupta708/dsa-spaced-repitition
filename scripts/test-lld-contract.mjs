@@ -18,17 +18,18 @@ function check(name, callback) {
   }
 }
 
-check('standard template has five ordered sections', () => {
+check('standard template separates functional requirements and NFR sections', () => {
   const sections = standardLldSections();
-  assert.equal(sections.length, 5);
+  assert.equal(sections.length, 6);
   assert.deepEqual(sections.map((section) => section.sectionKey), [
-    'scope',
+    'functional_requirements',
+    'nfr',
     'model',
     'diagram',
     'flow_tradeoffs',
     'review',
   ]);
-  assert.deepEqual(sections.map((section) => section.position), [0, 1, 2, 3, 4]);
+  assert.deepEqual(sections.map((section) => section.position), [0, 1, 2, 3, 4, 5]);
 });
 
 check('valid LLD design normalizes source-first content', () => {
