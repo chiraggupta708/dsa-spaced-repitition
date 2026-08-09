@@ -1,4 +1,5 @@
 import { load } from '../lib/db.js';
+import { getLldDesign, listLldDesigns } from '../lib/lld-db.js';
 import { requireAuth } from '../lib/auth.js';
 import { applyCors, handleOptions, sendAuthError, sendJSON } from '../lib/api.js';
 
@@ -21,8 +22,16 @@ export default async function handler(req, res) {
 
   try {
     var exportData = await load(userId);
+    var lldLibrary = await listLldDesigns(userId);
+    exportData.lld = {
+      schemaVersion: 1,
+      designs: (await Promise.all((lldLibrary.designs || []).map(function (design) {
+        return getLldDesign(design.id, userId);
+      }))).filter(Boolean),
+    };
     var jsonStr = JSON.stringify(exportData, null, 2);
     applyCors(res);
+    res.setHeader('Cache-Control', 'no-store');
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', 'attachment; filename="coding-journal-backup.json"');
     res.status(200).send(jsonStr);

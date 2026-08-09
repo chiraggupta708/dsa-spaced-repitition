@@ -106,3 +106,208 @@ CREATE INDEX IF NOT EXISTS idx_designs_owner ON designs (owner_id);
 CREATE INDEX IF NOT EXISTS idx_designs_owner_kind ON designs (owner_id, kind);
 CREATE INDEX IF NOT EXISTS idx_designs_tags_tag  ON designs_tags (tag_id);
 CREATE INDEX IF NOT EXISTS idx_designs_tags_design ON designs_tags (design_id);
+
+-- =========================================================================
+-- First-class LLD (V1) — additive owner-scoped aggregate.
+-- Generic `designs` rows above remain unchanged for legacy LLD/HLD notes.
+-- =========================================================================
+CREATE TABLE IF NOT EXISTS lld_designs (
+  id                   TEXT PRIMARY KEY,
+  owner_id             TEXT NOT NULL REFERENCES users(clerk_id) ON DELETE RESTRICT,
+  title                TEXT NOT NULL,
+  problem_statement_md TEXT NOT NULL DEFAULT '',
+  lifecycle_state      TEXT NOT NULL DEFAULT 'draft'
+    CHECK (lifecycle_state IN ('draft', 'practicing', 'needs_review', 'interview_ready', 'archived')),
+  schema_version       INTEGER NOT NULL DEFAULT 1 CHECK (schema_version >= 1),
+  created_at           TIMESTAMPTZ DEFAULT NOW(),
+  updated_at           TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (id, owner_id)
+);
+
+CREATE TABLE IF NOT EXISTS lld_sections (
+  id          TEXT PRIMARY KEY,
+  design_id   TEXT NOT NULL,
+  owner_id    TEXT NOT NULL,
+  section_key TEXT NOT NULL
+    CHECK (section_key IN ('scope', 'model', 'diagram', 'flow_tradeoffs', 'review')),
+  title       TEXT NOT NULL,
+  prompt      TEXT NOT NULL DEFAULT '',
+  position    INTEGER NOT NULL DEFAULT 0 CHECK (position >= 0),
+  content_md  TEXT NOT NULL DEFAULT '',
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (design_id, section_key),
+  FOREIGN KEY (design_id, owner_id) REFERENCES lld_designs(id, owner_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS lld_diagrams (
+  id            TEXT PRIMARY KEY,
+  design_id     TEXT NOT NULL,
+  owner_id      TEXT NOT NULL,
+  title         TEXT NOT NULL,
+  diagram_type  TEXT NOT NULL CHECK (diagram_type IN ('class', 'sequence')),
+  source        TEXT NOT NULL,
+  description   TEXT NOT NULL DEFAULT '',
+  position      INTEGER NOT NULL DEFAULT 0 CHECK (position >= 0),
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ DEFAULT NOW(),
+  FOREIGN KEY (design_id, owner_id) REFERENCES lld_designs(id, owner_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS lld_resources (
+  id          TEXT PRIMARY KEY,
+  design_id   TEXT NOT NULL,
+  owner_id    TEXT NOT NULL,
+  title       TEXT NOT NULL,
+  url         TEXT NOT NULL,
+  host        TEXT NOT NULL DEFAULT '',
+  resource_type TEXT NOT NULL DEFAULT 'reference',
+  placement   TEXT NOT NULL DEFAULT 'after_attempt'
+    CHECK (placement IN ('before_attempt', 'after_attempt')),
+  notes_md    TEXT NOT NULL DEFAULT '',
+  position    INTEGER NOT NULL DEFAULT 0 CHECK (position >= 0),
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ DEFAULT NOW(),
+  FOREIGN KEY (design_id, owner_id) REFERENCES lld_designs(id, owner_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS lld_code_artifacts (
+  id             TEXT PRIMARY KEY,
+  design_id      TEXT NOT NULL,
+  owner_id       TEXT NOT NULL,
+  language       TEXT NOT NULL DEFAULT 'java' CHECK (language = 'java'),
+  filename       TEXT NOT NULL DEFAULT 'Main.java',
+  background_md  TEXT NOT NULL DEFAULT '',
+  skeleton_md    TEXT NOT NULL DEFAULT '',
+  method_signatures_md TEXT NOT NULL DEFAULT '',
+  source         TEXT NOT NULL DEFAULT '',
+  compile_status TEXT NOT NULL DEFAULT 'not_run'
+    CHECK (compile_status IN ('not_run', 'passed', 'failed')),
+  compile_output TEXT NOT NULL DEFAULT '',
+  created_at     TIMESTAMPTZ DEFAULT NOW(),
+  updated_at     TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (design_id, owner_id),
+  FOREIGN KEY (design_id, owner_id) REFERENCES lld_designs(id, owner_id) ON DELETE CASCADE
+);
+
+ALTER TABLE lld_code_artifacts ADD COLUMN IF NOT EXISTS skeleton_md TEXT NOT NULL DEFAULT '';
+ALTER TABLE lld_code_artifacts ADD COLUMN IF NOT EXISTS method_signatures_md TEXT NOT NULL DEFAULT '';
+
+CREATE TABLE IF NOT EXISTS lld_code_artifact_versions (
+  id                    TEXT PRIMARY KEY,
+  design_id             TEXT NOT NULL,
+  owner_id              TEXT NOT NULL,
+  version_no            INTEGER NOT NULL CHECK (version_no > 0),
+  language              TEXT NOT NULL DEFAULT 'java' CHECK (language = 'java'),
+  filename              TEXT NOT NULL DEFAULT 'Main.java',
+  background_md         TEXT NOT NULL DEFAULT '',
+  skeleton_md           TEXT NOT NULL DEFAULT '',
+  method_signatures_md  TEXT NOT NULL DEFAULT '',
+  source                TEXT NOT NULL DEFAULT '',
+  change_note           TEXT NOT NULL DEFAULT '',
+  created_at            TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (design_id, owner_id, version_no),
+  FOREIGN KEY (design_id, owner_id) REFERENCES lld_designs(id, owner_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS lld_attempts (
+  id             TEXT PRIMARY KEY,
+  design_id      TEXT NOT NULL,
+  owner_id       TEXT NOT NULL,
+  mode           TEXT NOT NULL CHECK (mode IN ('practice', 'timed')),
+  status         TEXT NOT NULL DEFAULT 'started'
+    CHECK (status IN ('started', 'completed', 'abandoned')),
+  prompt_version INTEGER NOT NULL DEFAULT 1 CHECK (prompt_version >= 1),
+  started_at     TIMESTAMPTZ DEFAULT NOW(),
+  completed_at   TIMESTAMPTZ,
+  updated_at     TIMESTAMPTZ DEFAULT NOW(),
+  FOREIGN KEY (design_id, owner_id) REFERENCES lld_designs(id, owner_id) ON DELETE CASCADE
+);
+
+-- The answer table references the attempt plus owner, so the parent needs a
+-- matching unique key. A named unique index is idempotent across deploys and
+-- also repairs databases where lld_attempts was created before this key.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_lld_attempts_id_owner ON lld_attempts (id, owner_id);
+
+CREATE TABLE IF NOT EXISTS lld_attempt_answers (
+  id           TEXT PRIMARY KEY,
+  attempt_id   TEXT NOT NULL,
+  owner_id     TEXT NOT NULL,
+  phase_key    TEXT NOT NULL,
+  answer_md    TEXT NOT NULL DEFAULT '',
+  revealed_at  TIMESTAMPTZ,
+  submitted_at TIMESTAMPTZ,
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (attempt_id, phase_key),
+  FOREIGN KEY (attempt_id, owner_id) REFERENCES lld_attempts(id, owner_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS lld_ai_turns (
+  id                TEXT PRIMARY KEY,
+  attempt_id        TEXT NOT NULL,
+  design_id         TEXT NOT NULL,
+  owner_id          TEXT NOT NULL,
+  phase_key         TEXT,
+  mode              TEXT NOT NULL CHECK (mode IN ('tutor', 'interviewer')),
+  request_type      TEXT NOT NULL CHECK (request_type IN ('evaluate', 'hint', 'follow_up', 'debrief')),
+  answer_md         TEXT NOT NULL DEFAULT '',
+  feedback_md       TEXT NOT NULL DEFAULT '',
+  missing_points    JSONB NOT NULL DEFAULT '[]'::jsonb,
+  top_improvements  JSONB NOT NULL DEFAULT '[]'::jsonb,
+  next_drill        TEXT NOT NULL DEFAULT '',
+  follow_up_question TEXT NOT NULL DEFAULT '',
+  hint_md           TEXT NOT NULL DEFAULT '',
+  assessment        TEXT NOT NULL DEFAULT 'partial' CHECK (assessment IN ('missed', 'partial', 'clear')),
+  provider          TEXT NOT NULL DEFAULT 'fallback',
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  CHECK (phase_key IS NULL OR phase_key IN ('scope', 'model', 'code', 'diagram', 'flow_tradeoffs', 'review')),
+  FOREIGN KEY (attempt_id, owner_id) REFERENCES lld_attempts(id, owner_id) ON DELETE CASCADE,
+  FOREIGN KEY (design_id, owner_id) REFERENCES lld_designs(id, owner_id) ON DELETE CASCADE
+);
+
+ALTER TABLE lld_ai_turns ADD COLUMN IF NOT EXISTS top_improvements JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE lld_ai_turns ADD COLUMN IF NOT EXISTS next_drill TEXT NOT NULL DEFAULT '';
+
+CREATE TABLE IF NOT EXISTS lld_review_dimensions (
+  id          TEXT PRIMARY KEY,
+  design_id   TEXT NOT NULL,
+  owner_id    TEXT NOT NULL,
+  dimension_key TEXT NOT NULL
+    CHECK (dimension_key IN ('scope', 'ownership', 'flow', 'pattern_edge_case')),
+  level       TEXT NOT NULL CHECK (level IN ('missed', 'partial', 'clear')),
+  notes_md    TEXT NOT NULL DEFAULT '',
+  reviewed_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (design_id, dimension_key),
+  FOREIGN KEY (design_id, owner_id) REFERENCES lld_designs(id, owner_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS lld_readiness (
+  design_id       TEXT PRIMARY KEY,
+  owner_id        TEXT NOT NULL,
+  readiness_state  TEXT NOT NULL DEFAULT 'draft'
+    CHECK (readiness_state IN ('draft', 'practicing', 'needs_review', 'interview_ready', 'archived')),
+  next_action     TEXT NOT NULL DEFAULT '',
+  next_review_at  TIMESTAMPTZ,
+  algorithm_version INTEGER NOT NULL DEFAULT 1 CHECK (algorithm_version >= 1),
+  evaluated_at    TIMESTAMPTZ,
+  updated_at      TIMESTAMPTZ DEFAULT NOW(),
+  FOREIGN KEY (design_id, owner_id) REFERENCES lld_designs(id, owner_id) ON DELETE CASCADE
+);
+
+ALTER TABLE lld_readiness ADD COLUMN IF NOT EXISTS next_review_at TIMESTAMPTZ;
+
+CREATE INDEX IF NOT EXISTS idx_lld_designs_owner ON lld_designs (owner_id);
+CREATE INDEX IF NOT EXISTS idx_lld_designs_owner_state ON lld_designs (owner_id, lifecycle_state);
+CREATE INDEX IF NOT EXISTS idx_lld_sections_owner_design ON lld_sections (owner_id, design_id, position);
+CREATE INDEX IF NOT EXISTS idx_lld_diagrams_owner_design ON lld_diagrams (owner_id, design_id, position);
+CREATE INDEX IF NOT EXISTS idx_lld_resources_owner_design ON lld_resources (owner_id, design_id, position);
+CREATE INDEX IF NOT EXISTS idx_lld_code_owner_design ON lld_code_artifacts (owner_id, design_id);
+CREATE INDEX IF NOT EXISTS idx_lld_code_versions_owner_design ON lld_code_artifact_versions (owner_id, design_id, version_no DESC);
+CREATE INDEX IF NOT EXISTS idx_lld_attempts_owner_design ON lld_attempts (owner_id, design_id, started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_lld_attempt_answers_owner_attempt ON lld_attempt_answers (owner_id, attempt_id);
+CREATE INDEX IF NOT EXISTS idx_lld_ai_owner_attempt ON lld_ai_turns (owner_id, attempt_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_lld_review_owner_design ON lld_review_dimensions (owner_id, design_id);
+CREATE INDEX IF NOT EXISTS idx_lld_readiness_owner_state ON lld_readiness (owner_id, readiness_state);
+CREATE INDEX IF NOT EXISTS idx_lld_readiness_owner_review ON lld_readiness (owner_id, next_review_at);

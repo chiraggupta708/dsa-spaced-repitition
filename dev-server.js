@@ -23,6 +23,7 @@ app.use(express.json());
 const cardHandler = (await import('./api/cards/[...cardId].js')).default;
 const authHandler = (await import('./api/auth/[...auth].js')).default;
 const systemHandler = (await import('./api/system/[...action].js')).default;
+const designDetailHandler = (await import('./api/designs/[...path].js')).default;
 
 app.all('/api/auth/:action',       authHandler);
 app.all('/api/health',             systemHandler);
@@ -39,7 +40,7 @@ app.post('/api/cards/:cardId/review', cardHandler);
 
 // Designs (LLD/HLD) — added with the Designs feature
 app.all('/api/designs',           (await import('./api/designs.js')).default);
-app.all('/api/designs/:id',       (await import('./api/designs/[id].js')).default);
+app.all('/api/designs/*',         designDetailHandler);
 
 // Serve index.html (must be before 404 catch-all)
 import fs from 'node:fs';
