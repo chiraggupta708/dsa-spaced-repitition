@@ -4,12 +4,27 @@ import {
   LLD_AI_MODES,
   LLD_AI_REQUEST_TYPES,
   createFallbackLldAiResponse,
+  describeLldAiProvider,
   normalizeLldAiInput,
   normalizeLldAiResponse,
 } from '../lib/lld-ai.js';
 
 assert.deepEqual(LLD_AI_MODES, ['tutor', 'interviewer']);
 assert.deepEqual(LLD_AI_REQUEST_TYPES, ['evaluate', 'hint', 'follow_up', 'debrief']);
+const savedProviderEnv = { ...process.env };
+process.env.OPENROUTER_API_KEY = 'test-openrouter-key';
+delete process.env.LLD_AI_PROVIDER;
+delete process.env.LLD_AI_API_KEY;
+delete process.env.OPENAI_API_KEY;
+const openRouterProvider = describeLldAiProvider();
+assert.equal(openRouterProvider.provider, 'openrouter');
+assert.equal(openRouterProvider.baseUrl, 'https://openrouter.ai/api/v1');
+assert.equal(openRouterProvider.model, 'openai/gpt-4o-mini');
+assert.equal(openRouterProvider.configured, true);
+for (const key of Object.keys(process.env)) {
+  if (!(key in savedProviderEnv)) delete process.env[key];
+}
+for (const [key, value] of Object.entries(savedProviderEnv)) process.env[key] = value;
 
 const input = normalizeLldAiInput({
   phaseKey: 'model',
