@@ -20,6 +20,8 @@ const input = normalizeLldAiInput({
 assert.equal(input.phaseKey, 'model');
 assert.equal(input.mode, 'tutor');
 assert.equal(input.requestType, 'evaluate');
+const reNormalizedInput = normalizeLldAiInput(input);
+assert.equal(reNormalizedInput.review, null);
 
 const debrief = normalizeLldAiInput({
   mode: 'interviewer',
