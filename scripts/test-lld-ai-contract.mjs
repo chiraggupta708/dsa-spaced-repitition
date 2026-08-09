@@ -6,6 +6,7 @@ import {
   createFallbackLldAiResponse,
   describeLldAiProvider,
   normalizeLldAiInput,
+  normalizeLldAiProviderPayload,
   normalizeLldAiResponse,
 } from '../lib/lld-ai.js';
 
@@ -21,6 +22,9 @@ assert.equal(openRouterProvider.provider, 'openrouter');
 assert.equal(openRouterProvider.baseUrl, 'https://openrouter.ai/api/v1');
 assert.equal(openRouterProvider.model, 'openai/gpt-4o-mini');
 assert.equal(openRouterProvider.configured, true);
+assert.equal(normalizeLldAiProviderPayload({ assessment: 'Incomplete' }).assessment, 'missed');
+assert.equal(normalizeLldAiProviderPayload({ assessment: 'Needs improvement' }).assessment, 'partial');
+assert.equal(normalizeLldAiProviderPayload({ assessment: 'Complete' }).assessment, 'clear');
 for (const key of Object.keys(process.env)) {
   if (!(key in savedProviderEnv)) delete process.env[key];
 }
