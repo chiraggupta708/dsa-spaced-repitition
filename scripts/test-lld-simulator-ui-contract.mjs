@@ -28,5 +28,18 @@ assert.match(html, /id="lldCodeHistoryButton"/);
 assert.match(html, /action=code-versions/);
 assert.match(html, /action=ai/);
 assert.match(html, /action=code/);
+assert.match(html, /Recommended next step/);
+assert.match(html, /Continue practice/);
+assert.match(html, /Choose a starter concept/);
+assert.doesNotMatch(html, /Start with one concept/);
+assert.doesNotMatch(html, /data-add="lld">Add LLD design/);
+assert.match(html, /data-add="lld">New LLD notebook/);
+assert.match(html, /data-workspace-switch="dsa"/);
+assert.match(html, /data-workspace-switch="lld"/);
+assert.match(html, /data-lld-view="home"/);
+assert.match(html, /data-lld-view="designs"/);
+assert.match(html, /data-lld-view="review"/);
+assert.match(html, /data-lld-view="concepts"/);
+assert.match(html, /class="text-button hidden" id="lldTimedNext"/);
 
 console.log('LLD simulator UI contract tests passed.');
