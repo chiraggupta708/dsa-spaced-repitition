@@ -59,6 +59,7 @@ assert.ok(Array.isArray(fallback.missingPoints));
 assert.ok(fallback.followUpQuestion.length > 0);
 assert.ok(Array.isArray(fallback.topImprovements));
 assert.ok(fallback.nextDrill.length > 0);
+assert.ok(!fallback.missingPoints.some((point) => /\b(require|nfr|assum)\b/i.test(point)));
 
 const response = normalizeLldAiResponse({
   provider: 'openai-compatible',
