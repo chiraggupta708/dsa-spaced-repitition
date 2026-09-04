@@ -1,7 +1,14 @@
-import { load, upsertCard, deleteCard, todayISO } from '../../lib/db.js';
+import { getCard, upsertCard, deleteCard, todayISO } from '../../lib/db.js';
 import { sm2Calc } from '../../lib/sm2.js';
 import { requireAuth } from '../../lib/auth.js';
 import { handleOptions, sendAuthError, sendJSON, getBody, badBodyError } from '../../lib/api.js';
+
+function queryValue(req, key) {
+  var value = req.query && req.query[key];
+  if (Array.isArray(value)) return value[0] ? String(value[0]) : '';
+  if (value !== undefined && value !== null) return String(value);
+  return new URL(req.url || '', 'http://localhost').searchParams.get(key) || '';
+}
 
 function getCardId(req) {
   if (req.query && req.query.cardId) {
@@ -11,13 +18,6 @@ function getCardId(req) {
   var pathname = url.split('?')[0];
   var parts = pathname.split('/').filter(Boolean);
   return parts[2];
-}
-
-function findCard(cards, cardId) {
-  for (var i = 0; i < cards.length; i++) {
-    if (cards[i].id === cardId) return cards[i];
-  }
-  return null;
 }
 
 export default async function handler(req, res) {
@@ -32,6 +32,7 @@ export default async function handler(req, res) {
   }
   var userId = auth.userId;
   var cardId = getCardId(req);
+  var compactResponse = queryValue(req, 'response') === 'summary';
   var url = req.url || '';
   var pathname = url.split('?')[0];
   var pathParts = pathname.split('/').filter(Boolean);
@@ -47,8 +48,7 @@ export default async function handler(req, res) {
         return;
       }
       quality = Number(quality);
-      var reviewData = await load(userId);
-      var card = findCard(reviewData.cards, cardId);
+      var card = await getCard(cardId, userId);
       if (!card) {
         sendJSON(res, 404, { ok: false, error: 'Card not found' });
         return;
@@ -56,7 +56,7 @@ export default async function handler(req, res) {
       card.sm2 = sm2Calc(quality, card.sm2 || {});
       card.updated = todayISO();
       await upsertCard(card, userId);
-      sendJSON(res, 200, { ok: true, card: card });
+      sendJSON(res, 200, compactResponse ? { ok: true, id: card.id } : { ok: true, card: card });
     } catch (err) {
       sendJSON(res, 400, { ok: false, error: badBodyError(err) });
     }
@@ -70,8 +70,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      var getData = await load(userId);
-      var found = findCard(getData.cards, cardId);
+      var found = await getCard(cardId, userId);
       if (!found) {
         sendJSON(res, 404, { ok: false, error: 'Card not found' });
         return;
@@ -90,8 +89,7 @@ export default async function handler(req, res) {
         sendJSON(res, 400, { ok: false, error: 'question is required' });
         return;
       }
-      var updateData = await load(userId);
-      var existing = findCard(updateData.cards, cardId);
+      var existing = await getCard(cardId, userId);
       if (!existing) {
         sendJSON(res, 404, { ok: false, error: 'Card not found' });
         return;
@@ -108,7 +106,7 @@ export default async function handler(req, res) {
       if (body.questionDescription !== undefined) existing.questionDescription = body.questionDescription;
       existing.updated = todayISO();
       await upsertCard(existing, userId);
-      sendJSON(res, 200, { ok: true, card: existing });
+      sendJSON(res, 200, compactResponse ? { ok: true, id: existing.id } : { ok: true, card: existing });
     } catch (err) {
       sendJSON(res, 400, { ok: false, error: badBodyError(err) });
     }

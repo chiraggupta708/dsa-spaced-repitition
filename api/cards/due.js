@@ -1,6 +1,13 @@
-import { load, todayISO } from '../../lib/db.js';
+import { load, loadCardSummaries, todayISO } from '../../lib/db.js';
 import { requireAuth } from '../../lib/auth.js';
 import { handleOptions, sendAuthError, sendJSON } from '../../lib/api.js';
+
+function queryValue(req, key) {
+  var value = req.query && req.query[key];
+  if (Array.isArray(value)) return value[0] ? String(value[0]) : '';
+  if (value !== undefined && value !== null) return String(value);
+  return new URL(req.url || '', 'http://localhost').searchParams.get(key) || '';
+}
 
 export default async function handler(req, res) {
   if (handleOptions(req, res)) return;
@@ -20,7 +27,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    var dueData = await load(userId);
+    var useSummary = queryValue(req, 'summary') === '1' || queryValue(req, 'view') === 'summary';
+    var dueData = useSummary ? await loadCardSummaries(userId) : await load(userId);
     var todayDue = todayISO();
     var dueCards = dueData.cards.filter(function (c) {
       return !c.sm2 || !c.sm2.nextReview || c.sm2.nextReview <= todayDue;

@@ -1,4 +1,4 @@
-import { load, todayISO, countStreak } from '../lib/db.js';
+import { loadCardSummaries, todayISO, countStreak } from '../lib/db.js';
 import { requireAuth } from '../lib/auth.js';
 import { handleOptions, sendAuthError, sendJSON } from '../lib/api.js';
 
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    var dataStats = await load(userId);
+    var dataStats = await loadCardSummaries(userId);
     var allCards = dataStats.cards;
     var total = allCards.length;
     var mastered = 0;

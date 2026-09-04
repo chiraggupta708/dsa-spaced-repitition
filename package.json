@@ -15,6 +15,7 @@
     "test:lld-simulator-ui": "node scripts/test-lld-simulator-ui-contract.mjs",
     "test:lld-backup": "node scripts/test-lld-backup-contract.mjs",
     "test:api-cache": "node scripts/test-api-cache-contract.mjs",
+    "test:card-transfer": "node scripts/test-card-transfer-contract.mjs",
     "test:design-route": "node scripts/test-design-route-contract.mjs"
   },
   "engines": {
