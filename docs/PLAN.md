@@ -31,23 +31,36 @@ git diff --check origin/main...dev
 
 **Pass condition:** no accidental mockups/debug notes are included in the release.
 
-## 2. Verify the existing `dev` deployment without writing production data
+## 2. Verify the isolated dev project end-to-end
 
-- [ ] In Vercel, confirm whether Preview and Production use the same Neon database. If they do, use read-only checks only.
-- [ ] Confirm the dev deployment serves Designs and existing cards correctly.
+### Deployment topology (verified 2026-07-29)
+
+- `dsa-spaced-repitition_dev` is the **isolated dev Vercel project**. It deploys as Production at `https://dsa-spaced-repititiondev.vercel.app` and has its own Neon DB. This is safe for disposable write tests.
+- `dsa-spaced-repitition` is the **real app project**. A `dev` push creates a Preview deployment; a `main` push creates the real Production deployment. Its Neon DB holds the 31 production cards.
+- The projects have separate Neon databases. Never write-test against the real app project before merge.
+
+- [ ] Use authenticated Vercel CLI requests to test the dev project, despite SSO Deployment Protection.
+- [ ] Perform one disposable Card lifecycle: create → fetch → edit → review → delete.
+- [ ] Perform one disposable Design lifecycle: create → fetch → edit → delete.
+- [ ] Confirm the dev DB returns to its original count after cleanup.
 
 ```bash
-# Replace DEV_URL with the existing Vercel dev deployment URL.
-DEV_URL='https://<dev-deployment>.vercel.app'
-for path in /api/health /api/stats /api/cards/due /api/designs; do
-  printf '\n--- %s ---\n' "$path"
-  curl --fail --silent --show-error "$DEV_URL$path"
-done
+# CLI authentication automatically bypasses Deployment Protection.
+# Run only from the temporary directory linked to dsa-spaced-repitition_dev.
+vercel curl /api/health --deployment dpl_FERE47T4N2G29KP8ndM3ocF2YKkb
+vercel curl /api/designs --deployment dpl_FERE47T4N2G29KP8ndM3ocF2YKkb
 ```
 
-**Pass condition:** health, stats, due-card list, and Designs all respond successfully. Do not create/review/import records when the DB is shared with production.
+**Pass condition:** all Card and Design CRUD/review requests succeed in the isolated dev DB; no request is sent to the real project.
 
-## 3. Review and merge via PR
+## 3. Verify the real-project Preview read-only
+
+- [ ] Confirm the `dev` Preview deployment of `dsa-spaced-repitition` includes the new `api/designs` build output.
+- [ ] Perform only read-only checks against its database. Do not create, review, delete, or import cards there.
+
+**Pass condition:** Preview is Ready and exposes the expected routes; the verified production backup remains the recovery point.
+
+## 4. Review and merge via PR
 
 - [ ] Open a PR from `dev` to `main`.
 - [ ] Record the previous production deployment URL/ID from the Vercel dashboard before merging; it is the immediate rollback target.
@@ -62,7 +75,7 @@ git diff --name-status origin/main...origin/dev
 
 **Pass condition:** `main` contains the chosen release commit and Vercel starts a new production deployment.
 
-## 4. Post-deploy, read-only production smoke check
+## 5. Post-deploy, read-only production smoke check
 
 - [ ] Wait for Vercel to mark the deployment Ready.
 - [ ] Confirm existing data survived before performing any write actions.
@@ -87,7 +100,7 @@ PY
 
 **Pass condition:** health/stats/due endpoints return 200 and the exported card count remains **31**.
 
-## 5. Activate and test Designs safely
+## 6. Activate and test Designs safely
 
 `vercel.json` currently disables the build command, so `scripts/setup-db.mjs` is **not** run automatically during deployment. The Designs tables must be created deliberately, using the production Neon connection string.
 
@@ -103,7 +116,7 @@ DATABASE_URL='<production Neon URL>' node scripts/apply-schema.mjs
 
 **Pass condition:** Designs works and `/api/export` still reports 31 cards.
 
-## 6. Roll back immediately if a release check fails
+## 7. Roll back immediately if a release check fails
 
 **Rollback triggers:** card count differs from 31; existing cards fail to load; a production endpoint returns 5xx; or the review UI is unusable.
 
@@ -114,11 +127,11 @@ DATABASE_URL='<production Neon URL>' node scripts/apply-schema.mjs
 vercel rollback '<previous-production-deployment-url-or-id>' --yes
 ```
 
-3. Verify the restored deployment with the read-only checks from step 4.
+3. Verify the restored deployment with the read-only checks from step 5.
 4. Keep the DB schema in place: it is additive and the older code ignores the new tables/columns.
 5. Only if card data is truly missing after investigation, restore the verified JSON backup through the UI Import flow, then validate count and card IDs.
 
-## 7. Follow-up hardening (separate PR)
+## 8. Follow-up hardening (separate PR)
 
 - [ ] Replace collection-level `save()` usage for normal create/edit/review operations with single-card SQL operations.
 - [ ] Split Import into an explicit `replaceAllCards()` path with a server-side confirmation token/count check.

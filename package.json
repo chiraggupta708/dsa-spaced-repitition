@@ -5,7 +5,17 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "build": "node scripts/setup-db.mjs"
+    "build": "node scripts/setup-db.mjs",
+    "test:lld-contract": "node scripts/test-lld-contract.mjs",
+    "test:lld-code": "node scripts/test-lld-code-contract.mjs",
+    "test:lld-ai": "node scripts/test-lld-ai-contract.mjs",
+    "test:lld-schema": "node scripts/test-lld-schema-contract.mjs",
+    "test:lld-db": "node scripts/test-lld-db-contract.mjs",
+    "test:lld-attempts": "node scripts/test-lld-attempts-contract.mjs",
+    "test:lld-simulator-ui": "node scripts/test-lld-simulator-ui-contract.mjs",
+    "test:lld-backup": "node scripts/test-lld-backup-contract.mjs",
+    "test:api-cache": "node scripts/test-api-cache-contract.mjs",
+    "test:design-route": "node scripts/test-design-route-contract.mjs"
   },
   "engines": {
     "node": "24.x"

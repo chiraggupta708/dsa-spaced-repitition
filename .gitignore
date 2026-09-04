@@ -8,6 +8,7 @@ test/api-test.js
 _bugs.md
 mockup.html
 mockup-modern.html
+mockup-lld-v1.html
 build_index.py
 index.html.sav
 src/
@@ -17,3 +18,4 @@ mockup-quiet-study-desk.html
 ui-plan4-preview.html
 ui-preview.html
 ui-ux-preview.html
+.env*
