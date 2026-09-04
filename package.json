@@ -16,6 +16,7 @@
     "test:lld-backup": "node scripts/test-lld-backup-contract.mjs",
     "test:api-cache": "node scripts/test-api-cache-contract.mjs",
     "test:card-transfer": "node scripts/test-card-transfer-contract.mjs",
+    "test:review-pagination": "node scripts/test-review-pagination-contract.mjs",
     "test:design-route": "node scripts/test-design-route-contract.mjs"
   },
   "engines": {

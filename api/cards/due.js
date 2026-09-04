@@ -1,4 +1,4 @@
-import { load, loadCardSummaries, todayISO } from '../../lib/db.js';
+import { load, loadCardSummaries, loadDueCards, todayISO } from '../../lib/db.js';
 import { requireAuth } from '../../lib/auth.js';
 import { handleOptions, sendAuthError, sendJSON } from '../../lib/api.js';
 
@@ -7,6 +7,14 @@ function queryValue(req, key) {
   if (Array.isArray(value)) return value[0] ? String(value[0]) : '';
   if (value !== undefined && value !== null) return String(value);
   return new URL(req.url || '', 'http://localhost').searchParams.get(key) || '';
+}
+
+function excludedIds(req) {
+  return queryValue(req, 'exclude')
+    .split(',')
+    .map(function (id) { return id.trim(); })
+    .filter(Boolean)
+    .slice(0, 200);
 }
 
 export default async function handler(req, res) {
@@ -28,6 +36,18 @@ export default async function handler(req, res) {
 
   try {
     var useSummary = queryValue(req, 'summary') === '1' || queryValue(req, 'view') === 'summary';
+    var limitValue = queryValue(req, 'limit');
+    if (!useSummary && limitValue) {
+      var limit = Number(limitValue);
+      if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+        sendJSON(res, 400, { ok: false, error: 'limit must be an integer between 1 and 50' });
+        return;
+      }
+      var batch = await loadDueCards(userId, { limit: limit, excludeIds: excludedIds(req) });
+      sendJSON(res, 200, { ok: true, cards: batch.cards, hasMore: batch.hasMore });
+      return;
+    }
+
     var dueData = useSummary ? await loadCardSummaries(userId) : await load(userId);
     var todayDue = todayISO();
     var dueCards = dueData.cards.filter(function (c) {
