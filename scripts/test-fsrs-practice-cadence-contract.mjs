@@ -50,19 +50,17 @@ const solvedGuard = solvedGuardMatch
   ? braceBlock(recordReview, solvedGuardMatch.index + solvedGuardMatch[0].lastIndexOf('{'))
   : '';
 if (!solvedGuard) {
-  failures.push('recordReview must guard all practice-state writes with if (solvedFromScratch)');
-} else {
-  if (!/scheduleNextDue\s*\(\s*\{[\s\S]*?mode\s*:\s*['"]practice['"][\s\S]*?\}\s*\)/.test(solvedGuard)) {
-    failures.push("recordReview must compute the practice due date with scheduleNextDue({ mode: 'practice', ... }) inside the solvedFromScratch guard");
-  }
-  if (!/INSERT\s+INTO\s+fsrs_practice_states\s*\([\s\S]*?\bnext_practice_at\b[\s\S]*?ON\s+CONFLICT[\s\S]*?\bnext_practice_at\s*=\s*EXCLUDED\.next_practice_at\b/i.test(solvedGuard)) {
-    failures.push('recordReview must upsert fsrs_practice_states.next_practice_at inside the solvedFromScratch guard');
-  }
+  failures.push('recordReview must compute practice cadence only behind solvedFromScratch');
+} else if (!/scheduleNextDue\s*\(\s*\{[\s\S]*?mode\s*:\s*['"]practice['"][\s\S]*?\}\s*\)/.test(solvedGuard)) {
+  failures.push("recordReview must compute the practice due date with scheduleNextDue({ mode: 'practice', ... }) inside the solvedFromScratch guard");
 }
 
-const practiceWritesOutsideGuard = recordReview.replace(solvedGuard, '').match(/(?:INSERT\s+INTO|UPDATE)\s+fsrs_practice_states\b/gi) || [];
-if (practiceWritesOutsideGuard.length > 0) {
-  failures.push('overview-only reviews (solvedFromScratch: false) must not update fsrs_practice_states');
+const atomicPracticeWrite = /practice_write\s+AS\s*\([\s\S]*?INSERT\s+INTO\s+fsrs_practice_states\s*\([\s\S]*?\bnext_practice_at\b[\s\S]*?FROM\s+card_update\s+c\s*WHERE\s+\$\d+::boolean[\s\S]*?ON\s+CONFLICT[\s\S]*?\bnext_practice_at\s*=\s*EXCLUDED\.next_practice_at\b/is.test(recordReview);
+if (!atomicPracticeWrite) {
+  failures.push('the atomic review CTE must gate practice-state upsert from card_update with solvedFromScratch');
+}
+if (!/practiceScheduled\?\.dueAt\s*\?\?\s*null\s*,\s*solvedFromScratch/.test(recordReview)) {
+  failures.push('the atomic practice write must receive the solvedFromScratch boolean and no due date when overview-only');
 }
 
 assert.equal(failures.length, 0, `Practice cadence source contract violations:\n${failures.map((failure) => `- ${failure}`).join('\n')}`);
