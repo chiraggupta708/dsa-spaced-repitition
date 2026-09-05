@@ -57,6 +57,20 @@ test('requires explicit instants and canonical persisted timestamps', () => {
   assert.equal(isSerializedFsrsCard(reviewCard({ last_review: '2026-03-01' })), false);
 });
 
+test('keeps input and emitted timestamps inside the replayable year domain', () => {
+  assert.throws(() => createFsrsTransition({
+    rating: RATINGS.AGAIN,
+    now: '0099-12-31T12:00:00.000Z',
+    timeZone: 'UTC',
+  }), /Invalid now date/);
+  assert.equal(isSerializedFsrsCard(reviewCard({ due: '0099-12-31T12:00:00.000Z' })), false);
+  assert.throws(() => createFsrsTransition({
+    rating: RATINGS.AGAIN,
+    now: '9999-12-31T23:59:00.000Z',
+    timeZone: 'UTC',
+  }), /supported|Invalid FSRS card due/);
+});
+
 test('produces identical transitions across host time zones for canonical state', () => {
   assert.equal(transitionUnderTimeZone('UTC'), transitionUnderTimeZone('America/Los_Angeles'));
 });
