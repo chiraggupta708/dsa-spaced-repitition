@@ -19,8 +19,15 @@ assert.deepEqual(ratingButtons.map((button) => button[2].replace(/<[^>]+>/g, '')
 absent(/data-rating="[1-5]"/, 'Legacy numeric rating values are removed');
 absent(/choose 1(?:–|-|to)5|rate this card[^<]{0,80}1(?:–|-|to)5/i, 'Legacy numeric review wording is removed');
 
-match(/id="solvedFromScratch"[^>]*type="checkbox"[^>]*aria-describedby="solvedFromScratchHelp"/, 'Solved-from-scratch is an accessible checkbox');
-match(/id="solvedFromScratchHelp"[^>]*>[\s\S]*30-day coding-practice reminder[\s\S]*does not change (?:your )?recall rating/i, 'Solved control explains its separate reminder-only effect');
+match(/<label class="practice-credit"[^>]*for="solvedFromScratch"/, 'Solved-from-scratch uses a dedicated practice-credit card');
+match(/<label class="practice-credit"[\s\S]*?id="solvedFromScratch"[^>]*type="checkbox"[^>]*aria-describedby="solvedFromScratchHelp"[\s\S]*?<span class="practice-credit-frame">/, 'Practice-credit card keeps the accessible checkbox inside its visual frame');
+match(/class="practice-credit-check"[^>]*aria-hidden="true"/, 'Practice-credit card has a presentational selected-state check');
+match(/class="practice-credit-copy"[\s\S]*?<strong>Solved from scratch<\/strong>/, 'Practice-credit card has a clear primary label');
+match(/id="solvedFromScratchHelp"[^>]*>[\s\S]*30-day practice checkpoint[\s\S]*recall rating stays separate/i, 'Solved control explains its separate reminder-only effect');
+match(/class="practice-credit-badge"[^>]*aria-hidden="true">30d/, 'Practice-credit card exposes the 30-day cadence at a glance');
+match(/\.practice-credit-frame\{[\s\S]*?min-height:(?:4[4-9]|[5-9]\d)px/, 'Practice-credit card has a touch-safe minimum hit area');
+match(/\.practice-credit input:checked\+\.practice-credit-frame\{/, 'Practice-credit card has a selected visual state');
+match(/\.practice-credit input:focus-visible\+\.practice-credit-frame\{/, 'Practice-credit card has a visible keyboard focus state');
 
 const dialog = between('<div class="dialog hidden" id="reviewDialog"', '<script');
 const revealedMarkup = between('<div id="revealed"', '</div></div></div><footer class="review-foot">');
