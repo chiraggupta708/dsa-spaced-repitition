@@ -335,6 +335,13 @@ CREATE TABLE IF NOT EXISTS fsrs_review_events (
   solved            BOOLEAN NOT NULL,
   occurred_at       TIMESTAMPTZ NOT NULL,
   scheduled_at      TIMESTAMPTZ,
+  -- Pre-Phase 3 rows are immutable SM-2 compatibility projections.
+  algorithm         TEXT NOT NULL DEFAULT 'sm2',
+  state_before      JSONB,
+  state_after       JSONB,
+  actual_elapsed_days INTEGER,
+  overdue_days      INTEGER,
+  scheduled_interval_days INTEGER,
   algorithm_version INTEGER NOT NULL CHECK (algorithm_version > 0),
   parameter_version INTEGER NOT NULL REFERENCES fsrs_scheduler_parameters(version) ON DELETE RESTRICT,
   idempotency_key   TEXT NOT NULL,
@@ -349,10 +356,28 @@ CREATE TABLE IF NOT EXISTS fsrs_card_schedules (
   stability         REAL NOT NULL CHECK (stability >= 0),
   difficulty        REAL NOT NULL CHECK (difficulty >= 0 AND difficulty <= 10),
   state             TEXT NOT NULL CHECK (state IN ('new', 'learning', 'review', 'relearning')),
+  card_state        JSONB,
   schedule_version  INTEGER NOT NULL CHECK (schedule_version > 0),
   updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (owner_id, card_id)
 );
+
+-- Phase 3 shadow persistence: additive only, so existing development data is
+-- retained. The algorithm default labels immutable pre-Phase 3 SM-2 rows.
+ALTER TABLE fsrs_review_events
+  ADD COLUMN IF NOT EXISTS algorithm TEXT NOT NULL DEFAULT 'sm2';
+ALTER TABLE fsrs_review_events
+  ADD COLUMN IF NOT EXISTS state_before JSONB;
+ALTER TABLE fsrs_review_events
+  ADD COLUMN IF NOT EXISTS state_after JSONB;
+ALTER TABLE fsrs_review_events
+  ADD COLUMN IF NOT EXISTS actual_elapsed_days INTEGER;
+ALTER TABLE fsrs_review_events
+  ADD COLUMN IF NOT EXISTS overdue_days INTEGER;
+ALTER TABLE fsrs_review_events
+  ADD COLUMN IF NOT EXISTS scheduled_interval_days INTEGER;
+ALTER TABLE fsrs_card_schedules
+  ADD COLUMN IF NOT EXISTS card_state JSONB;
 
 CREATE TABLE IF NOT EXISTS fsrs_practice_states (
   owner_id         TEXT NOT NULL REFERENCES users(clerk_id) ON DELETE RESTRICT,

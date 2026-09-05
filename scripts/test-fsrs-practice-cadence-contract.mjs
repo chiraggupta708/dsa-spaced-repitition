@@ -55,11 +55,14 @@ if (!solvedGuard) {
   failures.push("recordReview must compute the practice due date with scheduleNextDue({ mode: 'practice', ... }) inside the solvedFromScratch guard");
 }
 
-const atomicPracticeWrite = /practice_write\s+AS\s*\([\s\S]*?INSERT\s+INTO\s+fsrs_practice_states\s*\([\s\S]*?\bnext_practice_at\b[\s\S]*?FROM\s+card_update\s+c\s*WHERE\s+\$\d+::boolean[\s\S]*?ON\s+CONFLICT[\s\S]*?\bnext_practice_at\s*=\s*EXCLUDED\.next_practice_at\b/is.test(recordReview);
+const mutationStart = db.indexOf('export function buildShadowReviewMutation(');
+const mutationEnd = db.indexOf('\n/**\n * Record a semantic review', mutationStart);
+const mutationBuilder = mutationStart < 0 ? '' : db.slice(mutationStart, mutationEnd);
+const atomicPracticeWrite = /practice_write\s+AS\s*\([\s\S]*?INSERT\s+INTO\s+fsrs_practice_states\s*\([\s\S]*?\bnext_practice_at\b[\s\S]*?FROM\s+card_update\s+c\s*WHERE\s+\$\d+::boolean[\s\S]*?ON\s+CONFLICT[\s\S]*?\bnext_practice_at\s*=\s*EXCLUDED\.next_practice_at\b/is.test(mutationBuilder);
 if (!atomicPracticeWrite) {
   failures.push('the atomic review CTE must gate practice-state upsert from card_update with solvedFromScratch');
 }
-if (!/practiceScheduled\?\.dueAt\s*\?\?\s*null\s*,\s*solvedFromScratch/.test(recordReview)) {
+if (!/practiceDueAt\s*\?\?\s*null\s*,\s*solvedFromScratch/.test(mutationBuilder)) {
   failures.push('the atomic practice write must receive the solvedFromScratch boolean and no due date when overview-only');
 }
 

@@ -38,6 +38,20 @@ includes(events, /rating\s+TEXT\s+NOT NULL\s+CHECK \(rating IN \('again', 'hard'
 includes(events, /solved\s+BOOLEAN\s+NOT NULL/, 'review event requires solved flag');
 includes(events, /occurred_at\s+TIMESTAMPTZ\s+NOT NULL/, 'review event requires occurred time');
 includes(events, /scheduled_at\s+TIMESTAMPTZ/, 'review event requires scheduled time');
+for (const [column, definition, label] of [
+  ['algorithm', "TEXT\\s+NOT\\s+NULL\\s+DEFAULT\\s+'sm2'", 'migration-safe algorithm label'],
+  ['state_before', 'JSONB', 'state-before snapshot'],
+  ['state_after', 'JSONB', 'state-after snapshot'],
+  ['actual_elapsed_days', 'INTEGER', 'actual elapsed-day telemetry'],
+  ['overdue_days', 'INTEGER', 'overdue-day telemetry'],
+  ['scheduled_interval_days', 'INTEGER', 'scheduled interval telemetry'],
+]) {
+  includes(events, new RegExp(`\\b${column}\\s+${definition}`, 'i'),
+    `review event requires ${label} on new installs`);
+  includes(schema,
+    new RegExp(`ALTER TABLE\\s+fsrs_review_events\\s+ADD COLUMN IF NOT EXISTS\\s+${column}\\s+${definition}`, 'i'),
+    `existing review-event tables must add ${column} idempotently`);
+}
 includes(events, /algorithm_version\s+INTEGER\s+NOT NULL/, 'review event requires algorithm version');
 includes(events, /parameter_version\s+INTEGER\s+NOT NULL/, 'review event requires parameter version');
 includes(events, /idempotency_key\s+TEXT\s+NOT NULL/, 'review event requires idempotency key');
@@ -53,6 +67,10 @@ includes(schedules, /stability\s+REAL\s+NOT NULL/, 'schedule requires stability'
 includes(schedules, /difficulty\s+REAL\s+NOT NULL/, 'schedule requires difficulty');
 includes(schedules, /state\s+TEXT\s+NOT NULL\s+CHECK \(state IN \('new', 'learning', 'review', 'relearning'\)\)/,
   'schedule requires semantic FSRS state');
+includes(schedules, /card_state\s+JSONB/, 'schedule requires replayable FSRS card state on new installs');
+includes(schema,
+  /ALTER TABLE\s+fsrs_card_schedules\s+ADD COLUMN IF NOT EXISTS\s+card_state\s+JSONB/i,
+  'existing schedule tables must add replayable card state idempotently');
 includes(schedules, /schedule_version\s+INTEGER\s+NOT NULL/, 'schedule requires version');
 includes(schedules, /PRIMARY KEY \(owner_id, card_id\)/, 'schedule must have one current row per owner/card');
 

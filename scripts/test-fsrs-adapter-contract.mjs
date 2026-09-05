@@ -1,10 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  ACTIVE_SCHEDULER_MODE,
   FSRS_CONFIG,
   FSRS_LIBRARY,
+  FSRS_PARAMETER_RECORD,
   RATINGS,
+  SCHEDULER_MODES,
   createFsrsTransition,
+  fsrsStateName,
   isSerializedFsrsCard,
 } from '../lib/fsrs.js';
 
@@ -28,10 +32,29 @@ test('pins the maintained TS-FSRS v6 adapter and deterministic parameters', () =
     packageVersion: '5.4.2',
     algorithm: 'fsrs',
     algorithmVersion: 6,
-    parameterVersion: 1,
+    parameterVersion: 2,
   });
   assert.equal(FSRS_CONFIG.requestRetention, 0.9);
   assert.equal(FSRS_CONFIG.enableFuzz, false);
+});
+
+test('declares an inactive-by-default shadow mode and a complete persisted parameter record', () => {
+  assert.deepEqual(SCHEDULER_MODES, {
+    SM2: 'sm2',
+    FSRS_SHADOW: 'fsrs_shadow',
+    FSRS_ACTIVE: 'fsrs_active',
+  });
+  assert.equal(ACTIVE_SCHEDULER_MODE, SCHEDULER_MODES.FSRS_SHADOW);
+  assert.deepEqual(FSRS_PARAMETER_RECORD.library, FSRS_LIBRARY);
+  assert.deepEqual(FSRS_PARAMETER_RECORD.parameters.request_retention, 0.9);
+  assert.equal(FSRS_PARAMETER_RECORD.parameters.enable_fuzz, false);
+  assert.ok(Array.isArray(FSRS_PARAMETER_RECORD.parameters.w));
+  assert.ok(FSRS_PARAMETER_RECORD.parameters.w.length > 0);
+  assert.equal(fsrsStateName(0), 'new');
+  assert.equal(fsrsStateName(1), 'learning');
+  assert.equal(fsrsStateName(2), 'review');
+  assert.equal(fsrsStateName(3), 'relearning');
+  assert.throws(() => fsrsStateName(99), /state/i);
 });
 
 test('creates a JSON-safe, replayable FSRS transition from semantic ratings', () => {
@@ -44,10 +67,14 @@ test('creates a JSON-safe, replayable FSRS transition from semantic ratings', ()
   assert.equal(transition.rating, RATINGS.GOOD);
   assert.equal(transition.algorithm, 'fsrs');
   assert.equal(transition.algorithmVersion, 6);
-  assert.equal(transition.parameterVersion, 1);
+  assert.equal(transition.parameterVersion, 2);
   assert.ok(Date.parse(transition.dueAt) > Date.parse(SEED_AT));
   assert.ok(Number.isInteger(transition.scheduledIntervalDays));
   assert.ok(transition.scheduledIntervalDays >= 0);
+  assert.ok(Number.isInteger(transition.actualElapsedDays));
+  assert.ok(transition.actualElapsedDays >= 0);
+  assert.ok(Number.isInteger(transition.overdueDays));
+  assert.ok(transition.overdueDays >= 0);
   assert.ok(isSerializedFsrsCard(transition.stateBefore));
   assert.ok(isSerializedFsrsCard(transition.stateAfter));
   assert.equal(hasDateInstance(transition.stateBefore), false);
