@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "build": "node scripts/setup-db.mjs",
+    "build": "node scripts/verify-build.mjs",
     "test:lld-contract": "node scripts/test-lld-contract.mjs",
     "test:lld-code": "node scripts/test-lld-code-contract.mjs",
     "test:lld-ai": "node scripts/test-lld-ai-contract.mjs",
