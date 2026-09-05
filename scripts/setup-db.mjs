@@ -8,6 +8,7 @@ import { neon } from '@neondatabase/serverless';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { splitSchemaStatements } from '../lib/schema-statements.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
@@ -19,15 +20,15 @@ if (!connectionString) {
 
 const sql = neon(connectionString);
 
-// Strip -- comments, split into individual statements on ';'.
+// Preserve existing behavior: omit comment-only -- lines, then split only at
+// top-level statement terminators so function and DO bodies remain intact.
 const raw = readFileSync(join(__dirname, '..', 'schema.sql'), 'utf-8');
-const statements = raw
-  .split('\n')
-  .filter((l) => !l.trim().startsWith('--'))
-  .join('\n')
-  .split(';')
-  .map((s) => s.trim())
-  .filter(Boolean);
+const statements = splitSchemaStatements(
+  raw
+    .split('\n')
+    .filter((line) => !line.trim().startsWith('--'))
+    .join('\n'),
+);
 
 console.log(`[setup-db] applying ${statements.length} statements...`);
 for (const stmt of statements) {
