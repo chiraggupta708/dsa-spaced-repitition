@@ -317,3 +317,90 @@ CREATE INDEX IF NOT EXISTS idx_lld_ai_owner_attempt ON lld_ai_turns (owner_id, a
 CREATE INDEX IF NOT EXISTS idx_lld_review_owner_design ON lld_review_dimensions (owner_id, design_id);
 CREATE INDEX IF NOT EXISTS idx_lld_readiness_owner_state ON lld_readiness (owner_id, readiness_state);
 CREATE INDEX IF NOT EXISTS idx_lld_readiness_owner_review ON lld_readiness (owner_id, next_review_at);
+
+-- =========================================================================
+-- FSRS Phase 0 — additive scheduler records. Legacy SM-2 cards remain intact.
+-- =========================================================================
+CREATE TABLE IF NOT EXISTS fsrs_scheduler_parameters (
+  version     INTEGER PRIMARY KEY CHECK (version > 0),
+  data        JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS fsrs_review_events (
+  id                TEXT PRIMARY KEY,
+  owner_id          TEXT NOT NULL REFERENCES users(clerk_id) ON DELETE RESTRICT,
+  card_id           TEXT NOT NULL REFERENCES cards(id) ON DELETE RESTRICT,
+  rating            TEXT NOT NULL CHECK (rating IN ('again', 'hard', 'good', 'easy')),
+  solved            BOOLEAN NOT NULL,
+  occurred_at       TIMESTAMPTZ NOT NULL,
+  scheduled_at      TIMESTAMPTZ,
+  algorithm_version INTEGER NOT NULL CHECK (algorithm_version > 0),
+  parameter_version INTEGER NOT NULL REFERENCES fsrs_scheduler_parameters(version) ON DELETE RESTRICT,
+  idempotency_key   TEXT NOT NULL,
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (owner_id, idempotency_key)
+);
+
+CREATE TABLE IF NOT EXISTS fsrs_card_schedules (
+  owner_id          TEXT NOT NULL REFERENCES users(clerk_id) ON DELETE RESTRICT,
+  card_id           TEXT NOT NULL REFERENCES cards(id) ON DELETE RESTRICT,
+  due_at            TIMESTAMPTZ NOT NULL,
+  stability         REAL NOT NULL CHECK (stability >= 0),
+  difficulty        REAL NOT NULL CHECK (difficulty >= 0 AND difficulty <= 10),
+  state             TEXT NOT NULL CHECK (state IN ('new', 'learning', 'review', 'relearning')),
+  schedule_version  INTEGER NOT NULL CHECK (schedule_version > 0),
+  updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (owner_id, card_id)
+);
+
+CREATE TABLE IF NOT EXISTS fsrs_practice_states (
+  owner_id         TEXT NOT NULL REFERENCES users(clerk_id) ON DELETE RESTRICT,
+  card_id          TEXT NOT NULL REFERENCES cards(id) ON DELETE RESTRICT,
+  practice_state   TEXT NOT NULL DEFAULT 'active'
+    CHECK (practice_state IN ('active', 'paused', 'suspended', 'retired')),
+  last_practiced_at TIMESTAMPTZ,
+  next_practice_at TIMESTAMPTZ,
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (owner_id, card_id)
+);
+
+ALTER TABLE fsrs_practice_states
+  ADD COLUMN IF NOT EXISTS next_practice_at TIMESTAMPTZ;
+
+CREATE TABLE IF NOT EXISTS learner_preferences (
+  owner_id   TEXT PRIMARY KEY REFERENCES users(clerk_id) ON DELETE RESTRICT,
+  timezone   TEXT NOT NULL DEFAULT 'UTC' CHECK (timezone <> ''),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_fsrs_review_events_owner_card_occurred
+  ON fsrs_review_events (owner_id, card_id, occurred_at DESC);
+CREATE INDEX IF NOT EXISTS idx_fsrs_card_schedules_owner_due
+  ON fsrs_card_schedules (owner_id, due_at);
+CREATE INDEX IF NOT EXISTS idx_fsrs_practice_states_owner_card
+  ON fsrs_practice_states (owner_id, card_id);
+
+CREATE OR REPLACE FUNCTION prevent_fsrs_review_event_mutation()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RAISE EXCEPTION 'fsrs_review_events are immutable';
+END;
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_trigger
+    WHERE tgname = 'trg_fsrs_review_events_immutable'
+      AND tgrelid = 'fsrs_review_events'::regclass
+  ) THEN
+    CREATE TRIGGER trg_fsrs_review_events_immutable
+      BEFORE UPDATE OR DELETE ON fsrs_review_events
+      FOR EACH ROW EXECUTE FUNCTION prevent_fsrs_review_event_mutation();
+  END IF;
+END;
+$$;

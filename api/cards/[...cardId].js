@@ -1,5 +1,4 @@
-import { getCard, upsertCard, deleteCard, todayISO } from '../../lib/db.js';
-import { sm2Calc } from '../../lib/sm2.js';
+import { getCard, upsertCard, deleteCard, todayISO, recordReview } from '../../lib/db.js';
 import { requireAuth } from '../../lib/auth.js';
 import { handleOptions, sendAuthError, sendJSON, getBody, badBodyError } from '../../lib/api.js';
 
@@ -19,6 +18,15 @@ function getCardId(req) {
   var parts = pathname.split('/').filter(Boolean);
   return parts[2];
 }
+
+// Explicit request-edge compatibility mapping for legacy SM-2 clients.
+const legacyQualityToRating = {
+  1: 'again',
+  2: 'hard',
+  3: 'hard',
+  4: 'good',
+  5: 'easy',
+};
 
 export default async function handler(req, res) {
   if (handleOptions(req, res)) return;
@@ -42,21 +50,55 @@ export default async function handler(req, res) {
   if (req.method === 'POST' && isReviewPath) {
     try {
       var body = getBody(req);
+      var rating = body.rating;
       var quality = body.quality;
-      if (quality === undefined || quality === null || !Number.isInteger(Number(quality)) || quality < 1 || quality > 5) {
-        sendJSON(res, 400, { ok: false, error: 'quality must be an integer 1-5' });
+      var legacyRating;
+      if (quality !== undefined && quality !== null) {
+        if (!Number.isInteger(Number(quality)) || quality < 1 || quality > 5) {
+          sendJSON(res, 400, { ok: false, error: 'quality must be an integer 1-5' });
+          return;
+        }
+        legacyRating = legacyQualityToRating[Number(quality)];
+      }
+      // Temporary request-edge compatibility for quality-only legacy clients.
+      // Remove after all clients send the explicit FSRS semantic review fields.
+      var isLegacyQualityOnly = quality !== undefined && quality !== null && rating === undefined;
+      if (rating === undefined || rating === null) rating = legacyRating;
+      if (!['again', 'hard', 'good', 'easy'].includes(rating)) {
+        sendJSON(res, 400, { ok: false, error: 'rating must be again, hard, good, or easy' });
         return;
       }
-      quality = Number(quality);
-      var card = await getCard(cardId, userId);
-      if (!card) {
+      if (legacyRating && rating !== legacyRating) {
+        sendJSON(res, 400, { ok: false, error: 'rating and quality contradict each other' });
+        return;
+      }
+      var idempotencyKey = isLegacyQualityOnly
+        ? 'legacy-quality-review:' + userId + ':' + cardId + ':' + Number(quality) + ':' + todayISO()
+        : body.idempotencyKey;
+      if (!isLegacyQualityOnly && (typeof idempotencyKey !== 'string' || !idempotencyKey.trim() || idempotencyKey.length > 200)) {
+        sendJSON(res, 400, { ok: false, error: 'idempotencyKey must be a nonempty string of at most 200 characters' });
+        return;
+      }
+      var solvedFromScratch = body.solvedFromScratch;
+      if (isLegacyQualityOnly) {
+        solvedFromScratch = false;
+      }
+      if (!isLegacyQualityOnly && typeof body.solvedFromScratch !== 'boolean') {
+        sendJSON(res, 400, { ok: false, error: 'solvedFromScratch must be a boolean' });
+        return;
+      }
+      var review = await recordReview({
+        cardId,
+        userId,
+        rating,
+        idempotencyKey,
+        solvedFromScratch,
+      });
+      if (review.missing) {
         sendJSON(res, 404, { ok: false, error: 'Card not found' });
         return;
       }
-      card.sm2 = sm2Calc(quality, card.sm2 || {});
-      card.updated = todayISO();
-      await upsertCard(card, userId);
-      sendJSON(res, 200, compactResponse ? { ok: true, id: card.id } : { ok: true, card: card });
+      sendJSON(res, 200, compactResponse ? { ok: true, id: review.card.id } : { ok: true, card: review.card });
     } catch (err) {
       sendJSON(res, 400, { ok: false, error: badBodyError(err) });
     }
