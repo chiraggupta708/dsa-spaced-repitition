@@ -55,9 +55,16 @@ function sendNotFound(res, message) {
 }
 
 function practiceErrorDetails(error) {
+  var message = typeof error?.message === 'string'
+    ? error.message
+      .replace(/postgres(?:ql)?:\/\/\S+/gi, '[REDACTED]')
+      .replace(/\b(password|passwd|secret|token|api[_-]?key)\s*[=:]\s*\S+/gi, '$1=[REDACTED]')
+      .slice(0, 240)
+    : undefined;
   return {
     name: typeof error?.name === 'string' ? error.name.slice(0, 80) : 'Error',
     code: typeof error?.code === 'string' ? error.code.slice(0, 40) : undefined,
+    message,
   };
 }
 
