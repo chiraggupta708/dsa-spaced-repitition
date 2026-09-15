@@ -90,20 +90,47 @@ assert.equal(second.statusCode, 304);
 assert.equal(second.ended, true);
 assert.equal(second.body, null);
 
-const refreshStart = htmlSource.indexOf('function refresh(');
-const refreshEnd = htmlSource.indexOf('function closeDialogs', refreshStart);
+const appScript = [...htmlSource.matchAll(/<script>([\s\S]*?)<\/script>/g)]
+  .map((match) => match[1])
+  .at(0);
+assert.ok(appScript, 'the primary application script must be discoverable');
+assert.match(appScript, /REVIEW_BATCH_SIZE\s*=\s*5,CARD_PAGE_SIZE\s*=\s*10/,
+  'card pages must remain bounded to ten summaries');
+
+const cardPageStart = appScript.indexOf('function cardPageUrl(');
+const cardPageEnd = appScript.indexOf('function updateCardPagination', cardPageStart);
+assert.ok(cardPageStart >= 0 && cardPageEnd > cardPageStart, 'card page URL builder must remain discoverable');
+const cardPageSource = appScript.slice(cardPageStart, cardPageEnd);
+assert.match(cardPageSource, /\/api\/cards\?summary=1&limit='\+CARD_PAGE_SIZE/,
+  'card pages must request compact summaries with the ten-card limit');
+assert.match(cardPageSource, /if\(cursor\)[\s\S]*?&cursor=.*encodeURIComponent\(cursor\)/,
+  'card pages must pass the server cursor');
+
+const loadCardStart = appScript.indexOf('function loadCardPage(');
+const loadCardEnd = appScript.indexOf('function renderDesigns', loadCardStart);
+assert.ok(loadCardStart >= 0 && loadCardEnd > loadCardStart, 'card page loader must remain discoverable');
+const loadCardSource = appScript.slice(loadCardStart, loadCardEnd);
+assert.match(loadCardSource, /api\(cardPageUrl\(cursor\)\)/,
+  'card loading must delegate URL construction to the bounded summary page path');
+assert.match(loadCardSource, /data\.nextCursor/,
+  'card loading must retain the server continuation cursor');
+assert.match(loadCardSource, /data\.hasMore/,
+  'card loading must retain server continuation metadata');
+
+const refreshStart = appScript.indexOf('function refresh(');
+const refreshEnd = appScript.indexOf('function closeDialogs', refreshStart);
 assert.ok(refreshStart >= 0 && refreshEnd > refreshStart, 'refresh function must remain discoverable');
-const refreshSource = htmlSource.slice(refreshStart, refreshEnd);
-assert.match(refreshSource, /\/api\/cards\?summary=1/,
-  'refresh must request compact card summaries');
-assert.doesNotMatch(refreshSource, /\/api\/cards\/due/,
-  'refresh must not download a second full due-card collection');
+const refreshSource = appScript.slice(refreshStart, refreshEnd);
+assert.match(refreshSource, /loadCardPage\(null,true,1\)/,
+  'refresh must delegate to the bounded server summary page loader');
+assert.doesNotMatch(refreshSource, /\/api\/cards(?:\/due)?\?/,
+  'refresh must not contain the removed direct card request');
 assert.doesNotMatch(refreshSource, /Promise\.all/,
   'refresh must not issue duplicate card collection requests');
 
 assert.match(htmlSource, /\/api\/cards\/due/,
   'review flow must retain a lazy full due-card request');
-assert.match(htmlSource, /\/api\/cards\?summary=1&q=/,
+assert.match(cardPageSource, /url\+='&q='\+encodeURIComponent\(query\)/,
   'full-text search must use server-side filtering with compact results');
 
 console.log('Card transfer contract tests passed.');

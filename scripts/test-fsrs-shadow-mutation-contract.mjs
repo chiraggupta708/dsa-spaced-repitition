@@ -42,6 +42,8 @@ const mutation = buildShadowReviewMutation({
   cardUpdatedAt: '2026-03-08T06:00:00.000Z',
   stateName: 'review',
   practiceDueAt: '2026-04-07T06:30:00.000Z',
+  legacyTimeZone: 'America/New_York',
+  legacyFingerprint: 'legacy-fingerprint-1',
 });
 
 assert.match(mutation.text, /^\s*WITH seeded_parameter AS \(/);
@@ -49,17 +51,20 @@ assert.match(mutation.text, /INSERT INTO fsrs_review_events[\s\S]*?state_before[
 assert.match(mutation.text, /INSERT INTO fsrs_card_schedules[\s\S]*?card_state/is);
 assert.match(mutation.text, /ON CONFLICT \(owner_id, idempotency_key\) DO NOTHING/i);
 assert.match(mutation.text, /c\.updated_at = \$24::timestamptz/i);
+assert.match(mutation.text, /legacy_practice_bridge AS[\s\S]*\$31[\s\S]*\$32/is);
 const placeholders = [...mutation.text.matchAll(/\$(\d+)/g)].map((match) => Number(match[1]));
-assert.equal(Math.max(...placeholders), 30, 'query must bind exactly the 30 declared slots');
-assert.equal(mutation.params.length, 30, 'every declared placeholder must receive one parameter');
+assert.equal(Math.max(...placeholders), 32, 'query must bind exactly the 32 declared slots');
+assert.deepEqual([...new Set(placeholders)].sort((left, right) => left - right), Array.from({ length: 32 }, (_, index) => index + 1));
+assert.equal(mutation.params.length, 32, 'every declared placeholder must receive one parameter');
 assert.deepEqual(mutation.params.slice(0, 17), [
   2, '{"fixture":true}', 'event-1', 'owner-1', 'card-1', 'good', true,
   '2026-03-08T06:30:00.000Z', '2026-03-09T04:00:00.000Z', 'fsrs', 6,
   JSON.stringify(transition.stateBefore), JSON.stringify(transition.stateAfter), 3, 1, 7, 'review-1',
 ]);
-assert.deepEqual(mutation.params.slice(17), [
+assert.deepEqual(mutation.params.slice(17, 30), [
   2.6, 5, 4, '2026-03-13', '2026-03-08', 4, '2026-03-08T06:00:00.000Z',
   6, 4, 'review', JSON.stringify(transition.stateAfter), '2026-04-07T06:30:00.000Z', true,
 ]);
+assert.deepEqual(mutation.params.slice(30), ['America/New_York', 'legacy-fingerprint-1']);
 
 console.log('FSRS shadow mutation contract: PASS');

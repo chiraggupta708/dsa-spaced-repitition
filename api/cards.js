@@ -1,6 +1,7 @@
 import { load, loadCardSummaries, upsertCard, upsertUser, todayISO, generateId, defaultSm2 } from '../lib/db.js';
 import { requireAuth } from '../lib/auth.js';
-import { handleOptions, sendAuthError, sendJSON, sendConditionalJSON, getBody, badBodyError } from '../lib/api.js';
+import { handleOptions, sendAuthError, sendJSON, sendConditionalJSON, getBody } from '../lib/api.js';
+import { isPracticeError, practiceErrorBody } from '../lib/dsa-practice.js';
 
 function queryValue(req, key) {
   var value = req.query && req.query[key];
@@ -24,14 +25,41 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       var summary = queryValue(req, 'summary') === '1' || queryValue(req, 'view') === 'summary';
-      var query = queryValue(req, 'q');
-      var cardsData = summary ? await loadCardSummaries(userId, { query: query }) : await load(userId);
-      var sorted = cardsData.cards.slice().sort(function (a, b) {
-        return a.created > b.created ? -1 : a.created < b.created ? 1 : 0;
-      });
-      if (summary) sendConditionalJSON(req, res, 200, { ok: true, cards: sorted });
-      else sendJSON(res, 200, { ok: true, cards: sorted });
+      if (summary) {
+        var limit = queryValue(req, 'limit') || undefined;
+        var cursor = queryValue(req, 'cursor') || undefined;
+        var q = queryValue(req, 'q') || undefined;
+        var difficulty = queryValue(req, 'difficulty') || undefined;
+        var page = await loadCardSummaries(userId, {
+          limit: limit,
+          cursor: cursor,
+          q: q,
+          difficulty: difficulty,
+        });
+        sendConditionalJSON(req, res, 200, {
+          ok: true,
+          cards: page.cards,
+          nextCursor: page.nextCursor,
+          hasMore: page.hasMore,
+          version: page.version,
+        });
+      } else {
+        // The unparameterized path is intentionally retained for legacy
+        // import/export callers that explicitly request complete cards.
+        var cardsData = await load(userId);
+        var sorted = cardsData.cards.slice().sort(function (a, b) {
+          return a.created > b.created ? -1 : a.created < b.created ? 1 : 0;
+        });
+        sendJSON(res, 200, { ok: true, cards: sorted });
+      }
     } catch (e) {
+      if (isPracticeError(e)) {
+        var payload = practiceErrorBody(e);
+        var status = Number.isInteger(payload.status) ? payload.status : 500;
+        delete payload.status;
+        sendJSON(res, status, payload);
+        return;
+      }
       console.error('[cards GET] Error:', e);
       sendJSON(res, 500, { ok: false, error: e.message || 'Internal error' });
     }

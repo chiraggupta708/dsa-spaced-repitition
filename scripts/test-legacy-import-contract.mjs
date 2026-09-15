@@ -71,15 +71,22 @@ check('owner replacement uses the import-only upsert and preserves owner-scoped 
 });
 
 check('authenticated import provisions the verified owner before replacing cards', () => {
+  assert.match(importSource, /auth\s*=\s*await\s+requireAuth\(req\)/,
+    'authenticated import must use the JWT auth boundary');
+  assert.match(importSource, /(?:var|const)\s+userId\s*=\s*auth\.userId/,
+    'authenticated import must derive the owner from the verified auth result');
   assert.match(importSource, /import \{ replaceCardsForOwner, upsertUser \} from '..\/lib\/db\.js';/);
+  assert.match(importSource, /(?:var|const)\s+hasCards\s*=\s*Boolean\(\s*body\s*&&\s*Array\.isArray\(body\.cards\)\s*\)/,
+    'authenticated import must recognize a cards array before provisioning the owner');
   assert.match(
     importSource,
-    /if \(body\.cards\.length > 0\) \{\s*await upsertUser\(\{ clerkId: userId \}\);\s*\}/
+    /if\s*\(\s*hasCards\s*&&\s*body\.cards\.length\s*>\s*0\s*\)\s*\{[\s\S]*?await\s+upsertUser\s*\(\s*\{\s*clerkId\s*:\s*userId\s*\}\s*\);/,
+    'authenticated import must provision the authenticated owner only for a non-empty card import'
   );
   const authIndex = importSource.indexOf('auth = await requireAuth(req);');
   const postCheckIndex = importSource.indexOf("if (req.method !== 'POST')");
   const provisionIndex = importSource.indexOf('await upsertUser({ clerkId: userId });');
-  const replaceIndex = importSource.indexOf('await replaceCardsForOwner(body.cards, userId);');
+  const replaceIndex = importSource.indexOf('await replaceCardsForOwner(body.cards, userId)');
   assert.ok(authIndex !== -1 && provisionIndex > authIndex, 'provisioning must follow JWT authentication');
   assert.ok(postCheckIndex !== -1 && provisionIndex > postCheckIndex, 'provisioning must be limited to POST imports');
   assert.ok(replaceIndex !== -1 && provisionIndex < replaceIndex, 'provisioning must precede replacement');

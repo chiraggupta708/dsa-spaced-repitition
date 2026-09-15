@@ -429,3 +429,131 @@ BEGIN
   END IF;
 END;
 $$;
+
+-- DSA Practice Phase 0 — additive owner-scoped practice attempts.
+-- This bounded block is applied only by scripts/apply-dsa-practice-schema.mjs.
+-- =========================================================================
+CREATE TABLE IF NOT EXISTS dsa_practice_attempts (
+  id                   TEXT PRIMARY KEY,
+  owner_id             TEXT NOT NULL REFERENCES users(clerk_id) ON DELETE RESTRICT,
+  card_id              TEXT NOT NULL REFERENCES cards(id) ON DELETE RESTRICT,
+  occurred_at          TIMESTAMPTZ NOT NULL,
+  time_zone            TEXT,
+  outcome              TEXT NOT NULL
+    CHECK (outcome IN ('independent', 'hinted', 'unfinished')),
+  next_practice_at     TIMESTAMPTZ NOT NULL,
+  due_reason           TEXT NOT NULL
+    CHECK (due_reason IN ('monthly_checkpoint', 'three_day_retry')),
+  blocker              TEXT CHECK (blocker IS NULL OR char_length(blocker) <= 1000),
+  reflection           TEXT CHECK (reflection IS NULL OR char_length(reflection) <= 2000),
+  challenge_approach   TEXT CHECK (challenge_approach IS NULL OR char_length(challenge_approach) <= 2000),
+  challenge_invariant  TEXT CHECK (challenge_invariant IS NULL OR char_length(challenge_invariant) <= 1000),
+  challenge_complexity TEXT CHECK (challenge_complexity IS NULL OR char_length(challenge_complexity) <= 500),
+  source               TEXT NOT NULL
+    CHECK (source IN ('practice', 'legacy_review')),
+  source_event_id     TEXT,
+  idempotency_key     TEXT NOT NULL
+    CHECK (char_length(idempotency_key) BETWEEN 1 AND 200),
+  request_fingerprint TEXT NOT NULL
+    CHECK (char_length(request_fingerprint) BETWEEN 1 AND 128),
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (owner_id, idempotency_key),
+  UNIQUE (source_event_id)
+);
+
+-- Capture claims are owner-scoped and remain additive to the card model. A
+-- claim may be pending only inside the atomic capture statement; committed
+-- rows are created or duplicate and retain the request fingerprint.
+CREATE TABLE IF NOT EXISTS dsa_practice_captures (
+  id                   TEXT PRIMARY KEY,
+  owner_id             TEXT NOT NULL REFERENCES users(clerk_id) ON DELETE RESTRICT,
+  card_id              TEXT REFERENCES cards(id) ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
+  idempotency_key      TEXT NOT NULL
+    CHECK (char_length(idempotency_key) BETWEEN 1 AND 200),
+  request_fingerprint  TEXT NOT NULL
+    CHECK (char_length(request_fingerprint) BETWEEN 1 AND 128),
+  status               TEXT NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending', 'created', 'duplicate')),
+  created_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (owner_id, idempotency_key)
+);
+
+-- One owner/card row keeps capture insights separate from solution bodies and
+-- gives reveal an explicit, owner-bound learning-notes source.
+CREATE TABLE IF NOT EXISTS dsa_practice_learning_notes (
+  owner_id       TEXT NOT NULL REFERENCES users(clerk_id) ON DELETE RESTRICT,
+  card_id        TEXT NOT NULL REFERENCES cards(id) ON DELETE RESTRICT,
+  key_insight    TEXT CHECK (key_insight IS NULL OR char_length(key_insight) <= 1000),
+  recurring_trap TEXT CHECK (recurring_trap IS NULL OR char_length(recurring_trap) <= 1000),
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (owner_id, card_id)
+);
+
+-- Existing FSRS state rows remain intact; these columns are additive and
+-- nullable except for the monotonic projection revision.
+ALTER TABLE fsrs_practice_states
+  ADD COLUMN IF NOT EXISTS last_attempt_at TIMESTAMPTZ;
+ALTER TABLE fsrs_practice_states
+  ADD COLUMN IF NOT EXISTS last_outcome TEXT
+    CHECK (last_outcome IS NULL OR last_outcome IN ('independent', 'hinted', 'unfinished'));
+ALTER TABLE fsrs_practice_states
+  ADD COLUMN IF NOT EXISTS last_independent_solve_at TIMESTAMPTZ;
+ALTER TABLE fsrs_practice_states
+  ADD COLUMN IF NOT EXISTS due_reason TEXT
+    CHECK (due_reason IS NULL OR due_reason IN ('monthly_checkpoint', 'three_day_retry'));
+ALTER TABLE fsrs_practice_states
+  ADD COLUMN IF NOT EXISTS last_attempt_id TEXT;
+ALTER TABLE fsrs_practice_states
+  ADD COLUMN IF NOT EXISTS revision INTEGER NOT NULL DEFAULT 0 CHECK (revision >= 0);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_dsa_practice_attempts_source_event_unique
+  ON dsa_practice_attempts (source_event_id)
+  WHERE source_event_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_dsa_practice_captures_owner_idempotency
+  ON dsa_practice_captures (owner_id, idempotency_key);
+CREATE INDEX IF NOT EXISTS idx_dsa_practice_captures_owner_card
+  ON dsa_practice_captures (owner_id, card_id);
+CREATE INDEX IF NOT EXISTS idx_dsa_practice_learning_notes_owner_card
+  ON dsa_practice_learning_notes (owner_id, card_id);
+CREATE INDEX IF NOT EXISTS idx_dsa_practice_attempts_owner_due
+  ON dsa_practice_attempts (owner_id, next_practice_at, card_id, id);
+CREATE INDEX IF NOT EXISTS idx_dsa_practice_attempts_owner_card_due
+  ON dsa_practice_attempts (owner_id, card_id, next_practice_at, id);
+CREATE INDEX IF NOT EXISTS idx_dsa_practice_attempts_owner_card_history
+  ON dsa_practice_attempts (owner_id, card_id, occurred_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS idx_dsa_practice_attempts_owner_independent_history
+  ON dsa_practice_attempts (owner_id, card_id, occurred_at DESC, id DESC)
+  WHERE outcome = 'independent';
+CREATE INDEX IF NOT EXISTS idx_fsrs_practice_states_owner_next_practice_card
+  ON fsrs_practice_states (owner_id, next_practice_at, card_id);
+CREATE INDEX IF NOT EXISTS idx_fsrs_practice_states_owner_missing_independent
+  ON fsrs_practice_states (owner_id, last_independent_solve_at, card_id)
+  WHERE last_independent_solve_at IS NULL;
+
+CREATE OR REPLACE FUNCTION prevent_dsa_practice_attempt_mutation()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RAISE EXCEPTION 'dsa_practice_attempts are immutable';
+END;
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_trigger
+    WHERE tgname = 'trg_dsa_practice_attempts_immutable'
+      AND tgrelid = 'dsa_practice_attempts'::regclass
+  ) THEN
+    CREATE TRIGGER trg_dsa_practice_attempts_immutable
+      BEFORE UPDATE OR DELETE ON dsa_practice_attempts
+      FOR EACH ROW EXECUTE FUNCTION prevent_dsa_practice_attempt_mutation();
+  END IF;
+END;
+$$;
+
+-- END DSA Practice Phase 0

@@ -24,8 +24,10 @@ const cardHandler = (await import('./api/cards/[...cardId].js')).default;
 const authHandler = (await import('./api/auth/[...auth].js')).default;
 const systemHandler = (await import('./api/system/[...action].js')).default;
 const designDetailHandler = (await import('./api/designs/[...path].js')).default;
+const practiceHandler = (await import('./api/practice.js')).default;
 
 app.all('/api/auth/:action',       authHandler);
+app.all('/api/practice',           practiceHandler);
 app.all('/api/health',             systemHandler);
 app.all('/api/migrate',            systemHandler);
 app.all('/api/cards/due',          (await import('./api/cards/due.js')).default);

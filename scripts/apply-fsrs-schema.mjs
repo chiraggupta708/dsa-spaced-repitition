@@ -7,13 +7,23 @@ import { splitSchemaStatements } from '../lib/schema-statements.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const FSRS_PHASE0_MARKER = '-- FSRS Phase 0 — additive scheduler records.';
+export const DSA_PRACTICE_MARKER = '-- DSA Practice Phase 0 — additive owner-scoped practice attempts.';
 
 export function extractFsrsPhase0Schema(schemaSource) {
   const markerIndex = schemaSource.indexOf(FSRS_PHASE0_MARKER);
   if (markerIndex === -1) {
     throw new Error('FSRS Phase 0 marker not found; refusing to apply schema.');
   }
-  return schemaSource.slice(markerIndex);
+
+  const endMarkerIndex = schemaSource.indexOf(
+    DSA_PRACTICE_MARKER,
+    markerIndex + FSRS_PHASE0_MARKER.length,
+  );
+  if (endMarkerIndex === -1) {
+    throw new Error('DSA Practice Phase 0 marker not found; refusing to apply unbounded FSRS schema.');
+  }
+
+  return schemaSource.slice(markerIndex, endMarkerIndex);
 }
 
 export async function applyFsrsSchema({
