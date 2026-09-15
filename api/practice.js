@@ -64,6 +64,7 @@ function practiceErrorDetails(error) {
   return {
     name: typeof error?.name === 'string' ? error.name.slice(0, 80) : 'Error',
     code: typeof error?.code === 'string' ? error.code.slice(0, 40) : undefined,
+    stage: typeof error?.practiceStage === 'string' ? error.practiceStage : undefined,
     message,
   };
 }
