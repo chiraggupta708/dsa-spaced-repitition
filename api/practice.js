@@ -54,21 +54,6 @@ function sendNotFound(res, message) {
   });
 }
 
-function practiceErrorDetails(error) {
-  var message = typeof error?.message === 'string'
-    ? error.message
-      .replace(/postgres(?:ql)?:\/\/\S+/gi, '[REDACTED]')
-      .replace(/\b(password|passwd|secret|token|api[_-]?key)\s*[=:]\s*\S+/gi, '$1=[REDACTED]')
-      .slice(0, 240)
-    : undefined;
-  return {
-    name: typeof error?.name === 'string' ? error.name.slice(0, 80) : 'Error',
-    code: typeof error?.code === 'string' ? error.code.slice(0, 40) : undefined,
-    stage: typeof error?.practiceStage === 'string' ? error.practiceStage : undefined,
-    message,
-  };
-}
-
 function sendPracticeError(res, error) {
   if (isPracticeError(error)) {
     var payload = practiceErrorBody(error);
@@ -258,7 +243,6 @@ export default async function handler(req, res) {
       error: { code: 'method_not_allowed', message: 'Method not allowed' },
     });
   } catch (error) {
-    console.error('[practice] internal error', practiceErrorDetails(error));
     sendPracticeError(res, error);
   }
 }
