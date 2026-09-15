@@ -197,6 +197,28 @@ assert.match(source, /@media\(max-width:390px\)[\s\S]*?dsa-/);
 assert.match(source, /\.dsa-[^}]*min-height:44px/);
 assert.doesNotMatch(dsaMarkup + finalScript, /transition\s*:\s*all/i, 'DSA UI must not use transition:all');
 
+// The DSA surface must not show the legacy shell while LLD/HLD keeps its navigation.
+for (const marker of [
+  'data-dsa-legacy-shell="true"',
+  'data-dsa-legacy-nav="true"',
+  'id="dsaSidebarNav"',
+  'id="workspaceNavLabel"',
+  'id="mobileNav"',
+]) includes(marker, `DSA/legacy shell marker ${marker}`);
+const dsaLegacyNavButtons = [...source.matchAll(/<button[^>]*data-workspace-nav="dsa"[^>]*>/g)];
+assert.ok(dsaLegacyNavButtons.length > 0, 'legacy DSA navigation buttons must remain addressable');
+assert.ok(
+  dsaLegacyNavButtons.every((match) => match[0].includes('data-dsa-legacy-nav="true"')),
+  'every legacy DSA navigation button must be marked for DSA-only hiding',
+);
+const dsaSurfaceStart = finalScript.indexOf('function dsaActivateSurface');
+const dsaSurfaceEnd = finalScript.indexOf('function dsaSetView', dsaSurfaceStart);
+assert.ok(dsaSurfaceStart >= 0 && dsaSurfaceEnd > dsaSurfaceStart, 'DSA surface controller boundary missing');
+const dsaSurface = finalScript.slice(dsaSurfaceStart, dsaSurfaceEnd);
+assert.match(dsaSurface, /querySelectorAll\('\[data-dsa-legacy-nav="true"\]'\)/, 'legacy DSA nav must be hidden by the DSA surface controller');
+assert.match(dsaSurface, /querySelectorAll\('\[data-dsa-legacy-shell\]'\)/, 'legacy shell elements must be hidden by the DSA surface controller');
+assert.match(dsaSurface, /dsa\$\('mobileNav'\)/, 'legacy mobile navigation must be hidden on the DSA surface');
+
 // The existing Recall and LLD/HLD surfaces remain present, with no duplicate generic overrides.
 for (const marker of [
   'id="reviewDialog"',
