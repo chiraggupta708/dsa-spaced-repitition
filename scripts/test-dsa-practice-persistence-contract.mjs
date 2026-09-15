@@ -139,6 +139,9 @@ assert.match(setTimezone, /INSERT\s+INTO\s+learner_preferences/i);
 assert.match(setTimezone, /normalizePracticeTimeZone/);
 assert.match(summary, /COUNT|count/i);
 assert.match(summary, /nextItem|listPracticeQueue|LIMIT\s+1/i);
+assert.match(summary, /WITH\s+summary_rows\s+AS\s*\(/i, 'summary must materialize per-card rows before aggregating correlated recognition state');
+assert.match(summary, /FROM\s+summary_rows/i, 'summary aggregate must read from its per-card materialized rows');
+assert.match(summary, /recognition_trap_suggested/i, 'summary must aggregate the materialized recognition flag');
 
 const reviewMutation = functionBlock(db, 'export function buildShadowReviewMutation(', '/**\n * Record a semantic review');
 const review = functionBlock(db, 'export async function recordReview(', '\nconst DESIGN_COLS');
