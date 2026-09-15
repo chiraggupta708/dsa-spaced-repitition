@@ -6,6 +6,7 @@
   "rewrites": [
     { "source": "/api/health", "destination": "/api/system/health" },
     { "source": "/api/migrate", "destination": "/api/system/migrate" },
+    { "source": "/api/stats", "destination": "/api/system/stats" },
     { "source": "/api/designs/lld/:id", "destination": "/api/designs/lld?lldId=:id" }
   ]
 }

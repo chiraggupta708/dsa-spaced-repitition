@@ -8,8 +8,21 @@ const apiSource = read('../lib/api.js');
 const cardsSource = read('../api/cards.js');
 const dueSource = read('../api/cards/due.js');
 const cardDetailSource = read('../api/cards/[...cardId].js');
-const statsSource = read('../api/stats.js');
+const statsSource = read('../api/system/[...action].js');
+const devServerSource = read('../dev-server.js');
+const vercelSource = read('../vercel.json');
 const htmlSource = read('../index.html');
+
+function listFiles(directory) {
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const child = new URL(`${entry.name}${entry.isDirectory() ? '/' : ''}`, directory);
+    return entry.isDirectory() ? listFiles(child) : [child.pathname];
+  });
+}
+
+const apiEntrypoints = listFiles(new URL('../api/', import.meta.url));
+assert.ok(apiEntrypoints.length <= 12,
+  `Hobby deployments must stay within 12 Serverless Functions (found ${apiEntrypoints.length})`);
 
 assert.match(dbSource, /export async function loadCardSummaries\s*\(/,
   'db layer must expose an owner-scoped compact card loader');
@@ -34,8 +47,14 @@ assert.match(cardDetailSource, /getCard/,
   'single-card routes must use the targeted card loader');
 assert.doesNotMatch(cardDetailSource, /await load\(userId\)/,
   'single-card routes must not load the entire card collection');
+assert.match(statsSource, /action === ['"]stats['"]/,
+  'stats must be served by the existing system catch-all');
 assert.match(statsSource, /loadCardSummaries/,
   'stats must avoid transferring full answer/code bodies from the database');
+assert.match(devServerSource, /app\.all\('\/api\/stats',\s+systemHandler\)/,
+  'local stats requests must use the same consolidated system handler');
+assert.match(vercelSource, /"source": "\/api\/stats"[\s\S]*?"destination": "\/api\/system\/stats"/,
+  'Vercel must preserve the public stats URL through the system catch-all');
 assert.match(apiSource, /export function sendConditionalJSON\s*\(/,
   'API must expose conditional private JSON responses');
 assert.match(apiSource, /Cache-Control', 'private, no-cache'/,
