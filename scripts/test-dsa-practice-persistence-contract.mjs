@@ -142,6 +142,8 @@ assert.match(summary, /nextItem|listPracticeQueue|LIMIT\s+1/i);
 assert.match(summary, /WITH\s+summary_rows\s+AS\s*\(/i, 'summary must materialize per-card rows before aggregating correlated recognition state');
 assert.match(summary, /FROM\s+summary_rows/i, 'summary aggregate must read from its per-card materialized rows');
 assert.match(summary, /recognition_trap_suggested/i, 'summary must aggregate the materialized recognition flag');
+assert.match(summary, /next_practice_at\s*<=\s*\$2::timestamptz/i, 'summary must type its timestamp bind explicitly');
+assert.match(summary, /ownerParameter:\s*['"]\$1::text['"]/i, 'summary must type its owner bind explicitly');
 
 const reviewMutation = functionBlock(db, 'export function buildShadowReviewMutation(', '/**\n * Record a semantic review');
 const review = functionBlock(db, 'export async function recordReview(', '\nconst DESIGN_COLS');
