@@ -103,7 +103,9 @@ assert.match(route, /sendJSON\(res, 400,\s*\{\s*ok:\s*false/);
 assert.match(route, /sendJSON\(res, 500,\s*\{\s*ok:\s*false/);
 assert.match(route, /code:\s*['"]internal_error['"]/);
 assert.doesNotMatch(route, /badBodyError/);
-assert.doesNotMatch(route, /console\.(?:log|error|warn)\(/);
+assert.match(route, /function practiceErrorDetails\(error\)/);
+assert.match(route, /console\.error\('\[practice\] internal error',\s*practiceErrorDetails\(error\)\)/);
+assert.doesNotMatch(route, /console\.error\(error/);
 
 // The route must use the shared private/no-store response helpers everywhere.
 assert.match(route, /sendJSON/);

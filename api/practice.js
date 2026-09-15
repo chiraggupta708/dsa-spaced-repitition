@@ -54,6 +54,13 @@ function sendNotFound(res, message) {
   });
 }
 
+function practiceErrorDetails(error) {
+  return {
+    name: typeof error?.name === 'string' ? error.name.slice(0, 80) : 'Error',
+    code: typeof error?.code === 'string' ? error.code.slice(0, 40) : undefined,
+  };
+}
+
 function sendPracticeError(res, error) {
   if (isPracticeError(error)) {
     var payload = practiceErrorBody(error);
@@ -243,6 +250,7 @@ export default async function handler(req, res) {
       error: { code: 'method_not_allowed', message: 'Method not allowed' },
     });
   } catch (error) {
+    console.error('[practice] internal error', practiceErrorDetails(error));
     sendPracticeError(res, error);
   }
 }
