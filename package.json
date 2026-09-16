@@ -17,7 +17,8 @@
     "test:api-cache": "node scripts/test-api-cache-contract.mjs",
     "test:card-transfer": "node scripts/test-card-transfer-contract.mjs",
     "test:review-pagination": "node scripts/test-review-pagination-contract.mjs",
-    "test:design-route": "node scripts/test-design-route-contract.mjs"
+    "test:design-route": "node scripts/test-design-route-contract.mjs",
+    "test:dsa-ui": "node scripts/test-dsa-practice-ui-contract.mjs"
   },
   "engines": {
     "node": "24.x"
