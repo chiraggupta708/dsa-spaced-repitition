@@ -115,7 +115,7 @@ includes(appScript, "return '/api/practice?view=card&cardId='+encodeURIComponent
 includes(appScript, "return '/api/practice?view=reveal&cardId='+encodeURIComponent(cardId)", 'legacy recall reveal route');
 includes(appScript, "'/api/cards/'+encodeURIComponent(cardId)+'?review=1&response=summary", 'legacy recall rating route');
 includes(appScript, 'window.__cjOpenCard=openCard', 'library edit bridge');
-includes(appScript, 'solvedFromScratch:$(\'solvedFromScratch\').checked', 'recall/cold cadence separation payload');
+includes(appScript, 'solvedFromScratch:false', 'recall/cold cadence separation payload');
 
 // The all-problems library uses the existing bounded card-summary endpoint; no invalid queue bucket is sent.
 includes(finalScript, "params.set('summary','1')", 'all-problem summary request');
@@ -230,7 +230,6 @@ for (const marker of [
   'id="workspaceNavLabel"',
   'id="mobileNav"',
   'id="reviewDialog"',
-  'id="solvedFromScratch"',
   'data-rating="again"',
   'data-rating="hard"',
   'data-rating="good"',
@@ -246,7 +245,9 @@ const dsaSurfaceStart = finalScript.indexOf('function dsaActivateSurface');
 const dsaSurfaceEnd = finalScript.indexOf('function dsaOpenTimezone', dsaSurfaceStart);
 assert.ok(dsaSurfaceStart >= 0 && dsaSurfaceEnd > dsaSurfaceStart, 'DSA surface controller boundary missing');
 const dsaSurface = finalScript.slice(dsaSurfaceStart, dsaSurfaceEnd);
-includes(dsaSurface, "querySelectorAll('.review-panel,.overview,.content-head,.filters,#content,#cardPagination')", 'legacy content isolation');
+includes(finalScript, 'function dsaSetLegacyVisibility', 'legacy content visibility owner');
+includes(dsaSurface, 'dsaSetLegacyVisibility(false)', 'legacy content isolation');
+includes(dsaSurface, 'dsaSetLegacyVisibility(true)', 'legacy content restoration');
 includes(dsaSurface, "data-dsa-legacy-shell],[data-dsa-legacy-nav=\"true\"", 'legacy shell/nav isolation');
 includes(dsaSurface, "dsa$('mobileNav')", 'legacy mobile isolation');
 includes(finalScript, "dsaActivateSurface(active,true)", 'workspace switch wiring');
