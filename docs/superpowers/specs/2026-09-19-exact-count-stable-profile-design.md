@@ -1,16 +1,17 @@
-# Exact Problem Count and Stable Profile Design
+# Exact Problem Count, Stable Profile, and Safe Search Design
 
 **Date:** 2026-09-19
 
 ## Goal
 
-Show the exact number of saved DSA problems without downloading the full library, and keep the bottom-left Clerk profile control mounted reliably for the full signed-in session.
+Show the exact number of saved DSA problems without downloading the full library, keep the bottom-left Clerk profile control mounted reliably for the full signed-in session, and make Library search safely handle literal wildcard characters.
 
 ## Scope
 
 - Extend the existing DSA practice summary with an exact owner-scoped card count.
 - Render that exact count in the Today metrics and DSA navigation.
 - Keep all problem lists cursor-paginated and body-free.
+- Repair the existing parameterized title, URL, and tag search without widening its response.
 - Mount the Clerk user button once per signed-in identity.
 - Unmount Clerk UI only when signing out or changing accounts.
 - Preserve the existing 12 Vercel serverless entry files.
@@ -51,9 +52,18 @@ On sign-out or a real account change:
 
 This is a lifecycle fix only. Clerk keys, provider settings, styles, and authentication behavior remain unchanged.
 
+## Safe bounded Library search
+
+The current parameterized `ILIKE` clauses produce a two-character PostgreSQL escape string, which is rejected because `ESCAPE` requires exactly one character. Use `!` as the explicit escape marker instead of a backslash.
+
+Before wrapping the query in `%` wildcards, escape user-entered `!`, `%`, and `_` as `!!`, `!%`, and `!_`. Apply `ESCAPE '!'` consistently to title, URL, and tag matching. These characters therefore behave as literal search text rather than SQL wildcards.
+
+Search keeps the existing 250 ms client debounce, owner scope, parameterized values, cursor pagination, ten-row page limit, lightweight summary DTO, and continuation metadata. It must not fetch complete card bodies, accumulate every page, or add a second request.
+
 ## Error handling
 
 - A failed summary request keeps the current error banner behavior and leaves the total as unavailable rather than inventing a value.
+- A valid search with no match returns the existing empty state; database failures keep the existing retry/error presentation.
 - Failure to mount the Clerk control continues to show the existing account-menu toast.
 - Unmount operations are guarded because Clerk may not have completed a prior mount.
 - Account switches continue to clear private cached state before loading the next identity.
@@ -66,7 +76,7 @@ Run the complete existing build and contract suite, confirm the API entry count 
 
 - the saved-problems metric and navigation badge show the exact database count;
 - Library still loads only ten lightweight rows per page;
+- title, URL, and tag searches work, while `!`, `%`, and `_` are treated literally;
 - repeated Clerk listener activity does not remove the profile avatar;
 - sign-out/account-boundary behavior remains intact;
 - browser logs no longer receive the app-triggered Clerk `removeChild` error during repeated signed-in updates.
-
