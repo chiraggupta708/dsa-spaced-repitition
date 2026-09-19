@@ -60,7 +60,7 @@ On completion, show a concise summary containing the reviewed count, rating dist
 
 The default action opens the first problem in the server-provided eligible order, so the learner does not need to choose from another queue and the client does not invent a second ranking policy. The Problem Library also offers **Solve independently** on an individual problem.
 
-The solve view shows only the problem statement and optional source link before submission. After the attempt, the learner records one outcome:
+The solve view shows only the problem statement and optional source link before submission. The learner solves in LeetCode or their usual editor; the application does not require them to paste code, rewrite their approach, or duplicate any saved explanation. After the attempt, the learner records one outcome:
 
 - **Solved**
 - **Needed a hint**
@@ -106,6 +106,10 @@ The implementation should keep four responsibilities distinct even if the existi
 
 Existing APIs remain the source of truth. UI state may optimistically advance only after a successful submission; failed writes keep the current problem and chosen response available for retry.
 
+## Serverless API budget
+
+The repository currently has exactly 12 Vercel serverless API entry files, which is the maximum allowed for this deployment. This work must not add another file under `api/`. Any required request handling must reuse or extend an existing route, including the existing catch-all routes where appropriate. Verification must count deployable API entry files and fail the implementation review if the count exceeds 12.
+
 ## Error and empty states
 
 - A failed queue load shows a concise explanation and **Try again** without replacing the rest of the workspace.
@@ -127,6 +131,7 @@ Existing APIs remain the source of truth. UI state may optimistically advance on
 No new automated regression tests are added in this iteration, following the user’s earlier instruction. Verification consists of:
 
 - Running the existing build and test suite.
+- Confirming the number of deployable files under `api/` remains at or below 12.
 - Exercising Today → Recall Review → completion with multiple due problems.
 - Confirming recall submissions keep `solvedFromScratch` false and preserve SM-2 authority plus FSRS shadow recording.
 - Exercising automatic and Library-initiated Independent Solve flows.
