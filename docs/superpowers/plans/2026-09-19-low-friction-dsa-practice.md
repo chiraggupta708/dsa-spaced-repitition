@@ -26,7 +26,7 @@
 - Modify: `index.html:767`
 - Modify: `index.html:1041-1070`
 
-- [ ] **Step 1: Rename “Cold solve” to “Independent Solve” everywhere in the approved DSA navigation and headings**
+- [x] **Step 1: Rename “Cold solve” to “Independent Solve” everywhere in the approved DSA navigation and headings**
 
 Use this vocabulary consistently:
 
@@ -38,7 +38,7 @@ Use this vocabulary consistently:
 
 The mobile label is `Independent`, and supporting copy uses “first independent solve” or “scheduled independent solve,” never “cold review,” “cold solve,” or “checkpoint” as a top-level product name.
 
-- [ ] **Step 2: Remove implementation-language labels from the daily interface**
+- [x] **Step 2: Remove implementation-language labels from the daily interface**
 
 Delete `dsa-boundary-note` and `dsa-section-label` instances that say `Server-owned data`, `server-ordered`, `bounded server pages`, or `one selected prompt at a time`. Keep status regions for loading and errors.
 
@@ -48,7 +48,7 @@ Add this non-interactive row inside the Settings & data menu:
 <span class="dsa-settings-note">Scheduler: SM-2 · FSRS comparison running</span>
 ```
 
-- [ ] **Step 3: Make `dsaActivateSurface` the only owner of legacy DSA visibility**
+- [x] **Step 3: Make `dsaActivateSurface` the only owner of legacy DSA visibility**
 
 Add a helper and call it from both the DSA controller and `lldSurface`:
 
@@ -61,7 +61,7 @@ function dsaSetLegacyVisibility(visible){
 
 When leaving LLD, `lldSurface(false)` must not unhide legacy elements if `#appShell` has `dsa-approved-active`. This removes the timeout/listener race that currently reveals duplicate legacy content below the approved DSA workspace.
 
-- [ ] **Step 4: Run build verification and commit**
+- [x] **Step 4: Run build verification and commit**
 
 Run: `npm run build`
 
@@ -81,7 +81,7 @@ git commit -m "fix: centralize DSA surface visibility"
 - Modify: `index.html:250-335`
 - Modify: `index.html:950-1040`
 
-- [ ] **Step 1: Replace the dashboard-first summary with a primary Today action**
+- [x] **Step 1: Replace the dashboard-first summary with a primary Today action**
 
 Add this structure before the due list:
 
@@ -98,7 +98,7 @@ Add this structure before the due list:
 
 Keep compact counts, but rename them to `due for recall`, `scheduled independent`, and `saved problems`.
 
-- [ ] **Step 2: Render the CTA from the loaded recall page**
+- [x] **Step 2: Render the CTA from the loaded recall page**
 
 Add a renderer that uses the current server page:
 
@@ -117,15 +117,15 @@ function dsaRenderTodayAction(){
 
 Call it after recall loading/rendering. The CTA starts the server-ordered batch through the existing `window.__cjStartReview` bridge, using the first due card or the existing batch entry point.
 
-- [ ] **Step 3: Keep Independent Solve secondary**
+- [x] **Step 3: Keep Independent Solve secondary**
 
 Replace the large second Today section with a compact secondary action that opens the Independent Solve view. Show separate text for scheduled attempts and first independent attempts so `0 scheduled · 10 ready for first solve` is understandable.
 
-- [ ] **Step 4: Hide successful status chatter**
+- [x] **Step 4: Hide successful status chatter**
 
 After successful summary/list loads, clear the live banner instead of leaving messages such as `Practice summary updated.` Keep loading, error, and retry messages.
 
-- [ ] **Step 5: Run build verification and commit**
+- [x] **Step 5: Run build verification and commit**
 
 Run: `npm run build`
 
@@ -145,7 +145,7 @@ git commit -m "feat: make Today a one-click recall queue"
 - Modify: `index.html:724-732`
 - Modify: `index.html:400-445`
 
-- [ ] **Step 1: Remove the `Solved from scratch` control from Recall Review**
+- [x] **Step 1: Remove the `Solved from scratch` control from Recall Review**
 
 Delete the `practice-credit` checkbox block. Recall Review must submit:
 
@@ -159,11 +159,11 @@ body: JSON.stringify({
 
 This keeps independent-solve history separate while continuing to record SM-2 plus FSRS shadow transitions.
 
-- [ ] **Step 2: Make the problem/reveal hierarchy compact**
+- [x] **Step 2: Make the problem/reveal hierarchy compact**
 
 Keep the prompt rendered with `renderMarkdown`. Place saved approach and explanation first, and wrap optional code and notes in collapsed `<details>` elements. Change the action label to **Reveal answer**.
 
-- [ ] **Step 3: Track session results and show completion inside the dialog**
+- [x] **Step 3: Track session results and show completion inside the dialog**
 
 Extend review state with a rating tally:
 
@@ -173,7 +173,7 @@ state.reviewResults={again:0,hard:0,good:0,easy:0};
 
 Increment only after a successful response. At the end, replace the recall body with a summary showing total reviewed and non-zero rating counts, plus a **Done** button. Do not expose raw SM-2 or FSRS calculations.
 
-- [ ] **Step 4: Keep mobile actions reachable**
+- [x] **Step 4: Keep mobile actions reachable**
 
 Raise `#reviewDialog` above the mobile navigation and make `.review-foot` sticky inside the dialog:
 
@@ -183,7 +183,7 @@ Raise `#reviewDialog` above the mobile navigation and make `.review-foot` sticky
 .review-foot { position: sticky; bottom: 0; z-index: 2; background: var(--surface); }
 ```
 
-- [ ] **Step 5: Run build verification and commit**
+- [x] **Step 5: Run build verification and commit**
 
 Run: `npm run build`
 
@@ -203,7 +203,7 @@ git commit -m "feat: streamline recall review sessions"
 - Modify: `index.html:1087-1114`
 - Modify: `index.html:1150-1180`
 
-- [ ] **Step 1: Replace the mandatory-looking challenge form with one disclosure**
+- [x] **Step 1: Replace the mandatory-looking challenge form with one disclosure**
 
 Use one optional field backed by the existing `reflection` property:
 
@@ -220,7 +220,7 @@ Use one optional field backed by the existing `reflection` property:
 
 Remove the visible approach, invariant, complexity, and blocker controls. Do not require code entry.
 
-- [ ] **Step 2: Rename outcomes without changing stored values**
+- [x] **Step 2: Rename outcomes without changing stored values**
 
 Keep API values compatible while presenting plain labels:
 
@@ -242,15 +242,15 @@ The payload remains:
 }
 ```
 
-- [ ] **Step 3: Render the prompt and saved material as Markdown**
+- [x] **Step 3: Render the prompt and saved material as Markdown**
 
 Use the existing sanitized `renderMarkdown` helper for the problem prompt and textual reveal fields. Keep code in `<pre>` and reveal saved material only after an outcome has been successfully recorded.
 
-- [ ] **Step 4: Preserve retry state**
+- [x] **Step 4: Preserve retry state**
 
 On submission failure, keep the selected outcome and optional reflection in `dsaState.coldFlow`, re-enable Save, and reuse the same idempotency key on retry.
 
-- [ ] **Step 5: Run build verification and commit**
+- [x] **Step 5: Run build verification and commit**
 
 Run: `npm run build`
 
@@ -270,11 +270,11 @@ git commit -m "feat: simplify independent solve attempts"
 - Modify: `index.html:633-680`
 - Modify: `index.html:1116-1145`
 
-- [ ] **Step 1: Clarify Library actions**
+- [x] **Step 1: Clarify Library actions**
 
 Each Library row exposes **Open**, **Edit**, and **Solve independently**. Recall and Independent Solve reveal views remain read-only. Editing continues through the existing card editor bridge rather than a new endpoint.
 
-- [ ] **Step 2: Simplify history language and details**
+- [x] **Step 2: Simplify history language and details**
 
 Render newest-first existing attempt history with user-facing outcomes:
 
@@ -284,7 +284,7 @@ var dsaOutcomeLabel={independent:'Solved',hinted:'Needed a hint',unfinished:'Cou
 
 History rows show outcome, attempt date, and next practice. Attempt detail shows only Outcome, Recorded, and Reflection; omit empty legacy challenge fields. Attempts remain immutable.
 
-- [ ] **Step 3: Make Add Problem progressive**
+- [x] **Step 3: Make Add Problem progressive**
 
 Keep title, URL, difficulty, and tags visible. Wrap description, approach, reference explanation, code, notes, insight, trap, and optional initial outcome in:
 
@@ -299,7 +299,7 @@ Move the complete existing field nodes with IDs `dsaCaptureDescription`, `dsaCap
 
 Use **Save for later** as the default submit label. Do not add another endpoint or browser-local draft.
 
-- [ ] **Step 4: Run build verification and commit**
+- [x] **Step 4: Run build verification and commit**
 
 Run: `npm run build`
 
@@ -317,7 +317,7 @@ git commit -m "feat: focus DSA editing in the problem library"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-19-low-friction-dsa-practice.md`
 
-- [ ] **Step 1: Run all existing automated checks**
+- [x] **Step 1: Run all existing automated checks**
 
 Run:
 
@@ -328,7 +328,7 @@ for script in $(node -e "const p=require('./package.json'); console.log(Object.k
 
 Expected: build and every existing contract script exit 0.
 
-- [ ] **Step 2: Verify the Vercel API budget**
+- [x] **Step 2: Verify the Vercel API budget**
 
 Run:
 
@@ -338,7 +338,7 @@ find api -type f \( -name '*.js' -o -name '*.ts' -o -name '*.mjs' \) | wc -l
 
 Expected: `12` or fewer.
 
-- [ ] **Step 3: Perform authenticated desktop and mobile browser checks**
+- [x] **Step 3: Perform authenticated desktop and mobile browser checks**
 
 Verify:
 
@@ -351,14 +351,16 @@ Verify:
 - All DSA dialogs sit above mobile navigation at 390×844 and remain scrollable.
 - Daily practice contains no server-ordering or scheduler jargon; Settings shows `Scheduler: SM-2 · FSRS comparison running`.
 
-- [ ] **Step 4: Commit plan completion**
+Authenticated smoke checks were non-mutating: recall and independent-solve submissions were not saved against the user's real study history. Existing contract checks verified the submission payloads and scheduling boundaries.
+
+- [x] **Step 4: Commit plan completion**
 
 ```bash
 git add docs/superpowers/plans/2026-09-19-low-friction-dsa-practice.md
 git commit -m "docs: complete low-friction DSA implementation plan"
 ```
 
-- [ ] **Step 5: Push `dev` and review the resulting Vercel deployment**
+- [x] **Step 5: Push `dev` and review the resulting Vercel deployment**
 
 Run: `git push origin dev`
 
