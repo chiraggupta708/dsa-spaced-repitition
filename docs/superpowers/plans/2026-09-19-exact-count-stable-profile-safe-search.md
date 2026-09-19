@@ -26,7 +26,7 @@
 **Files:**
 - Modify: `lib/db.js:1187-1205`
 
-- [ ] **Step 1: Replace the ambiguous backslash escape marker**
+- [x] **Step 1: Replace the ambiguous backslash escape marker**
 
 Change `addQueueFilterSql` so user-entered `!`, `%`, and `_` remain literal:
 
@@ -52,7 +52,7 @@ function addQueueFilterSql(where, params, filters) {
 
 Do not change the ten-row limit, cursor shape, selected columns, owner predicate, debounce, or API response envelope.
 
-- [ ] **Step 2: Run the existing transfer and build checks**
+- [x] **Step 2: Run the existing transfer and build checks**
 
 Run:
 
@@ -64,7 +64,7 @@ npm run test:dsa-ui
 
 Expected: all commands exit 0 and the source contracts still confirm lightweight cursor pagination.
 
-- [ ] **Step 3: Commit the search repair**
+- [x] **Step 3: Commit the search repair**
 
 ```bash
 git add lib/db.js
@@ -78,7 +78,7 @@ git commit -m "fix: make library search escaping valid"
 - Modify: `lib/dsa-practice.js:920-930`
 - Modify: `index.html:952-970`
 
-- [ ] **Step 1: Count cards inside the existing aggregate query**
+- [x] **Step 1: Count cards inside the existing aggregate query**
 
 Add the total beside the existing filtered aggregates:
 
@@ -94,7 +94,7 @@ FROM summary_rows
 
 This must remain the same owner-scoped query and must not load card bodies.
 
-- [ ] **Step 2: Expose the integer through the summary DTO**
+- [x] **Step 2: Expose the integer through the summary DTO**
 
 Add the field without changing existing names:
 
@@ -111,7 +111,7 @@ export function toPracticeSummary(row = {}) {
 }
 ```
 
-- [ ] **Step 3: Render the exact total independently of Library pages**
+- [x] **Step 3: Render the exact total independently of Library pages**
 
 Update `dsaRenderCounts` to derive the saved-problem count only from the loaded summary:
 
@@ -121,7 +121,7 @@ var summary=dsaState.summary||{},hasTotal=Object.prototype.hasOwnProperty.call(s
 
 Use `libraryText` for `dsaLibraryCount` and `dsaSidebarLibraryCount`. After `dsaLoadSummary` assigns `dsaState.summary`, call `dsaRenderCounts()` so the exact total appears without opening Library.
 
-- [ ] **Step 4: Run existing summary/UI checks and commit**
+- [x] **Step 4: Run existing summary/UI checks and commit**
 
 Run:
 
@@ -146,7 +146,7 @@ git commit -m "feat: show exact saved problem count"
 **Files:**
 - Modify: `index.html:696-756`
 
-- [ ] **Step 1: Track mounted Clerk components**
+- [x] **Step 1: Track mounted Clerk components**
 
 Next to `authIdentity`, add:
 
@@ -172,7 +172,7 @@ function unmountUserButton(){
 }
 ```
 
-- [ ] **Step 2: Mount signed-out UI once**
+- [x] **Step 2: Mount signed-out UI once**
 
 In `showSignedOut`, unmount the user button on the actual transition, clear private state only when leaving a signed-in identity, and call `mountSignIn` only when `clerkSignInMounted` is false. Set the marker only after a successful mount.
 
@@ -184,7 +184,7 @@ if(wasSignedIn){unmountUserButton();clearPrivateView()}
 if(!clerkSignInMounted){window.Clerk.mountSignIn($('signIn'));clerkSignInMounted=true}
 ```
 
-- [ ] **Step 3: Treat repeated signed-in notifications as no-ops**
+- [x] **Step 3: Treat repeated signed-in notifications as no-ops**
 
 At the beginning of `showSignedIn`, compute identity and return after maintaining visibility when both markers already match:
 
@@ -200,7 +200,7 @@ if(sameIdentity){
 
 For a real transition, unmount sign-in once, unmount the previous user button before clearing its host, mount the new user button once, set `mountedUserButtonIdentity=identity`, notify the DSA workspace, and call `refresh()` once. Do not call `refresh()` in the same-identity branch.
 
-- [ ] **Step 4: Run existing authentication/UI checks and commit**
+- [x] **Step 4: Run existing authentication/UI checks and commit**
 
 Run:
 
@@ -224,7 +224,7 @@ git commit -m "fix: keep Clerk profile mounted per identity"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-19-exact-count-stable-profile-safe-search.md`
 
-- [ ] **Step 1: Run the complete existing suite**
+- [x] **Step 1: Run the complete existing suite**
 
 ```bash
 npm run build
@@ -237,7 +237,7 @@ git diff --check
 
 Expected: every command exits 0.
 
-- [ ] **Step 2: Confirm the Vercel function budget**
+- [x] **Step 2: Confirm the Vercel function budget**
 
 ```bash
 test "$(rg --files api | wc -l | tr -d ' ')" = "12"
@@ -245,7 +245,7 @@ test "$(rg --files api | wc -l | tr -d ' ')" = "12"
 
 Expected: exit 0; no API entry file was added.
 
-- [ ] **Step 3: Perform authenticated browser checks**
+- [x] **Step 3: Perform authenticated browser checks**
 
 On the resulting exact Vercel deployment:
 
@@ -257,7 +257,7 @@ On the resulting exact Vercel deployment:
 - confirm browser logs contain no new application-triggered Clerk `removeChild` errors;
 - confirm network behavior uses the existing practice summary plus only the active bounded list requests.
 
-- [ ] **Step 4: Commit the completed checklist and push `dev`**
+- [x] **Step 4: Commit the completed checklist and push `dev`**
 
 ```bash
 git add docs/superpowers/specs/2026-09-19-exact-count-stable-profile-design.md docs/superpowers/plans/2026-09-19-exact-count-stable-profile-safe-search.md
