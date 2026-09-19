@@ -284,6 +284,12 @@ body.dark .dsa-live-banner { border-color: #344b68; color: #b8c8dc; background: 
 .dsa-summary-chip.dsa-summary-due { border-color: #efd8ab; background: #fffaf0; }
 .dsa-summary-chip.dsa-summary-due strong { color: var(--dsa-warning); }
 body.dark .dsa-summary-chip.dsa-summary-due { border-color: #6b5228; background: #342915; }
+.dsa-today-action, .dsa-independent-nudge { display: flex; align-items: center; justify-content: space-between; gap: 22px; margin-bottom: 24px; padding: 22px; border: 1px solid var(--dsa-line); border-radius: 14px; background: var(--dsa-surface); box-shadow: var(--dsa-shadow); }
+.dsa-today-action { border-color: #bfd3ee; background: linear-gradient(135deg, var(--dsa-surface), var(--dsa-accent-soft)); }
+.dsa-today-action h2, .dsa-independent-nudge h2 { margin: 3px 0 5px; color: var(--dsa-ink); font-size: 20px; letter-spacing: -.025em; }
+.dsa-today-action p:not(.eyebrow), .dsa-independent-nudge p:not(.eyebrow) { margin: 0; color: var(--dsa-muted); font-size: 13px; }
+.dsa-review-all { flex: none; min-width: 220px; }
+.dsa-independent-nudge { padding: 17px 19px; box-shadow: none; }
 .dsa-screen { display: none; min-width: 0; }
 .dsa-screen.active { display: block; }
 .dsa-section { min-width: 0; margin-bottom: 28px; }
@@ -407,6 +413,8 @@ body.dark .dsa-reveal-section p { color: #c7ead8; }
   .dsa-summary-strip { gap: 6px; }
   .dsa-summary-chip { padding: 9px 10px; }
   .dsa-summary-chip strong { font-size: 18px; }
+  .dsa-today-action, .dsa-independent-nudge { align-items: stretch; flex-direction: column; }
+  .dsa-review-all, .dsa-independent-nudge button { width: 100%; }
   .dsa-queue-row { grid-template-columns: 1fr; gap: 11px; }
   .dsa-row-actions { justify-content: flex-start; }
   .dsa-row-actions button { flex: 1 1 130px; }
@@ -510,30 +518,26 @@ body.dark .dsa-reveal-section p { color: #c7ead8; }
     <div class="dsa-live-banner" role="status" aria-live="polite"><span id="dsaStatus">Loading your practice queue…</span></div>
 
     <div class="dsa-summary-strip" aria-label="Practice counts">
-      <div class="dsa-summary-chip dsa-summary-due"><strong id="dsaRecallCount">0</strong><span>recall questions due</span></div>
-      <div class="dsa-summary-chip"><strong id="dsaColdCount">0</strong><span>cold checkpoints</span></div>
+      <div class="dsa-summary-chip dsa-summary-due"><strong id="dsaRecallCount">0</strong><span>due for recall</span></div>
+      <div class="dsa-summary-chip"><strong id="dsaColdCount">0</strong><span>scheduled independent</span></div>
       <div class="dsa-summary-chip"><strong id="dsaLibraryCount">0</strong><span>saved problems</span></div>
     </div>
 
     <section class="dsa-screen active" data-dsa-panel="today" aria-labelledby="dsaTodayHeading">
+      <section class="dsa-today-action" aria-labelledby="dsaTodayActionTitle">
+        <div><p class="eyebrow">Today’s recall</p><h2 id="dsaTodayActionTitle">Keep the approaches fresh</h2><p id="dsaTodayProgress">Checking what is due…</p></div>
+        <button type="button" class="primary dsa-review-all" id="dsaReviewDue" disabled>Review due problems</button>
+      </section>
       <div class="dsa-section">
         <div class="dsa-section-head">
-          <div><h2 id="dsaTodayHeading">Recall due</h2><p>Choose a row to recall before any saved reference is requested.</p></div>
+          <div><h2 id="dsaTodayHeading">Due problems</h2><p>Preview today’s queue. The button above reviews them in order.</p></div>
         </div>
         <p class="dsa-live-status" id="dsaTodayRecallStatus" role="status" aria-live="polite">Loading recall questions…</p>
         <div class="dsa-queue-list" id="dsaTodayRecallList" aria-live="polite"></div>
         <div class="dsa-pager" id="dsaTodayRecallPager" aria-label="Recall due pages"></div>
       </div>
-      <div class="dsa-section">
-        <div class="dsa-divider-label">Then · cold-solve checkpoints</div>
-        <div class="dsa-section-head">
-          <div><h2>Independent Solve</h2><p>Re-solve a saved problem without seeing your notes first.</p></div>
-          <button class="quiet-button" type="button" data-dsa-go-view="cold">Open Independent Solve</button>
-        </div>
-        <p class="dsa-live-status" id="dsaTodayColdStatus" role="status" aria-live="polite">Loading scheduled checkpoints…</p>
-        <div class="dsa-queue-list" id="dsaTodayColdList" aria-live="polite"></div>
-        <div class="dsa-pager" id="dsaTodayColdPager" aria-label="Scheduled checkpoint pages"></div>
-      </div>
+      <section class="dsa-independent-nudge" aria-labelledby="dsaIndependentNudgeTitle"><div><p class="eyebrow">Have more time?</p><h2 id="dsaIndependentNudgeTitle">Solve one independently</h2><p id="dsaIndependentProgress">Checking independent practice…</p></div><button class="secondary" type="button" data-dsa-go-view="cold">Start an independent solve</button></section>
+      <div class="hidden" aria-hidden="true"><p id="dsaTodayColdStatus"></p><div id="dsaTodayColdList"></div><div id="dsaTodayColdPager"></div></div>
     </section>
 
     <section class="dsa-screen" data-dsa-panel="cold" aria-labelledby="dsaColdHeading">
@@ -869,7 +873,7 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
   function dsa$(id){return document.getElementById(id)}
   function dsaEsc(value){return String(value===undefined||value===null?'':value).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]})}
   function dsaSetHidden(element,hidden){if(element)element.classList.toggle('hidden',!!hidden)}
-  function dsaStatus(id,message,kind){var element=dsa$(id);if(!element)return;element.textContent=message||'';element.classList.toggle('error',kind==='error');element.classList.toggle('success',kind==='success')}
+  function dsaStatus(id,message,kind){var element=dsa$(id);if(!element)return;element.textContent=message||'';element.classList.toggle('error',kind==='error');element.classList.toggle('success',kind==='success');if(id==='dsaStatus'&&element.parentElement)element.parentElement.classList.toggle('hidden',!message)}
   function dsaCurrent(generation){return dsaState.authenticated&&generation===dsaGeneration&&dsaState.generation===generation}
   function dsaPracticeTimeZone(){return typeof dsaState.timeZone==='string'&&dsaState.timeZone.trim()?dsaState.timeZone:null}
   function dsaPracticeUrl(view,params){var query=new URLSearchParams();query.set('view',view);Object.keys(params||{}).forEach(function(key){var value=params[key];if(value!==undefined&&value!==null&&value!=='')query.set(key,String(value))});return '/api/practice?'+query.toString()}
@@ -956,6 +960,12 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
     if(dsa$('dsaSidebarColdCount'))dsa$('dsaSidebarColdCount').textContent=todayCold?coldText:'—';
     if(dsa$('dsaSidebarLibraryCount'))dsa$('dsaSidebarLibraryCount').textContent=library?libraryText:'—';
   }
+  function dsaRenderTodayAction(){
+    var recall=dsaState.recall.pages[dsaState.recall.page],items=recall&&Array.isArray(recall.items)?recall.items:[],count=items.length,more=!!(recall&&recall.hasMore),button=dsa$('dsaReviewDue'),progress=dsa$('dsaTodayProgress'),independent=dsa$('dsaIndependentProgress'),summary=dsaState.summary||{};
+    if(button){button.textContent=count?'Review '+count+(more?'+':'')+' due problem'+(count===1?'':'s'):'Recall complete for today';button.disabled=!count}
+    if(progress)progress.textContent=count?'0 of '+count+(more?'+':'')+' reviewed today':'You are caught up.';
+    if(independent)independent.textContent=Number(summary.dueCount||0)+' scheduled · '+Number(summary.firstCheckCount||0)+' ready for a first independent solve';
+  }
   function dsaLoadSummary(force){
     if(!dsaState.authenticated)return Promise.resolve(null);
     if(dsaState.summaryLoading&&dsaState.summaryPromise){
@@ -965,7 +975,7 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
     }
     if(!force&&dsaState.summary)return Promise.resolve(dsaState.summary);
     var generation=dsaGeneration,request=++dsaState.summaryRequest;dsaState.summaryLoading=true;dsaStatus('dsaStatus','Loading your private practice summary…');
-    var promise=dsaRequest(dsaPracticeUrl('summary'),{},generation).then(function(data){if(!dsaCurrent(generation)||request!==dsaState.summaryRequest)return null;dsaState.summary=data.summary||{};dsaStatus('dsaStatus','Practice summary updated.','success');return dsaState.summary}).catch(function(error){if(!error.stale&&dsaCurrent(generation)&&request===dsaState.summaryRequest)dsaStatus('dsaStatus','Practice summary could not be loaded: '+error.message,'error');return null}).finally(function(){if(dsaCurrent(generation)){dsaState.summaryLoading=false;dsaState.summaryPromise=null}});
+    var promise=dsaRequest(dsaPracticeUrl('summary'),{},generation).then(function(data){if(!dsaCurrent(generation)||request!==dsaState.summaryRequest)return null;dsaState.summary=data.summary||{};dsaStatus('dsaStatus','');dsaRenderTodayAction();return dsaState.summary}).catch(function(error){if(!error.stale&&dsaCurrent(generation)&&request===dsaState.summaryRequest)dsaStatus('dsaStatus','Practice summary could not be loaded: '+error.message,'error');return null}).finally(function(){if(dsaCurrent(generation)){dsaState.summaryLoading=false;dsaState.summaryPromise=null}});
     dsaState.summaryPromise=promise;return promise;
   }
   function dsaLoadTimezoneStatus(force){
@@ -999,9 +1009,7 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
     var items=page&&Array.isArray(page.items)?page.items:[];
     if(!items.length)list.innerHTML=dsaEmptyHtml(emptyTitle,emptyCopy);else list.innerHTML=items.map(function(item){return dsaQueueRow(kind==='recall'?dsaRecallItem(item):item,kind)}).join('');
     if(pager)pager.innerHTML=dsaPagerHtml(key,page);
-    if(kind==='recall')dsaStatus(statusId,items.length?'Showing '+items.length+' due recall question'+(items.length===1?'':'s')+' on this server page.':'No recall questions are due.','success');
-    else if(kind==='library')dsaStatus(statusId,items.length?'Showing '+items.length+' saved problem'+(items.length===1?'':'s')+' on this server page.':'No saved problems match these filters.',items.length?'success':'');
-    else dsaStatus(statusId,items.length?'Showing '+items.length+' scheduled problem'+(items.length===1?'':'s')+' on this server page.':'No problems are in this cold-solve bucket.',items.length?'success':'');
+    dsaStatus(statusId,'');
     dsaRenderCounts();
   }
   function dsaRenderAllLists(){
@@ -1010,6 +1018,7 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
     dsaRenderPaged('coldScheduled','dsaColdScheduledList','dsaColdScheduledStatus','dsaColdScheduledPager','cold','No scheduled checkpoints','There are no due retries or monthly checkpoints.');
     dsaRenderPaged('coldFirst','dsaColdFirstList','dsaColdFirstStatus','dsaColdFirstPager','cold','No first checks pending','Every saved problem has an independent solve recorded, or the server returned an empty page.');
     dsaRenderPaged('library','dsaLibraryList','dsaLibraryStatus','dsaLibraryPager','library','No matching problems','Try a broader search or clear the filters.');
+    dsaRenderTodayAction();
   }
   function dsaLoadPaged(key,url,reset){
     if(!dsaState.authenticated||dsaState[key].loading)return;
@@ -1150,6 +1159,7 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
     document.querySelectorAll('[data-dsa-timezone-close]').forEach(function(button){button.addEventListener('click',dsaCloseTimezone)});
     document.querySelectorAll('[data-dsa-close]').forEach(function(button){button.addEventListener('click',dsaCloseCapture)});
     var capture=dsa$('dsaCaptureForm');if(capture)capture.addEventListener('submit',dsaSubmitCapture);var outcome=dsa$('dsaCaptureOutcome');if(outcome)outcome.addEventListener('change',dsaUpdateCaptureCopy);var zoneSave=dsa$('dsaTimezoneSave');if(zoneSave)zoneSave.addEventListener('click',dsaSaveTimezone);var importInput=dsa$('dsaImportInput');if(importInput)importInput.addEventListener('change',dsaImportFile);
+    var reviewDue=dsa$('dsaReviewDue');if(reviewDue)reviewDue.addEventListener('click',function(){if(typeof window.__cjStartReview==='function')window.__cjStartReview();else dsaStatus('dsaStatus','Recall review is not ready. Reload and try again.','error')});
     document.querySelectorAll('[data-dsa-export]').forEach(function(button){button.addEventListener('click',dsaExport)});document.querySelectorAll('[data-dsa-import]').forEach(function(button){button.addEventListener('click',function(){if(importInput)importInput.click()})});
     var query=dsa$('dsaLibraryQuery');if(query)query.addEventListener('input',function(){clearTimeout(dsaState.libraryTimer);dsaState.libraryTimer=setTimeout(function(){dsaLoadLibrary(true)},250)});var difficulty=dsa$('dsaLibraryDifficulty');if(difficulty)difficulty.addEventListener('change',function(){dsaLoadLibrary(true)});var bucket=dsa$('dsaLibraryBucket');if(bucket)bucket.addEventListener('change',function(){dsaLoadLibrary(true)});
     var historyDisclosure=document.querySelector('[data-dsa-history-disclosure]');if(historyDisclosure)historyDisclosure.addEventListener('toggle',function(){if(historyDisclosure.open)dsaLoadHistory(true)});
