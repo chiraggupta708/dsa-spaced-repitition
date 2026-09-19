@@ -155,9 +155,9 @@ assert.match(duplicateBranch, /if\(button\)button\.disabled=false/, 'duplicate m
 assert.doesNotMatch(duplicateBranch, /capture\.reset\(\)|dsaState\.capturePending\s*=\s*null|dsaState\.capturePending\.values\s*=\s*null/, 'duplicate must preserve the captured form and pending outcome');
 assert.match(captureSubmit, /pending&&pending\.idempotencyKey\|\|\(dsaState\.capturePending=\{idempotencyKey:'dsa-capture-/, 'retry must generate a fresh idempotency key');
 includes(finalScript, 'Nothing was discarded.', 'save failure preserves form');
-includes(finalScript, 'No independent solve recorded', 'no-outcome copy');
-includes(finalScript, '30-day local-calendar checkpoint', 'independent outcome copy');
-includes(finalScript, 'retry in 3 local calendar days', 'retry outcome copy');
+includes(finalScript, 'No outcome is recorded', 'no-outcome copy');
+includes(finalScript, 'Solved: schedule Independent Solve again in 30 days.', 'independent outcome copy');
+includes(finalScript, 'retry in 3 days.', 'retry outcome copy');
 includes(finalScript, 'dsaClearStaleDrafts()', 'successful save draft cleanup');
 
 // Cold outcomes are server-owned and display the returned schedule; no client prediction is saved.
