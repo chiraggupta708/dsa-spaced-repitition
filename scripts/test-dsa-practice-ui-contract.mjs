@@ -140,7 +140,7 @@ for (const field of ['title', 'link', 'description', 'approach', 'reference', 'c
 }
 includes(finalScript, 'idempotencyKey:key', 'capture idempotency key');
 includes(finalScript, 'data.duplicate', 'explicit duplicate handling');
-includes(finalScript, 'Your fields and pending outcome remain here', 'duplicate preserves pending capture');
+includes(finalScript, 'your form remains here', 'duplicate preserves pending capture');
 includes(finalScript, 'pending&&pending.idempotencyKey||(dsaState.capturePending={idempotencyKey:', 'retry gets an idempotency key');
 const captureSubmitStart = finalScript.indexOf('function dsaSubmitCapture');
 const captureSubmitEnd = finalScript.indexOf('function dsaExport', captureSubmitStart);
@@ -151,7 +151,7 @@ const duplicateBranchEnd = captureSubmit.indexOf('var outcome=', duplicateBranch
 assert.ok(duplicateBranchStart >= 0 && duplicateBranchEnd > duplicateBranchStart, 'capture duplicate success branch missing');
 const duplicateBranch = captureSubmit.slice(duplicateBranchStart, duplicateBranchEnd);
 assert.match(duplicateBranch, /dsaState\.capturePending\.idempotencyKey=null/, 'duplicate must clear only the consumed idempotency key');
-assert.match(duplicateBranch, /if\(button\)button\.disabled=false/, 'duplicate must re-enable the Save button');
+assert.match(duplicateBranch, /submitButtons\.forEach\(function\(item\)\{item\.disabled=false\}\)/, 'duplicate must re-enable both Save buttons');
 assert.doesNotMatch(duplicateBranch, /capture\.reset\(\)|dsaState\.capturePending\s*=\s*null|dsaState\.capturePending\.values\s*=\s*null/, 'duplicate must preserve the captured form and pending outcome');
 assert.match(captureSubmit, /pending&&pending\.idempotencyKey\|\|\(dsaState\.capturePending=\{idempotencyKey:'dsa-capture-/, 'retry must generate a fresh idempotency key');
 includes(finalScript, 'Nothing was discarded.', 'save failure preserves form');
