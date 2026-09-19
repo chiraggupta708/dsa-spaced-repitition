@@ -40,7 +40,8 @@ Track the identity for which the user button is mounted. On a repeated signed-in
 
 - keep the existing Clerk component mounted;
 - keep the private app visible;
-- notify the DSA workspace only when needed;
+- do not refresh DSA summary or list data;
+- notify the DSA workspace only on an authentication transition;
 - avoid clearing or remounting `#userButton`.
 
 On sign-out or a real account change:
