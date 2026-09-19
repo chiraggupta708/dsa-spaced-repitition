@@ -338,6 +338,7 @@ body.dark .dsa-row-reason { color: #aebdd0; }
 .dsa-tools summary::-webkit-details-marker { display: none; }
 .dsa-tools-menu { position: absolute; z-index: 7; top: 49px; right: 0; display: grid; width: 190px; gap: 5px; padding: 8px; border: 1px solid var(--dsa-line); border-radius: 9px; background: var(--dsa-surface); box-shadow: var(--dsa-shadow); }
 .dsa-tools-menu button { min-height: 38px; padding: 0 9px; text-align: left; }
+.dsa-settings-note { padding: 8px 9px 2px; border-top: 1px solid var(--dsa-line); color: var(--dsa-muted); font-size: 10px; line-height: 1.4; }
 .dsa-mobile-nav { display: none; }
 .dsa-approved-overlay { position: fixed; z-index: 30; inset: 0; display: grid; align-items: start; justify-items: center; overflow: auto; padding: 5vh 18px 7vh; background: rgba(24, 33, 47, .34); }
 #dsaCaptureDialog { z-index: 30; }
@@ -449,7 +450,7 @@ body.dark .dsa-reveal-section p { color: #c7ead8; }
 <section class="auth-gate" id="authGate" aria-labelledby="authTitle"><div class="auth-card"><div class="brand"><span class="brand-mark">DS</span>Study Desk</div><h1 id="authTitle">Your quiet study desk</h1><p>Sign in to return to your private review journal.</p><p class="auth-privacy">Your study notes stay tied to your account.</p><p class="auth-status" id="authStatus" role="status">Preparing secure sign-in…</p><div id="signIn"></div></div></section>
 <div class="shell hidden" id="appShell"><aside class="sidebar" aria-label="Study Desk navigation">
   <div class="brand"><span class="brand-mark">DS</span><span>Study Desk</span></div>
-  <span class="dsa-private-badge">Private · owner-scoped</span>
+  <span class="dsa-private-badge">Your practice space</span>
   <div class="dsa-sidebar-group">
     <p class="workspace-label">Workspace</p>
     <div class="workspace-switch" role="group" aria-label="Choose workspace">
@@ -461,7 +462,7 @@ body.dark .dsa-reveal-section p { color: #c7ead8; }
     <p class="nav-label">Practice</p>
     <nav class="dsa-approved-nav" id="dsaSidebarNav" aria-label="DSA practice destinations">
       <button type="button" class="dsa-nav-button active" aria-current="page" aria-pressed="true" data-dsa-nav="today"><span>Today</span><span class="nav-count" id="dsaSidebarRecallCount">0</span></button>
-      <button type="button" class="dsa-nav-button" aria-pressed="false" data-dsa-nav="cold"><span>Cold solve</span><span class="nav-count" id="dsaSidebarColdCount">0</span></button>
+      <button type="button" class="dsa-nav-button" aria-pressed="false" data-dsa-nav="cold"><span>Independent Solve</span><span class="nav-count" id="dsaSidebarColdCount">0</span></button>
       <button type="button" class="dsa-nav-button" aria-pressed="false" data-dsa-nav="library"><span>Problem library</span><span class="nav-count" id="dsaSidebarLibraryCount">0</span></button>
     </nav>
   </div>
@@ -477,7 +478,7 @@ body.dark .dsa-reveal-section p { color: #c7ead8; }
     <div class="menu"><button type="button" data-add="lld">New LLD notebook</button></div>
   </details>
   <div class="side-bottom">
-    <div class="dsa-sidebar-foot"><strong>Focused practice</strong><span>Recall and cold-solve cadence stay separate.</span></div>
+    <div class="dsa-sidebar-foot"><strong>Focused practice</strong><span>Recall the idea, then prove it independently.</span></div>
     <div class="side-tools"><span id="sideDate">Quiet study mode</span><button class="icon-button" id="theme" type="button" aria-label="Toggle dark mode">☼</button></div>
     <div id="userButton" class="user-button" aria-label="Account menu"></div>
   </div>
@@ -488,7 +489,7 @@ body.dark .dsa-reveal-section p { color: #c7ead8; }
       <div>
         <p class="eyebrow">DSA practice</p>
         <h1 id="dsaWorkspaceTitle">Today</h1>
-        <p id="dsaWorkspaceIntro">Start with questions due for recall, then take the next cold-solve checkpoint.</p>
+        <p id="dsaWorkspaceIntro">Start with what is due, then solve independently when you have more time.</p>
       </div>
       <div class="dsa-approved-actions">
         <button type="button" class="primary" data-dsa-capture-open>+ Add problem</button>
@@ -499,16 +500,14 @@ body.dark .dsa-reveal-section p { color: #c7ead8; }
             <button type="button" data-dsa-timezone-open>Practice time zone</button>
             <button type="button" data-dsa-export>Export backup</button>
             <button type="button" data-dsa-import>Import backup</button>
+            <span class="dsa-settings-note">Scheduler: SM-2 · FSRS comparison running</span>
           </div>
         </details>
         <input type="file" id="dsaImportInput" accept="application/json,.json" hidden>
       </div>
     </header>
 
-    <div class="dsa-live-banner" role="status" aria-live="polite">
-      <span id="dsaStatus">Loading your private practice queue…</span>
-      <span class="dsa-boundary-note">Server-owned data · no client-side fallback</span>
-    </div>
+    <div class="dsa-live-banner" role="status" aria-live="polite"><span id="dsaStatus">Loading your practice queue…</span></div>
 
     <div class="dsa-summary-strip" aria-label="Practice counts">
       <div class="dsa-summary-chip dsa-summary-due"><strong id="dsaRecallCount">0</strong><span>recall questions due</span></div>
@@ -520,7 +519,6 @@ body.dark .dsa-reveal-section p { color: #c7ead8; }
       <div class="dsa-section">
         <div class="dsa-section-head">
           <div><h2 id="dsaTodayHeading">Recall due</h2><p>Choose a row to recall before any saved reference is requested.</p></div>
-          <span class="dsa-section-label">server-ordered</span>
         </div>
         <p class="dsa-live-status" id="dsaTodayRecallStatus" role="status" aria-live="polite">Loading recall questions…</p>
         <div class="dsa-queue-list" id="dsaTodayRecallList" aria-live="polite"></div>
@@ -529,8 +527,8 @@ body.dark .dsa-reveal-section p { color: #c7ead8; }
       <div class="dsa-section">
         <div class="dsa-divider-label">Then · cold-solve checkpoints</div>
         <div class="dsa-section-head">
-          <div><h2>Scheduled cold solve</h2><p>Retries and monthly checkpoints remain separate from recall ratings.</p></div>
-          <button class="quiet-button" type="button" data-dsa-go-view="cold">Open cold solve</button>
+          <div><h2>Independent Solve</h2><p>Re-solve a saved problem without seeing your notes first.</p></div>
+          <button class="quiet-button" type="button" data-dsa-go-view="cold">Open Independent Solve</button>
         </div>
         <p class="dsa-live-status" id="dsaTodayColdStatus" role="status" aria-live="polite">Loading scheduled checkpoints…</p>
         <div class="dsa-queue-list" id="dsaTodayColdList" aria-live="polite"></div>
@@ -540,8 +538,7 @@ body.dark .dsa-reveal-section p { color: #c7ead8; }
 
     <section class="dsa-screen" data-dsa-panel="cold" aria-labelledby="dsaColdHeading">
       <div class="dsa-section-head">
-        <div><h2 id="dsaColdHeading">Cold solve</h2><p>Scheduled retries first. First independent checks follow for problems without a recorded cold solve.</p></div>
-        <span class="dsa-section-label">one selected prompt at a time</span>
+        <div><h2 id="dsaColdHeading">Independent Solve</h2><p>Start with scheduled retries, or independently solve a saved problem for the first time.</p></div>
       </div>
       <div class="dsa-section">
         <div class="dsa-divider-label">Scheduled checkpoints</div>
@@ -560,7 +557,6 @@ body.dark .dsa-reveal-section p { color: #c7ead8; }
     <section class="dsa-screen" data-dsa-panel="library" aria-labelledby="dsaLibraryHeading">
       <div class="dsa-section-head">
         <div><h2 id="dsaLibraryHeading">Problem library</h2><p>Browse all saved problems; this list is not limited to first-check items.</p></div>
-        <span class="dsa-section-label">bounded server pages</span>
       </div>
       <div class="dsa-library-toolbar" aria-label="Library filters">
         <label class="visually-hidden" for="dsaLibraryQuery">Search title, tag, or link</label>
@@ -583,7 +579,7 @@ body.dark .dsa-reveal-section p { color: #c7ead8; }
 
 <nav class="dsa-mobile-nav hidden" id="dsaMobileNav" data-dsa-mobile="true" aria-label="Mobile DSA practice navigation">
   <button type="button" class="active" data-dsa-nav="today" aria-current="page" aria-pressed="true">Today</button>
-  <button type="button" data-dsa-nav="cold" aria-pressed="false">Cold solve</button>
+  <button type="button" data-dsa-nav="cold" aria-pressed="false">Independent</button>
   <button type="button" data-dsa-nav="library" aria-pressed="false">Library</button>
 </nav>
 
@@ -764,7 +760,7 @@ function lh(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&
 function lldSignedIn(){return !!(window.Clerk&&window.Clerk.isSignedIn&&window.Clerk.session)}
 async function lldApi(url,options){if(!lldSignedIn())throw new Error('Sign in required');var headers=Object.assign({},(options&&options.headers)||{}),token=await window.Clerk.session.getToken();if(!token)throw new Error('Sign in required');headers.Authorization='Bearer '+token;var response=await fetch(url,Object.assign({},options||{},{headers:headers})),data=await response.json().catch(function(){return {}});if(!response.ok||!data.ok)throw new Error(data.error||'Request failed');return data}
 function lldToast(message){var el=l$('toast');el.textContent=message;el.classList.add('show');setTimeout(function(){el.classList.remove('show')},2600)}
-function lldSurface(active,view){var current=active?(view||'home'):'dsa',generic=[document.getElementById('reviewPanel'),document.querySelector('.overview'),document.querySelector('.content-head'),document.querySelector('.filters'),document.getElementById('content'),document.getElementById('cardPagination')],screens={home:'lldWorkspace',picker:'lldPickerWorkspace',designs:'lldNotebooksWorkspace',review:'lldReviewWorkspace',concepts:'lldConceptsWorkspace'};generic.forEach(function(el){if(el)el.classList.toggle('hidden',active)});Object.keys(screens).forEach(function(key){var el=document.getElementById(screens[key]);if(el)el.classList.toggle('hidden',!active||key!==current)});var eyebrow=document.querySelector('.topbar .eyebrow');if(eyebrow)eyebrow.textContent=active?'LLD workspace':'DSA workspace';if(active){document.getElementById('pageTitle').textContent=current==='home'?'Practice one LLD problem at a time.':current==='designs'?'Your notebooks.':current==='review'?'Review one decision at a time.':current==='concepts'?'Concepts to revisit.':'What do you want to practice?';document.querySelectorAll('[data-lld-view]').forEach(function(button){button.classList.toggle('active',button.dataset.lldView===current)});lldLoad()}else{document.querySelectorAll('[data-lld-view]').forEach(function(button){button.classList.remove('active')})}}
+function lldSurface(active,view){var current=active?(view||'home'):'dsa',generic=[document.getElementById('reviewPanel'),document.querySelector('.overview'),document.querySelector('.content-head'),document.querySelector('.filters'),document.getElementById('content'),document.getElementById('cardPagination')],screens={home:'lldWorkspace',picker:'lldPickerWorkspace',designs:'lldNotebooksWorkspace',review:'lldReviewWorkspace',concepts:'lldConceptsWorkspace'},approved=document.getElementById('appShell')&&document.getElementById('appShell').classList.contains('dsa-approved-active');generic.forEach(function(el){if(el)el.classList.toggle('hidden',active||approved)});Object.keys(screens).forEach(function(key){var el=document.getElementById(screens[key]);if(el)el.classList.toggle('hidden',!active||key!==current)});var eyebrow=document.querySelector('.topbar .eyebrow');if(eyebrow)eyebrow.textContent=active?'LLD workspace':'DSA workspace';if(active){document.getElementById('pageTitle').textContent=current==='home'?'Practice one LLD problem at a time.':current==='designs'?'Your notebooks.':current==='review'?'Review one decision at a time.':current==='concepts'?'Concepts to revisit.':'What do you want to practice?';document.querySelectorAll('[data-lld-view]').forEach(function(button){button.classList.toggle('active',button.dataset.lldView===current)});lldLoad()}else{document.querySelectorAll('[data-lld-view]').forEach(function(button){button.classList.remove('active')})}}
 function lldSection(design,key){return (design&&design.sections||[]).find(function(section){return (section.sectionKey||section.section_key)===key})||{}}
 function lldNotebookStatus(design){return String(design.readinessState||design.readinessStatus||design.lifecycleState||'draft').replace(/_/g,' ')}
 function lldRenderLibraryViews(list){var query=(l$('lldNotebookSearch')&&l$('lldNotebookSearch').value||'').trim().toLowerCase(),status=l$('lldNotebookStatus')&&l$('lldNotebookStatus').value||'',filtered=(list||[]).filter(function(design){var text=[design.title,design.problemStatementMd,design.nextAction,(design.tags||[]).join(' ')].join(' ').toLowerCase();return (!query||text.indexOf(query)>=0)&&(!status||lldNotebookStatus(design).replace(/ /g,'_')===status)}),renderRow=function(design,review){var action=design.nextAction||'Start with functional requirements.';return '<article class="item"><div><h3 class="item-title">'+lh(design.title||'Untitled notebook')+'</h3><div class="item-meta"><span class="lld-status">'+lh(lldNotebookStatus(design))+'</span><span>·</span><span>'+lh(action)+'</span></div></div><div class="lld-row-actions"><button class="practice-action" data-lld-practice="'+lh(design.id)+'">'+(review?'Start drill':'Practice')+'</button><button class="secondary" data-lld-open="'+lh(design.id)+'">Open notebook</button></div></article>'},notebookBox=l$('lldNotebookList'),reviewBox=l$('lldReviewList'),review=(list||[]).filter(function(design){return design.nextAction||['needs_review','draft'].indexOf(lldNotebookStatus(design).replace(/ /g,'_'))>=0});if(notebookBox)notebookBox.innerHTML=filtered.length?filtered.map(function(design){return renderRow(design,false)}).join(''):'<div class="empty"><strong>No notebooks match this view.</strong>Start a notebook or adjust the filters.</div>';if(reviewBox)reviewBox.innerHTML=review.length?review.map(function(design){return renderRow(design,true)}).join(''):'<div class="empty"><strong>Your review queue is clear.</strong>Saved notebooks will appear here when they have a next decision.</div>';var count=l$('lldReviewNavCount');if(count)count.textContent=review.length}
@@ -1038,8 +1034,12 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
   function dsaLoadColdQueues(reset){var scheduled=dsaState.coldScheduled,first=dsaState.coldFirst;dsaLoadPaged('coldScheduled',dsaColdScheduledUrl(reset?null:scheduled.pages[scheduled.page]&&scheduled.pages[scheduled.page].nextCursor),!!reset);dsaLoadPaged('coldFirst',dsaColdFirstUrl(reset?null:first.pages[first.page]&&first.pages[first.page].nextCursor),!!reset)}
   function dsaLoadLibrary(reset){var state=dsaState.library,cursor=reset?null:state.pages[state.page]&&state.pages[state.page].nextCursor;dsaLoadPaged('library',dsaLibraryUrl(cursor),!!reset)}
 
+  function dsaSetLegacyVisibility(visible){
+    document.querySelectorAll('.review-panel,.overview,.content-head,.filters,#content,#cardPagination').forEach(function(element){dsaSetHidden(element,!visible)});
+  }
+
   function dsaSetView(view){
-    var allowed={today:['Today','Start with questions due for recall, then take the next cold-solve checkpoint.'],cold:['Cold solve','Scheduled retries first. First independent checks follow for problems without a recorded cold solve.'],library:['Problem library','Browse all saved problems without downloading the full collection up front.']};
+    var allowed={today:['Today','Start with what is due, then solve independently when you have more time.'],cold:['Independent Solve','Re-solve a saved problem without seeing your notes first.'],library:['Problem library','Browse, edit, and revisit everything you have saved.']};
     if(!allowed[view])view='today';dsaState.view=view;
     var heading=dsa$('dsaWorkspaceTitle'),intro=dsa$('dsaWorkspaceIntro');if(heading)heading.textContent=allowed[view][0];if(intro)intro.textContent=allowed[view][1];
     document.querySelectorAll('[data-dsa-panel]').forEach(function(panel){panel.classList.toggle('active',panel.dataset.dsaPanel===view)});
@@ -1055,13 +1055,13 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
     if(workspaceChange)dsaCloseAllDsaDialogs();
     if(active){
       shell.classList.add('dsa-approved-active');document.body.classList.add('dsa-approved-active');dsaSetHidden(root,false);dsaSetHidden(dsa$('dsaMobileNav'),false);dsaSetHidden(dsa$('mobileNav'),true);
-      document.querySelectorAll('.review-panel,.overview,.content-head,.filters,#content,#cardPagination').forEach(function(element){dsaSetHidden(element,true)});
+      dsaSetLegacyVisibility(false);
       document.querySelectorAll('[data-dsa-legacy-shell],[data-dsa-legacy-nav="true"]').forEach(function(element){dsaSetHidden(element,true)});
       ['lldWorkspace','lldPickerWorkspace','lldNotebooksWorkspace','lldReviewWorkspace','lldConceptsWorkspace'].forEach(function(id){dsaSetHidden(dsa$(id),true)});
       if(dsaState.authenticated){dsaLoadSummary(false);dsaLoadTimezoneStatus(false);dsaSetView(dsaState.view||'today')}
     }else{
       dsaSetHidden(root,true);dsaSetHidden(dsa$('dsaMobileNav'),true);shell.classList.remove('dsa-approved-active');document.body.classList.remove('dsa-approved-active');
-      document.querySelectorAll('.review-panel,.overview,.content-head,.filters,#content,#cardPagination').forEach(function(element){dsaSetHidden(element,false)});
+      dsaSetLegacyVisibility(true);
       document.querySelectorAll('[data-dsa-legacy-shell]').forEach(function(element){dsaSetHidden(element,false)});
     }
   }
