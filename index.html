@@ -365,6 +365,10 @@ body.dark .dsa-prompt-box { border-color: #3a5578; color: #d1e0f4; background: #
 .dsa-challenge-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
 .dsa-flow-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 9px; }
 .dsa-flow-note { color: var(--dsa-muted); font-size: 12px; }
+.dsa-reflection-disclosure { border: 1px solid var(--dsa-line); border-radius: 9px; background: var(--dsa-soft); }
+.dsa-reflection-disclosure summary { padding: 12px 14px; cursor: pointer; color: var(--dsa-ink); font-size: 13px; font-weight: 700; }
+.dsa-reflection-disclosure summary span { color: var(--dsa-muted); font-weight: 500; }
+.dsa-reflection-disclosure .dsa-field { padding: 0 14px 14px; }
 .dsa-reveal-box { display: grid; gap: 12px; padding: 15px; border: 1px solid #cae1d1; border-radius: 10px; background: #f6fbf7; }
 .dsa-reveal-section h3 { margin: 0 0 3px; color: var(--dsa-success); font-size: 12px; }
 .dsa-reveal-section p { margin: 0; color: #355344; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -602,37 +606,27 @@ body.dark .dsa-reveal-section p { color: #c7ead8; }
   <section class="dsa-approved-flow-card" role="dialog" aria-modal="true" aria-labelledby="dsaColdDialogTitle">
     <header class="dsa-flow-head">
       <div>
-        <p class="eyebrow">Cold solve · selected problem</p>
+        <p class="eyebrow">Independent Solve</p>
         <h2 id="dsaColdDialogTitle">Loading problem…</h2>
         <p id="dsaColdDialogSubtitle">Start from the prompt and save one honest outcome.</p>
       </div>
-      <button type="button" class="dsa-close-button" data-dsa-cold-close aria-label="Close cold solve">×</button>
+      <button type="button" class="dsa-close-button" data-dsa-cold-close aria-label="Close Independent Solve">×</button>
     </header>
     <div class="dsa-flow-body">
-      <div class="dsa-prompt-box"><strong>Problem prompt</strong><div id="dsaColdDialogPrompt">Loading the selected prompt…</div><p id="dsaColdDialogLink"></p></div>
-      <div class="dsa-field">
-        <label for="dsaColdDialogApproach">My approach</label>
-        <textarea id="dsaColdDialogApproach" placeholder="Sketch the approach before checking the reference."></textarea>
-      </div>
-      <div class="dsa-challenge-grid">
-        <div class="dsa-field"><label for="dsaColdDialogInvariant">Invariant / proof idea</label><textarea id="dsaColdDialogInvariant" placeholder="What stays true?"></textarea></div>
-        <div class="dsa-field"><label for="dsaColdDialogComplexity">Complexity</label><input id="dsaColdDialogComplexity" placeholder="Time and space"></div>
-      </div>
-      <div class="dsa-field"><label for="dsaColdDialogReflection">Reflection</label><textarea id="dsaColdDialogReflection" placeholder="What blocked or helped you?"></textarea></div>
-      <div class="dsa-field"><label for="dsaColdDialogBlocker">Blocker <span class="dsa-field-note">(optional)</span></label><input id="dsaColdDialogBlocker" placeholder="Where did you get stuck?"></div>
-      <div class="dsa-flow-actions"><button type="button" class="secondary" id="dsaColdDialogReveal" disabled>Reveal reference</button><span class="dsa-flow-note">Reference content loads only after you ask for it.</span></div>
+      <div class="dsa-prompt-box"><strong>Problem prompt</strong><div class="md" id="dsaColdDialogPrompt">Loading the selected prompt…</div><p id="dsaColdDialogLink"></p></div>
+      <details class="dsa-reflection-disclosure"><summary>Add reflection <span>(optional)</span></summary><div class="dsa-field"><label for="dsaColdDialogReflection">What were you thinking?</label><textarea id="dsaColdDialogReflection" maxlength="2000" placeholder="Capture what worked, what confused you, or what you want to remember."></textarea></div></details>
       <div class="dsa-reveal-box hidden" id="dsaColdDialogRevealBox" aria-live="polite">
-        <div class="dsa-reveal-section"><h3>Reference approach</h3><p id="dsaColdDialogApproachReveal"></p></div>
-        <div class="dsa-reveal-section"><h3>Reference explanation</h3><p id="dsaColdDialogReferenceReveal"></p></div>
+        <div class="dsa-reveal-section"><h3>Reference approach</h3><div class="md" id="dsaColdDialogApproachReveal"></div></div>
+        <div class="dsa-reveal-section"><h3>Reference explanation</h3><div class="md" id="dsaColdDialogReferenceReveal"></div></div>
         <div class="dsa-reveal-section"><h3>Reference code</h3><pre id="dsaColdDialogCodeReveal"></pre></div>
-        <div class="dsa-reveal-section"><h3>Key insight</h3><p id="dsaColdDialogInsightReveal"></p></div>
-        <div class="dsa-reveal-section"><h3>Recurring trap</h3><p id="dsaColdDialogTrapReveal"></p></div>
-        <div class="dsa-reveal-section"><h3>Saved notes</h3><p id="dsaColdDialogNotesReveal"></p></div>
+        <div class="dsa-reveal-section"><h3>Key insight</h3><div class="md" id="dsaColdDialogInsightReveal"></div></div>
+        <div class="dsa-reveal-section"><h3>Recurring trap</h3><div class="md" id="dsaColdDialogTrapReveal"></div></div>
+        <div class="dsa-reveal-section"><h3>Saved notes</h3><div class="md" id="dsaColdDialogNotesReveal"></div></div>
       </div>
-      <div><p class="dsa-section-label">Outcome</p><div class="dsa-outcome-grid" role="group" aria-label="Cold solve outcome">
-        <button type="button" class="dsa-outcome-button" data-dsa-outcome="independent" aria-pressed="false"><strong>Independent</strong><span>30 local calendar days</span></button>
-        <button type="button" class="dsa-outcome-button" data-dsa-outcome="hinted" aria-pressed="false"><strong>Hinted</strong><span>Retry in 3 local calendar days</span></button>
-        <button type="button" class="dsa-outcome-button" data-dsa-outcome="unfinished" aria-pressed="false"><strong>Unfinished</strong><span>Retry in 3 local calendar days</span></button>
+      <div><p class="dsa-section-label">How did it go?</p><div class="dsa-outcome-grid" role="group" aria-label="Independent Solve outcome">
+        <button type="button" class="dsa-outcome-button" data-dsa-outcome="independent" aria-pressed="false"><strong>Solved</strong><span>Review again in 30 days</span></button>
+        <button type="button" class="dsa-outcome-button" data-dsa-outcome="hinted" aria-pressed="false"><strong>Needed a hint</strong><span>Retry in 3 days</span></button>
+        <button type="button" class="dsa-outcome-button" data-dsa-outcome="unfinished" aria-pressed="false"><strong>Couldn’t solve</strong><span>Retry in 3 days</span></button>
       </div></div>
       <div class="dsa-live-status" id="dsaColdDialogStatus" role="status" aria-live="polite"></div>
       <div class="dsa-cold-result hidden" id="dsaColdDialogResult" role="status" aria-live="polite"><strong>Server-confirmed next practice</strong><p id="dsaColdDialogResultText"></p></div>
@@ -1101,34 +1095,34 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
   }
 
   function dsaSetText(id,value){var element=dsa$(id);if(element)element.textContent=value==null?'':String(value)}
-  function dsaSetRevealField(id,value,code){var element=dsa$(id);if(!element)return;var present=!!(value&&String(value).trim());dsaSetHidden(element,!present);element.classList.toggle('dsa-code-block',!!(present&&code));element.textContent=present?String(value):''}
+  function dsaSetRevealField(id,value,code){var element=dsa$(id);if(!element)return;var present=!!(value&&String(value).trim());dsaSetHidden(element,!present);element.classList.toggle('dsa-code-block',!!(present&&code));if(!present){element.replaceChildren();return}if(code)element.textContent=String(value);else renderMarkdown(element,String(value))}
   function dsaRenderReveal(prefix,reveal){var data=reveal||{};dsaSetRevealField(prefix+'Approach',data.approach);dsaSetRevealField(prefix+'Reference',data.reference);dsaSetRevealField(prefix+'Code',data.code,true);dsaSetRevealField(prefix+'Notes',data.notes);dsaSetRevealField(prefix+'Insight',data.keyInsight);dsaSetRevealField(prefix+'Trap',data.recurringTrap)}
   function dsaRenderColdReveal(reveal){var data=reveal||{};dsaSetRevealField('dsaColdDialogApproachReveal',data.approach);dsaSetRevealField('dsaColdDialogReferenceReveal',data.reference);dsaSetRevealField('dsaColdDialogCodeReveal',data.code,true);dsaSetRevealField('dsaColdDialogNotesReveal',data.notes);dsaSetRevealField('dsaColdDialogInsightReveal',data.keyInsight);dsaSetRevealField('dsaColdDialogTrapReveal',data.recurringTrap)}
 
   function dsaRenderColdDialog(){
     var flow=dsaState.coldFlow,dialog=dsa$('dsaColdDialog');if(!dialog)return;if(!flow){dialog.classList.add('hidden');return}dialog.classList.remove('hidden');
-    dsaSetText('dsaColdDialogTitle',flow.item&&flow.item.title||'Selected problem');dsaSetText('dsaColdDialogSubtitle',flow.saved?'Server-confirmed schedule returned.':'Start from the prompt and save one honest outcome.');
-    dsaSetText('dsaColdDialogPrompt',flow.promptLoading?'Loading the selected prompt…':flow.prompt&&flow.prompt.prompt||'No prompt text was returned.');
+    dsaSetText('dsaColdDialogTitle',flow.item&&flow.item.title||'Selected problem');dsaSetText('dsaColdDialogSubtitle',flow.saved?'Attempt saved. Compare with your original notes below.':'Solve in your usual editor, then record one honest outcome.');
+    renderMarkdown(dsa$('dsaColdDialogPrompt'),flow.promptLoading?'Loading the selected prompt…':flow.prompt&&flow.prompt.prompt||'No prompt text was returned.');
     var link=dsa$('dsaColdDialogLink');if(link){link.replaceChildren();var href=dsaSafeUrl(flow.prompt&&flow.prompt.link||flow.item&&flow.item.link);if(href){var anchor=document.createElement('a');anchor.href=href;anchor.target='_blank';anchor.rel='noopener noreferrer';anchor.textContent='Open problem link ↗';link.appendChild(anchor)}}
-    var reveal=dsa$('dsaColdDialogReveal');if(reveal){reveal.disabled=!!flow.revealLoading||!flow.prompt||!!flow.saved;reveal.textContent=flow.revealed?'Reference revealed':flow.revealLoading?'Loading reference…':'Reveal reference'}dsaSetHidden(dsa$('dsaColdDialogRevealBox'),!flow.revealed);
+    dsaSetHidden(dsa$('dsaColdDialogRevealBox'),!flow.revealed);
     if(flow.revealed)dsaRenderColdReveal(flow.reveal);
-    var approach=dsa$('dsaColdDialogApproach');if(approach&&document.activeElement!==approach)approach.value=flow.approach||'';var invariant=dsa$('dsaColdDialogInvariant');if(invariant&&document.activeElement!==invariant)invariant.value=flow.invariant||'';var complexity=dsa$('dsaColdDialogComplexity');if(complexity&&document.activeElement!==complexity)complexity.value=flow.complexity||'';var reflection=dsa$('dsaColdDialogReflection');if(reflection&&document.activeElement!==reflection)reflection.value=flow.reflection||'';var blocker=dsa$('dsaColdDialogBlocker');if(blocker&&document.activeElement!==blocker)blocker.value=flow.blocker||'';
+    var reflection=dsa$('dsaColdDialogReflection');if(reflection&&document.activeElement!==reflection)reflection.value=flow.reflection||'';
     document.querySelectorAll('#dsaColdDialog [data-dsa-outcome]').forEach(function(button){var selected=button.dataset.dsaOutcome===flow.outcome;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',selected?'true':'false');button.disabled=!!flow.saved||!!flow.saving});
     var save=dsa$('dsaColdDialogSave');if(save){save.disabled=!flow.outcome||!!flow.saving||!!flow.saved;save.textContent=flow.saved?'Saved':flow.saving?'Saving…':'Save outcome'}
     dsaStatus('dsaColdDialogStatus',flow.status||'',''+(flow.statusKind||''));dsaSetHidden(dsa$('dsaColdDialogResult'),!flow.saved);if(flow.saved)dsaSetText('dsaColdDialogResultText',flow.resultText||'The server saved this attempt.');
   }
   function dsaStartCold(cardId){
-    if(!cardId||!dsaState.authenticated)return;dsaCloseFlow();var generation=dsaGeneration,request=++dsaState.coldRequest;dsaState.coldFlow={item:{cardId:String(cardId),title:'Loading selected problem…'},prompt:null,promptLoading:true,revealed:false,revealLoading:false,reveal:null,outcome:null,saving:false,saved:false,status:'Loading the selected cold-solve prompt…',statusKind:'',resultText:''};dsaRenderColdDialog();
-    dsaRequest(dsaPracticeUrl('session',{cardId:String(cardId),limit:1}),{},generation).then(function(data){if(!dsaCurrent(generation)||request!==dsaState.coldRequest)return;var item=(data.items||[])[0];if(!item)throw Object.assign(new Error('The selected problem was not found for this account.'),{status:404});dsaState.coldFlow.item=item;return dsaRequest(dsaPracticeUrl('card',{cardId:String(cardId)}),{},generation)}).then(function(data){if(!data||!dsaCurrent(generation)||request!==dsaState.coldRequest)return;dsaState.coldFlow.prompt=data.card||null;dsaState.coldFlow.promptLoading=false;dsaState.coldFlow.status='Prompt ready. Write before choosing a self-reported outcome.';dsaRenderColdDialog()}).catch(function(error){if(error.stale||!dsaCurrent(generation)||request!==dsaState.coldRequest)return;dsaState.coldFlow.promptLoading=false;dsaState.coldFlow.status='Cold-solve prompt could not be loaded: '+error.message;dsaState.coldFlow.statusKind='error';dsaRenderColdDialog()});
+    if(!cardId||!dsaState.authenticated)return;dsaCloseFlow();var generation=dsaGeneration,request=++dsaState.coldRequest;dsaState.coldFlow={item:{cardId:String(cardId),title:'Loading selected problem…'},prompt:null,promptLoading:true,revealed:false,revealLoading:false,reveal:null,outcome:null,reflection:'',saving:false,saved:false,status:'Loading the selected problem…',statusKind:'',resultText:''};dsaRenderColdDialog();
+    dsaRequest(dsaPracticeUrl('session',{cardId:String(cardId),limit:1}),{},generation).then(function(data){if(!dsaCurrent(generation)||request!==dsaState.coldRequest)return;var item=(data.items||[])[0];if(!item)throw Object.assign(new Error('The selected problem was not found for this account.'),{status:404});dsaState.coldFlow.item=item;return dsaRequest(dsaPracticeUrl('card',{cardId:String(cardId)}),{},generation)}).then(function(data){if(!data||!dsaCurrent(generation)||request!==dsaState.coldRequest)return;dsaState.coldFlow.prompt=data.card||null;dsaState.coldFlow.promptLoading=false;dsaState.coldFlow.status='Problem ready. Solve it, then record how it went.';dsaRenderColdDialog()}).catch(function(error){if(error.stale||!dsaCurrent(generation)||request!==dsaState.coldRequest)return;dsaState.coldFlow.promptLoading=false;dsaState.coldFlow.status='Independent Solve could not be loaded: '+error.message;dsaState.coldFlow.statusKind='error';dsaRenderColdDialog()});
   }
   function dsaRevealCold(){
-    var flow=dsaState.coldFlow;if(!flow||!flow.item||flow.revealLoading||flow.revealed)return;var generation=dsaGeneration,request=++dsaState.coldRevealRequest;flow.revealLoading=true;flow.status='Loading reference after explicit reveal…';dsaRenderColdDialog();
-    dsaRequest(dsaPracticeUrl('reveal',{cardId:flow.item.cardId}),{},generation).then(function(data){if(!dsaCurrent(generation)||request!==dsaState.coldRevealRequest||!dsaState.coldFlow)return;flow.reveal=data.reveal||{};flow.revealed=true;flow.revealLoading=false;flow.status='Reference revealed. Choose an honest cold-solve outcome.';flow.statusKind='success';dsaRenderColdDialog()}).catch(function(error){if(error.stale||!dsaCurrent(generation)||request!==dsaState.coldRevealRequest)return;flow.revealLoading=false;flow.status='Reference could not be revealed: '+error.message;flow.statusKind='error';dsaRenderColdDialog()});
+    var flow=dsaState.coldFlow;if(!flow||!flow.item||!flow.saved||flow.revealLoading||flow.revealed)return;var generation=dsaGeneration,request=++dsaState.coldRevealRequest;flow.revealLoading=true;flow.status='Loading your saved solution…';dsaRenderColdDialog();
+    dsaRequest(dsaPracticeUrl('reveal',{cardId:flow.item.cardId}),{},generation).then(function(data){if(!dsaCurrent(generation)||request!==dsaState.coldRevealRequest||!dsaState.coldFlow)return;flow.reveal=data.reveal||{};flow.revealed=true;flow.revealLoading=false;flow.status='Attempt saved. Compare it with your original notes.';flow.statusKind='success';dsaRenderColdDialog()}).catch(function(error){if(error.stale||!dsaCurrent(generation)||request!==dsaState.coldRevealRequest)return;flow.revealLoading=false;flow.status='Attempt saved, but your solution could not be loaded: '+error.message;flow.statusKind='error';dsaRenderColdDialog()});
   }
   function dsaSaveCold(){
-    var flow=dsaState.coldFlow;if(!flow||!flow.item||!flow.outcome||flow.saving||flow.saved)return;flow.approach=(dsa$('dsaColdDialogApproach').value||'').trim();flow.invariant=(dsa$('dsaColdDialogInvariant').value||'').trim();flow.complexity=(dsa$('dsaColdDialogComplexity').value||'').trim();flow.reflection=(dsa$('dsaColdDialogReflection').value||'').trim();flow.blocker=(dsa$('dsaColdDialogBlocker').value||'').trim();flow.saving=true;flow.status='Saving attempt…';flow.statusKind='';dsaRenderColdDialog();var generation=dsaGeneration;flow.idempotencyKey=flow.idempotencyKey||((window.crypto&&crypto.randomUUID)?crypto.randomUUID():'dsa-practice-'+Date.now()+'-'+Math.random().toString(36).slice(2));
-    var payload={idempotencyKey:flow.idempotencyKey,outcome:flow.outcome,blocker:flow.blocker,reflection:flow.reflection,challenge:{approach:flow.approach,invariant:flow.invariant,complexity:flow.complexity}};
-    dsaRequest(dsaPracticeUrl('attempt',{cardId:flow.item.cardId}),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)},generation).then(function(data){if(!dsaCurrent(generation)||!dsaState.coldFlow)return;flow.saving=false;flow.saved=true;var next=(data.attempt&&data.attempt.nextPracticeAt)||(data.practice&&data.practice.nextPracticeAt),reason=(data.attempt&&data.attempt.dueReason)||(data.practice&&data.practice.dueReason);flow.resultText=next?'Saved '+(flow.outcome==='independent'?'Independent':' '+flow.outcome)+' outcome. Next practice: '+dsaFormatDate(next)+' · '+(reason==='monthly_checkpoint'?'30 local calendar days.':'3 local calendar days.'):'The server saved the attempt but returned no next practice date.';flow.status='Server confirmed '+flow.outcome+' outcome.';flow.statusKind='success';dsaRenderColdDialog();dsaLoadSummary(true);dsaLoadRecall(true);dsaLoadTodayCold(true);if(dsaState.view==='cold')dsaLoadColdQueues(true);if(dsaState.view==='library')dsaLoadLibrary(true)}).catch(function(error){if(error.stale||!dsaCurrent(generation)||!dsaState.coldFlow)return;flow.saving=false;flow.status='Attempt was not saved: '+error.message+'. Your fields remain here; retry when ready.';flow.statusKind='error';if(error.status===409&&error.data&&error.data.error&&error.data.error.code==='practice_timezone_required')dsaOpenTimezone();dsaRenderColdDialog()});
+    var flow=dsaState.coldFlow;if(!flow||!flow.item||!flow.outcome||flow.saving||flow.saved)return;flow.reflection=(dsa$('dsaColdDialogReflection').value||'').trim();flow.saving=true;flow.status='Saving attempt…';flow.statusKind='';dsaRenderColdDialog();var generation=dsaGeneration;flow.idempotencyKey=flow.idempotencyKey||((window.crypto&&crypto.randomUUID)?crypto.randomUUID():'dsa-practice-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+    var payload={idempotencyKey:flow.idempotencyKey,outcome:flow.outcome,blocker:'',reflection:flow.reflection,challenge:{approach:'',invariant:'',complexity:''}};
+    dsaRequest(dsaPracticeUrl('attempt',{cardId:flow.item.cardId}),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)},generation).then(function(data){if(!dsaCurrent(generation)||!dsaState.coldFlow)return;flow.saving=false;flow.saved=true;var next=(data.attempt&&data.attempt.nextPracticeAt)||(data.practice&&data.practice.nextPracticeAt),reason=(data.attempt&&data.attempt.dueReason)||(data.practice&&data.practice.dueReason),label=flow.outcome==='independent'?'Solved':flow.outcome==='hinted'?'Needed a hint':'Couldn’t solve';flow.resultText=next?label+'. Next practice: '+dsaFormatDate(next)+' · '+(reason==='monthly_checkpoint'?'30 days.':'3 days.'):'The attempt was saved without a next practice date.';flow.status='Attempt saved.';flow.statusKind='success';dsaRenderColdDialog();dsaRevealCold();dsaLoadSummary(true);dsaLoadRecall(true);dsaLoadTodayCold(true);if(dsaState.view==='cold')dsaLoadColdQueues(true);if(dsaState.view==='library')dsaLoadLibrary(true)}).catch(function(error){if(error.stale||!dsaCurrent(generation)||!dsaState.coldFlow)return;flow.saving=false;flow.status='Attempt was not saved: '+error.message+'. Your outcome and reflection remain here; retry when ready.';flow.statusKind='error';if(error.status===409&&error.data&&error.data.error&&error.data.error.code==='practice_timezone_required')dsaOpenTimezone();dsaRenderColdDialog()});
   }
 
   function dsaRenderDetail(card){
@@ -1186,9 +1180,8 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
       var retry=event.target.closest('[data-dsa-retry]');if(retry){dsaRetry(retry.dataset.dsaRetry);return}
       var pager=event.target.closest('[data-dsa-page]');if(pager&&!pager.disabled){dsaPage(pager.dataset.dsaPageKey,pager.dataset.dsaPage);return}
       var closeCold=event.target.closest('[data-dsa-cold-close]');if(closeCold){dsaCloseFlow();return}
-      var revealCold=event.target.closest('#dsaColdDialogReveal');if(revealCold){dsaRevealCold();return}
       var saveCold=event.target.closest('#dsaColdDialogSave');if(saveCold){dsaSaveCold();return}
-      var coldOutcome=event.target.closest('#dsaColdDialog [data-dsa-outcome]');if(coldOutcome&&dsaState.coldFlow&&!dsaState.coldFlow.saved){dsaState.coldFlow.outcome=coldOutcome.dataset.dsaOutcome;dsaState.coldFlow.status='Outcome selected. Save when your reflection is ready.';dsaState.coldFlow.statusKind='';dsaRenderColdDialog();return}
+      var coldOutcome=event.target.closest('#dsaColdDialog [data-dsa-outcome]');if(coldOutcome&&dsaState.coldFlow&&!dsaState.coldFlow.saved){dsaState.coldFlow.outcome=coldOutcome.dataset.dsaOutcome;dsaState.coldFlow.status='Outcome selected. Add an optional reflection or save now.';dsaState.coldFlow.statusKind='';dsaRenderColdDialog();return}
       var revealDetail=event.target.closest('#dsaDetailReveal');if(revealDetail){dsaRevealDetail();return}
       var detailCold=event.target.closest('[data-dsa-detail-cold]');if(detailCold){var selected=dsaState.detailCardId;dsaCloseDetail();if(selected)dsaStartCold(selected);return}
       var detailRecall=event.target.closest('[data-dsa-detail-recall]');if(detailRecall){var selectedRecall=dsaState.detailCardId;dsaCloseDetail();if(typeof window.__cjStartReview==='function'&&selectedRecall)window.__cjStartReview(selectedRecall);return}
@@ -1196,7 +1189,7 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
       var closeDetail=event.target.closest('[data-dsa-card-close]');if(closeDetail){dsaCloseDetail();return}
       if(event.target.id==='dsaCardDetailDialog')dsaCloseDetail();if(event.target.id==='dsaColdDialog')dsaCloseFlow();
     });
-    document.addEventListener('input',function(event){var flow=dsaState.coldFlow;if(!flow)return;if(event.target.id==='dsaColdDialogApproach')flow.approach=event.target.value;if(event.target.id==='dsaColdDialogInvariant')flow.invariant=event.target.value;if(event.target.id==='dsaColdDialogComplexity')flow.complexity=event.target.value;if(event.target.id==='dsaColdDialogReflection')flow.reflection=event.target.value;if(event.target.id==='dsaColdDialogBlocker')flow.blocker=event.target.value});
+    document.addEventListener('input',function(event){var flow=dsaState.coldFlow;if(flow&&event.target.id==='dsaColdDialogReflection')flow.reflection=event.target.value});
     document.addEventListener('keydown',function(event){if(event.key!=='Escape')return;if(dsaState.coldFlow)dsaCloseFlow();dsaCloseTimezone();dsaCloseCapture();dsaCloseDetail()});
   }
   function dsaAuthIdentity(){try{return String((window.Clerk&&window.Clerk.user&&window.Clerk.user.id)||(window.Clerk&&window.Clerk.session&&window.Clerk.session.user&&window.Clerk.session.user.id)||(window.Clerk&&window.Clerk.session&&window.Clerk.session.id)||'')}catch(error){return ''}}

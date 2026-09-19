@@ -65,13 +65,8 @@ for (const marker of [
   'id="dsaLibraryCount"',
   'id="dsaColdDialog"',
   'id="dsaColdDialogPrompt"',
-  'id="dsaColdDialogReveal"',
   'id="dsaColdDialogRevealBox"',
-  'id="dsaColdDialogApproach"',
-  'id="dsaColdDialogInvariant"',
-  'id="dsaColdDialogComplexity"',
   'id="dsaColdDialogReflection"',
-  'id="dsaColdDialogBlocker"',
   'id="dsaColdDialogApproachReveal"',
   'id="dsaColdDialogReferenceReveal"',
   'id="dsaColdDialogCodeReveal"',
@@ -124,7 +119,7 @@ includes(finalScript, "if(bucket==='scheduled')bucket='due'", 'scheduled library
 excludes(finalScript, "bucket:'all'", 'invalid all queue bucket');
 includes(finalScript, "dsaLoadPaged(key,dsaLibraryUrl(page.nextCursor),false)", 'explicit library cursor continuation');
 
-// Prompt/list renderers stay lightweight. Sensitive bodies are fetched only after explicit reveal.
+// Prompt/list renderers stay lightweight. Sensitive bodies are fetched only after the attempt is saved.
 const queueRendererStart = finalScript.indexOf('function dsaQueueRow');
 const queueRendererEnd = finalScript.indexOf('function dsaRenderPaged', queueRendererStart);
 assert.ok(queueRendererStart >= 0 && queueRendererEnd > queueRendererStart, 'queue renderer boundary missing');
