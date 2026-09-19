@@ -76,8 +76,8 @@ for (const rating of ['again', 'hard', 'good', 'easy']) {
 assert.match(appScript, /state\.rating=b\.dataset\.rating/, 'rating selection must preserve semantic values');
 assert.match(appScript, /\/api\/cards\/\'\+encodeURIComponent\(cardId\)\+'\?review=1&response=summary/,
   'review submissions must retain the summary response route');
-assert.match(appScript, /body:JSON\.stringify\(\{rating:state\.rating,idempotencyKey:pending\.idempotencyKey,solvedFromScratch:\$\('solvedFromScratch'\)\.checked\}\)/,
-  'review payload must retain rating, idempotencyKey, and solvedFromScratch compatibility');
+assert.match(appScript, /body:JSON\.stringify\(\{rating:state\.rating,idempotencyKey:pending\.idempotencyKey,solvedFromScratch:false\}\)/,
+  'recall payload must retain rating and idempotency while keeping independent-solve credit separate');
 assert.doesNotMatch(appScript, /body:JSON\.stringify\(\{quality:/,
   'review payload must not regress to the legacy quality field');
 
