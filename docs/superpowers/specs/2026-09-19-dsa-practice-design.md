@@ -60,19 +60,21 @@ On completion, show a concise summary containing the reviewed count, rating dist
 
 The default action opens the first problem in the server-provided eligible order, so the learner does not need to choose from another queue and the client does not invent a second ranking policy. The Problem Library also offers **Solve independently** on an individual problem.
 
-The solve view shows only the problem statement and optional source link before submission. The learner solves in LeetCode or their usual editor; the application does not require them to paste code, rewrite their approach, or duplicate any saved explanation. After the attempt, the learner records one outcome:
+The solve view shows only the problem statement and optional source link before submission. The learner solves in LeetCode or their usual editor; the application does not require them to paste code, rewrite their approach, or duplicate any saved explanation. A collapsed **Add reflection (optional)** control opens one free-text thinking area that may be used during or immediately after the attempt. After the attempt, the learner records one outcome:
 
 - **Solved**
 - **Needed a hint**
 - **Couldn’t solve**
 
-The saved solution is revealed only after the outcome is recorded. The result is stored through the existing practice path and determines when independent practice becomes useful again. The interface distinguishes **ready for first independent solve** from **scheduled independent solves**, so a state such as “0 scheduled · 10 ready for first solve” is not contradictory.
+The saved solution is revealed only after the outcome is recorded. The outcome and optional reflection are stored together as an immutable practice attempt through the existing practice path. They determine when independent practice becomes useful again. The interface distinguishes **ready for first independent solve** from **scheduled independent solves**, so a state such as “0 scheduled · 10 ready for first solve” is not contradictory.
+
+Independent Solve does not present separate mandatory fields for approach, invariant, complexity, blocker, or code. The existing reflection capacity is sufficient for optional thinking; no new persistence field is required.
 
 Independent Solve remains secondary to the daily Recall Review action.
 
 ## Problem Library
 
-The Problem Library is the learner’s durable DSA knowledge base and the only editing surface. It supports search, opening a problem, starting an independent solve, and editing:
+The Problem Library is the learner’s durable DSA knowledge base and the only editing surface. It supports search, opening a problem, starting an independent solve, viewing practice history, and editing:
 
 - title, source link, difficulty, and tags;
 - problem statement;
@@ -81,6 +83,8 @@ The Problem Library is the learner’s durable DSA knowledge base and the only e
 - notes, mistakes, insight, and recurring traps.
 
 Review and Independent Solve consume this data but never modify it inline.
+
+Each problem detail includes a compact Independent Solve history ordered newest first. Every row shows the attempt date, outcome, and next practice date. Opening a row reveals the optional reflection. Practice attempts remain immutable and are not merged into or used to overwrite the canonical Library explanation.
 
 Adding a problem is genuinely progressive. The initial form contains only title, link, difficulty, and tags, with **Save for later** and **Save and solve now** actions. An explicit **Add details** section reveals the longer knowledge fields. On mobile the dialog occupies the available width, scrolls independently, and stays above fixed navigation.
 
@@ -113,7 +117,7 @@ The repository currently has exactly 12 Vercel serverless API entry files, which
 ## Error and empty states
 
 - A failed queue load shows a concise explanation and **Try again** without replacing the rest of the workspace.
-- A failed rating or independent-solve submission keeps the current attempt intact and enables retry without creating a duplicate event.
+- A failed rating or independent-solve submission keeps the current outcome and optional reflection intact and enables retry without creating a duplicate event.
 - With no recall items due, Today says the learner is caught up and promotes Independent Solve only when one is eligible.
 - With no eligible independent problem, explain that completed problems will appear when ready and provide a route to the Library.
 - Empty Library state leads directly to **Add your first problem**.
@@ -135,6 +139,7 @@ No new automated regression tests are added in this iteration, following the use
 - Exercising Today → Recall Review → completion with multiple due problems.
 - Confirming recall submissions keep `solvedFromScratch` false and preserve SM-2 authority plus FSRS shadow recording.
 - Exercising automatic and Library-initiated Independent Solve flows.
+- Confirming an optional reflection is saved with the attempt and appears in that problem’s history without changing its Library explanation.
 - Checking empty, loading, failure, and retry states.
 - Switching between workspaces and confirming no legacy DSA interface appears.
 - Inspecting Recall Review, Independent Solve, Add Problem, and Library editing at desktop and narrow mobile widths.
