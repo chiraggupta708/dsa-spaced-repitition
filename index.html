@@ -970,10 +970,10 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
     var recallText=dsaCountText(recall),coldText=dsaCountText(todayCold),hasTotal=Object.prototype.hasOwnProperty.call(summary,'totalCount'),libraryText=hasTotal?String(Number(summary.totalCount||0)):'—';
     if(dsa$('dsaRecallCount'))dsa$('dsaRecallCount').textContent=recall?recallText:'—';
     if(dsa$('dsaColdCount'))dsa$('dsaColdCount').textContent=todayCold?coldText:'—';
-    if(dsa$('dsaLibraryCount'))dsa$('dsaLibraryCount').textContent=library?libraryText:'—';
+    if(dsa$('dsaLibraryCount'))dsa$('dsaLibraryCount').textContent=libraryText;
     if(dsa$('dsaSidebarRecallCount'))dsa$('dsaSidebarRecallCount').textContent=recall?recallText:'—';
     if(dsa$('dsaSidebarColdCount'))dsa$('dsaSidebarColdCount').textContent=todayCold?coldText:'—';
-    if(dsa$('dsaSidebarLibraryCount'))dsa$('dsaSidebarLibraryCount').textContent=library?libraryText:'—';
+    if(dsa$('dsaSidebarLibraryCount'))dsa$('dsaSidebarLibraryCount').textContent=libraryText;
   }
   function dsaRenderTodayAction(){
     var recall=dsaState.recall.pages[dsaState.recall.page],items=recall&&Array.isArray(recall.items)?recall.items:[],count=items.length,more=!!(recall&&recall.hasMore),button=dsa$('dsaReviewDue'),progress=dsa$('dsaTodayProgress'),independent=dsa$('dsaIndependentProgress'),summary=dsaState.summary||{};
