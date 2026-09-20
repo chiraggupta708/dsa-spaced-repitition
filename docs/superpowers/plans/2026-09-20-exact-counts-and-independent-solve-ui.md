@@ -1,6 +1,6 @@
 # Exact Counts and Independent Solve UI Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Show exact filtered DSA totals and make the recommended Independent Solve action and reveal behavior clearer without increasing solution-body transfer.
 
@@ -16,7 +16,7 @@
 - Modify: `lib/db.js:225-426`
 - Modify: `lib/db.js:1368-1470`
 
-- [ ] **Step 1: Preserve pre-cursor filters in each paginated reader**
+- [x] **Step 1: Preserve pre-cursor filters in each paginated reader**
 
 In `loadCardSummaries`, `loadDueCardSummaries`, and `listPracticeQueue`, copy the owner/snapshot/filter predicates and parameters after filters are applied but before the cursor predicate is appended:
 
@@ -28,7 +28,7 @@ if (cursor) addCardAfterKeySql(where, params, cursor.key);
 
 Use the appropriate existing cursor helper in each function. The count copy must never receive the cursor predicate.
 
-- [ ] **Step 2: Query the filtered total without loading card bodies**
+- [x] **Step 2: Query the filtered total without loading card bodies**
 
 After establishing `db`, execute an owner-scoped aggregate using the preserved predicates:
 
@@ -44,7 +44,7 @@ const totalCount = Number(countRows[0]?.total_count || 0);
 
 For `listPracticeQueue`, retain the same `LEFT JOIN fsrs_practice_states s ON s.owner_id = $1 AND s.card_id = c.id` used by its page query so bucket predicates can resolve. Search tag subqueries remain valid without joining tags in the outer count.
 
-- [ ] **Step 3: Return `totalCount` from all lightweight page readers**
+- [x] **Step 3: Return `totalCount` from all lightweight page readers**
 
 Update database-unavailable fallbacks and successful returns:
 
@@ -58,13 +58,13 @@ return { cards, nextCursor, hasMore, totalCount, version: snapshotAt };
 
 Queue readers use `items` instead of `cards`.
 
-- [ ] **Step 4: Run the existing build check**
+- [x] **Step 4: Run the existing build check**
 
 Run: `npm run build`
 
 Expected: exit code 0 and no syntax or API-file-count failure.
 
-- [ ] **Step 5: Commit the database page changes**
+- [x] **Step 5: Commit the database page changes**
 
 ```bash
 git add lib/db.js
@@ -78,7 +78,7 @@ git commit -m "feat: return exact totals for DSA pages"
 - Modify: `api/cards/due.js:39-57`
 - Modify: `api/practice.js:81-89`
 
-- [ ] **Step 1: Add `totalCount` to saved-card and due-card responses**
+- [x] **Step 1: Add `totalCount` to saved-card and due-card responses**
 
 Add the field beside the pagination metadata:
 
@@ -88,7 +88,7 @@ totalCount: page.totalCount,
 
 Use `dueSummary.totalCount` in `api/cards/due.js`.
 
-- [ ] **Step 2: Add `totalCount` to the shared practice page response**
+- [x] **Step 2: Add `totalCount` to the shared practice page response**
 
 Update `sendPracticePage`:
 
@@ -107,13 +107,13 @@ function sendPracticePage(res, page) {
 
 Selected-card session responses may omit the field internally; the shared sender can serialize it as absent/undefined because those responses are not paginated in the UI.
 
-- [ ] **Step 3: Verify the serverless entry count remains 12**
+- [x] **Step 3: Verify the serverless entry count remains 12**
 
 Run: `find api -type f -name '*.js' | wc -l`
 
 Expected: `12`.
 
-- [ ] **Step 4: Commit the API propagation**
+- [x] **Step 4: Commit the API propagation**
 
 ```bash
 git add api/cards.js api/cards/due.js api/practice.js
@@ -125,7 +125,7 @@ git commit -m "feat: expose exact DSA page totals"
 **Files:**
 - Modify: `index.html:874-1057`
 
-- [ ] **Step 1: Extend client page state with totals and page size**
+- [x] **Step 1: Extend client page state with totals and page size**
 
 Use a keyed page-size helper so Recall remains five items and other lists remain ten:
 
@@ -134,7 +134,7 @@ function pageState(){return {pages:[],page:0,loading:false,error:null,request:0,
 function dsaPageSize(key){return key==='recall'||key==='todayCold'?RECALL_LIMIT:QUEUE_LIMIT}
 ```
 
-- [ ] **Step 2: Store the response total during page loads**
+- [x] **Step 2: Store the response total during page loads**
 
 When a page succeeds, normalize the new field and retain it across cached cursor navigation:
 
@@ -145,7 +145,7 @@ state.pages[pageIndex]={items:items,nextCursor:data.nextCursor||null,hasMore:!!d
 
 Reset `totalCount` to `null` when filters trigger a reset so stale totals are not displayed during a new request.
 
-- [ ] **Step 3: Replace approximate count rendering**
+- [x] **Step 3: Replace approximate count rendering**
 
 Use `dsaState.recall.totalCount` for the recall badge and Today action:
 
@@ -157,7 +157,7 @@ progress.textContent=total?'0 of '+total+' reviewed today':'You are caught up.';
 
 Remove `dsaCountText` or stop using its `hasMore ? '+' : ''` behavior.
 
-- [ ] **Step 4: Render `Page X of Y` from the filtered total**
+- [x] **Step 4: Render `Page X of Y` from the filtered total**
 
 Update `dsaPagerHtml`:
 
@@ -168,7 +168,7 @@ return '<button type="button" data-dsa-page="previous" data-dsa-page-key="'+key+
 
 Keep existing Previous/Next cursor behavior and hide the pager when there is only one page.
 
-- [ ] **Step 5: Run existing DSA UI and build checks**
+- [x] **Step 5: Run existing DSA UI and build checks**
 
 Run: `npm run test:dsa-ui`
 
@@ -178,7 +178,7 @@ Run: `npm run build`
 
 Expected: exit code 0.
 
-- [ ] **Step 6: Commit exact-count UI changes**
+- [x] **Step 6: Commit exact-count UI changes**
 
 ```bash
 git add index.html
@@ -190,11 +190,11 @@ git commit -m "feat: show exact DSA counts and pages"
 **Files:**
 - Modify: `index.html:978-990`
 
-- [ ] **Step 1: Expose the selected item's queue reason through the existing DTO**
+- [x] **Step 1: Expose the selected item's queue reason through the existing DTO**
 
 Continue using `nextPracticeAt`, `dueReason`, and `historyStatus` already returned by `toPracticeQueueItem`; do not add prompt or solution fields to the summary.
 
-- [ ] **Step 2: Label the Today action from `summary.nextItem`**
+- [x] **Step 2: Label the Today action from `summary.nextItem`**
 
 Inside `dsaRenderTodayAction`, update `#dsaStartNextIndependent`:
 
@@ -209,13 +209,13 @@ if(startIndependent){
 
 The existing `dsaStartNextIndependent` click path remains unchanged: it opens that card directly or falls back to the Independent page.
 
-- [ ] **Step 3: Run the existing DSA UI check**
+- [x] **Step 3: Run the existing DSA UI check**
 
 Run: `npm run test:dsa-ui`
 
 Expected: exit code 0.
 
-- [ ] **Step 4: Commit the action-label change**
+- [x] **Step 4: Commit the action-label change**
 
 ```bash
 git add index.html
@@ -229,7 +229,7 @@ git commit -m "feat: name the recommended independent solve"
 - Modify: `index.html:622-628`
 - Modify: `index.html:1114-1134`
 
-- [ ] **Step 1: Convert the reveal container into an open disclosure**
+- [x] **Step 1: Convert the reveal container into an open disclosure**
 
 Wrap all existing reveal sections without renaming their IDs:
 
@@ -247,7 +247,7 @@ Wrap all existing reveal sections without renaming their IDs:
 </details>
 ```
 
-- [ ] **Step 2: Add disclosure styling**
+- [x] **Step 2: Add disclosure styling**
 
 Keep the existing green reference treatment and add an explicit summary affordance:
 
@@ -259,7 +259,7 @@ Keep the existing green reference treatment and add an explicit summary affordan
 .dsa-reveal-content { display:grid; gap:12px; padding-top:12px; }
 ```
 
-- [ ] **Step 3: Open the disclosure only when reveal data first arrives**
+- [x] **Step 3: Open the disclosure only when reveal data first arrives**
 
 When `dsaRevealCold` succeeds, set the disclosure open before rendering:
 
@@ -272,7 +272,7 @@ if(disclosure)disclosure.open=true;
 
 Do not set `.open` inside every `dsaRenderColdDialog` call; otherwise the user could not keep the reference closed while other state rerenders.
 
-- [ ] **Step 4: Run existing checks**
+- [x] **Step 4: Run existing checks**
 
 Run: `npm run test:dsa-ui`
 
@@ -282,7 +282,7 @@ Run: `npm run build`
 
 Expected: exit code 0 and 12 API entry files.
 
-- [ ] **Step 5: Commit the disclosure behavior**
+- [x] **Step 5: Commit the disclosure behavior**
 
 ```bash
 git add index.html
@@ -298,7 +298,7 @@ git commit -m "feat: collapse independent solve reference"
 - Verify: `api/practice.js`
 - Verify: `index.html`
 
-- [ ] **Step 1: Run all existing relevant checks without creating tests**
+- [x] **Step 1: Run all existing relevant checks without creating tests**
 
 ```bash
 npm run test:dsa-ui
@@ -308,7 +308,7 @@ npm run build
 
 Expected: all commands exit 0.
 
-- [ ] **Step 2: Inspect the final diff and working tree**
+- [x] **Step 2: Inspect the final diff and working tree**
 
 Run: `git diff HEAD~5 --check`
 
@@ -318,7 +318,7 @@ Run: `git status --short`
 
 Expected: only the pre-existing untracked merge plan may remain.
 
-- [ ] **Step 3: Verify constraints directly**
+- [x] **Step 3: Verify constraints directly**
 
 Run: `find api -type f -name '*.js' | wc -l`
 
@@ -328,7 +328,7 @@ Run: `sed -n '850,1250p' index.html | rg -n "Page .*more available|due problem.*
 
 Expected: no matches in the DSA UI paths.
 
-- [ ] **Step 4: Push the completed `dev` commits**
+- [x] **Step 4: Push the completed `dev` commits**
 
 Run: `git push origin dev`
 
