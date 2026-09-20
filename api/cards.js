@@ -41,6 +41,7 @@ export default async function handler(req, res) {
           cards: page.cards,
           nextCursor: page.nextCursor,
           hasMore: page.hasMore,
+          totalCount: page.totalCount,
           version: page.version,
         });
       } else {

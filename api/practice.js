@@ -84,6 +84,7 @@ function sendPracticePage(res, page) {
     items: page.items,
     nextCursor: page.nextCursor,
     hasMore: page.hasMore,
+    totalCount: page.totalCount,
     version: page.version,
   });
 }

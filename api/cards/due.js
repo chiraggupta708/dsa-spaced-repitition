@@ -49,6 +49,7 @@ export default async function handler(req, res) {
         cards: dueSummary.cards,
         nextCursor: dueSummary.nextCursor,
         hasMore: dueSummary.hasMore,
+        totalCount: dueSummary.totalCount,
         version: dueSummary.version,
       });
       return;
