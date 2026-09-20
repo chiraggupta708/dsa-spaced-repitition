@@ -369,7 +369,12 @@ body.dark .dsa-prompt-box { border-color: #3a5578; color: #d1e0f4; background: #
 .dsa-reflection-disclosure summary { padding: 12px 14px; cursor: pointer; color: var(--dsa-ink); font-size: 13px; font-weight: 700; }
 .dsa-reflection-disclosure summary span { color: var(--dsa-muted); font-weight: 500; }
 .dsa-reflection-disclosure .dsa-field { padding: 0 14px 14px; }
-.dsa-reveal-box { display: grid; gap: 12px; padding: 15px; border: 1px solid #cae1d1; border-radius: 10px; background: #f6fbf7; }
+.dsa-reveal-box { padding: 15px; border: 1px solid #cae1d1; border-radius: 10px; background: #f6fbf7; }
+.dsa-reveal-box > summary { cursor: pointer; list-style: none; color: var(--dsa-success); font-weight: 750; }
+.dsa-reveal-box > summary::-webkit-details-marker { display: none; }
+.dsa-reveal-box > summary:after { content: '＋'; float: right; font-weight: 500; }
+.dsa-reveal-box[open] > summary:after { content: '−'; }
+.dsa-reveal-content { display: grid; gap: 12px; padding-top: 12px; }
 .dsa-reveal-section h3 { margin: 0 0 3px; color: var(--dsa-success); font-size: 12px; }
 .dsa-reveal-section p { margin: 0; color: #355344; white-space: pre-wrap; overflow-wrap: anywhere; }
 .dsa-reveal-section pre { margin: 0; padding: 12px; overflow: auto; border-radius: 8px; color: #e9f0fa; background: #233044; font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -619,14 +624,17 @@ body.dark .dsa-reveal-section p { color: #c7ead8; }
     <div class="dsa-flow-body">
       <div class="dsa-prompt-box"><strong>Problem prompt</strong><div class="md" id="dsaColdDialogPrompt">Loading the selected prompt…</div><p id="dsaColdDialogLink"></p></div>
       <details class="dsa-reflection-disclosure"><summary>Add reflection <span>(optional)</span></summary><div class="dsa-field"><label for="dsaColdDialogReflection">What were you thinking?</label><textarea id="dsaColdDialogReflection" maxlength="2000" placeholder="Capture what worked, what confused you, or what you want to remember."></textarea></div></details>
-      <div class="dsa-reveal-box hidden" id="dsaColdDialogRevealBox" aria-live="polite">
-        <div class="dsa-reveal-section"><h3>Reference approach</h3><div class="md" id="dsaColdDialogApproachReveal"></div></div>
-        <div class="dsa-reveal-section"><h3>Reference explanation</h3><div class="md" id="dsaColdDialogReferenceReveal"></div></div>
-        <div class="dsa-reveal-section"><h3>Reference code</h3><pre id="dsaColdDialogCodeReveal"></pre></div>
-        <div class="dsa-reveal-section"><h3>Key insight</h3><div class="md" id="dsaColdDialogInsightReveal"></div></div>
-        <div class="dsa-reveal-section"><h3>Recurring trap</h3><div class="md" id="dsaColdDialogTrapReveal"></div></div>
-        <div class="dsa-reveal-section"><h3>Saved notes</h3><div class="md" id="dsaColdDialogNotesReveal"></div></div>
-      </div>
+      <details class="dsa-reveal-box hidden" id="dsaColdDialogRevealBox">
+        <summary>Reference solution</summary>
+        <div class="dsa-reveal-content" aria-live="polite">
+          <div class="dsa-reveal-section"><h3>Reference approach</h3><div class="md" id="dsaColdDialogApproachReveal"></div></div>
+          <div class="dsa-reveal-section"><h3>Reference explanation</h3><div class="md" id="dsaColdDialogReferenceReveal"></div></div>
+          <div class="dsa-reveal-section"><h3>Reference code</h3><pre id="dsaColdDialogCodeReveal"></pre></div>
+          <div class="dsa-reveal-section"><h3>Key insight</h3><div class="md" id="dsaColdDialogInsightReveal"></div></div>
+          <div class="dsa-reveal-section"><h3>Recurring trap</h3><div class="md" id="dsaColdDialogTrapReveal"></div></div>
+          <div class="dsa-reveal-section"><h3>Saved notes</h3><div class="md" id="dsaColdDialogNotesReveal"></div></div>
+        </div>
+      </details>
       <div><p class="dsa-section-label">How did it go?</p><div class="dsa-outcome-grid" role="group" aria-label="Independent Solve outcome">
         <button type="button" class="dsa-outcome-button" data-dsa-outcome="independent" aria-pressed="false"><strong>Solved</strong><span>Review again in 30 days</span></button>
         <button type="button" class="dsa-outcome-button" data-dsa-outcome="hinted" aria-pressed="false"><strong>Needed a hint</strong><span>Retry in 3 days</span></button>
@@ -871,7 +879,8 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
   var dsaRequests=new Set();
   var RECALL_LIMIT=5,QUEUE_LIMIT=10;
 
-  function pageState(){return {pages:[],page:0,loading:false,error:null,request:0}}
+  function pageState(){return {pages:[],page:0,loading:false,error:null,request:0,totalCount:null}}
+  function dsaPageSize(key){return key==='recall'||key==='todayCold'?RECALL_LIMIT:QUEUE_LIMIT}
   function freshState(generation){
     return {
       generation:generation,authenticated:false,identity:'',view:'today',summary:null,summaryLoading:false,summaryPromise:null,summaryRequest:0,
@@ -917,7 +926,7 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
     if(today&&date<=today)return date===today?'Due today':'Due '+date;
     return 'Due '+date;
   }
-  function dsaCountText(page){var items=page&&Array.isArray(page.items)?page.items:[];return String(items.length)+(page&&page.hasMore?'+':'')}
+  function dsaExactCount(state){return state&&Number.isFinite(state.totalCount)?String(state.totalCount):'—'}
   function dsaTagsHtml(tags){return (tags||[]).map(function(tag){return '<span class="dsa-tag">'+dsaEsc(tag)+'</span>'}).join('')}
   function dsaMetaHtml(item){return dsaEsc(item.difficulty||'difficulty unset')+(item.tags&&item.tags.length?' · <span class="dsa-tag-list">'+dsaTagsHtml(item.tags)+'</span>':'')}
   function dsaStatusPill(item,kind){
@@ -966,20 +975,21 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
   }
 
   function dsaRenderCounts(){
-    var recall=dsaState.recall.pages[dsaState.recall.page],todayCold=dsaState.todayCold.pages[dsaState.todayCold.page],summary=dsaState.summary||{};
-    var recallText=dsaCountText(recall),coldText=dsaCountText(todayCold),hasTotal=Object.prototype.hasOwnProperty.call(summary,'totalCount'),libraryText=hasTotal?String(Number(summary.totalCount||0)):'—';
-    if(dsa$('dsaRecallCount'))dsa$('dsaRecallCount').textContent=recall?recallText:'—';
-    if(dsa$('dsaColdCount'))dsa$('dsaColdCount').textContent=todayCold?coldText:'—';
+    var summary=dsaState.summary||{};
+    var recallText=dsaExactCount(dsaState.recall),coldText=dsaExactCount(dsaState.todayCold),hasTotal=Object.prototype.hasOwnProperty.call(summary,'totalCount'),libraryText=hasTotal?String(Number(summary.totalCount||0)):'—';
+    if(dsa$('dsaRecallCount'))dsa$('dsaRecallCount').textContent=recallText;
+    if(dsa$('dsaColdCount'))dsa$('dsaColdCount').textContent=coldText;
     if(dsa$('dsaLibraryCount'))dsa$('dsaLibraryCount').textContent=libraryText;
-    if(dsa$('dsaSidebarRecallCount'))dsa$('dsaSidebarRecallCount').textContent=recall?recallText:'—';
-    if(dsa$('dsaSidebarColdCount'))dsa$('dsaSidebarColdCount').textContent=todayCold?coldText:'—';
+    if(dsa$('dsaSidebarRecallCount'))dsa$('dsaSidebarRecallCount').textContent=recallText;
+    if(dsa$('dsaSidebarColdCount'))dsa$('dsaSidebarColdCount').textContent=coldText;
     if(dsa$('dsaSidebarLibraryCount'))dsa$('dsaSidebarLibraryCount').textContent=libraryText;
   }
   function dsaRenderTodayAction(){
-    var recall=dsaState.recall.pages[dsaState.recall.page],items=recall&&Array.isArray(recall.items)?recall.items:[],count=items.length,more=!!(recall&&recall.hasMore),button=dsa$('dsaReviewDue'),progress=dsa$('dsaTodayProgress'),independent=dsa$('dsaIndependentProgress'),summary=dsaState.summary||{};
-    if(button){button.textContent=count?'Review '+count+(more?'+':'')+' due problem'+(count===1?'':'s'):'Recall complete for today';button.disabled=!count}
-    if(progress)progress.textContent=count?'0 of '+count+(more?'+':'')+' reviewed today':'You are caught up.';
+    var countReady=Number.isFinite(dsaState.recall.totalCount),count=countReady?dsaState.recall.totalCount:0,button=dsa$('dsaReviewDue'),progress=dsa$('dsaTodayProgress'),independent=dsa$('dsaIndependentProgress'),startIndependent=dsa$('dsaStartNextIndependent'),summary=dsaState.summary||{},next=summary.nextItem,title=next&&String(next.title||'').trim();
+    if(button){button.textContent=countReady?(count?'Review '+count+' due problem'+(count===1?'':'s'):'Recall complete for today'):'Checking due problems…';button.disabled=!countReady||!count}
+    if(progress)progress.textContent=countReady?(count?'0 of '+count+' reviewed today':'You are caught up.'):'Checking today’s recall…';
     if(independent)independent.textContent=Number(summary.dueCount||0)+' scheduled · '+Number(summary.firstCheckCount||0)+' ready for a first independent solve';
+    if(startIndependent)startIndependent.textContent=title?(next.nextPracticeAt?'Retry '+title:'Solve '+title+' independently'):'Start an independent solve';
   }
   function dsaLoadSummary(force){
     if(!dsaState.authenticated)return Promise.resolve(null);
@@ -1004,9 +1014,9 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
 
   function dsaPagerHtml(key,page){
     if(!page)return '';
-    var state=dsaState[key],hasPrevious=state.page>0,hasNext=!!page.hasMore;
+    var state=dsaState[key],hasPrevious=state.page>0,hasNext=!!page.hasMore,totalPages=Math.max(1,Math.ceil(Number(state.totalCount||0)/dsaPageSize(key)));
     if(!hasPrevious&&!hasNext)return '';
-    return '<button type="button" data-dsa-page="previous" data-dsa-page-key="'+key+'" '+(hasPrevious?'':'disabled')+'>Previous</button><span>Page '+(state.page+1)+(hasNext?' · more available':' · end of server page')+'</span><button type="button" data-dsa-page="next" data-dsa-page-key="'+key+'" '+(hasNext?'':'disabled')+'>Next</button>';
+    return '<button type="button" data-dsa-page="previous" data-dsa-page-key="'+key+'" '+(hasPrevious?'':'disabled')+'>Previous</button><span>Page '+(state.page+1)+' of '+totalPages+'</span><button type="button" data-dsa-page="next" data-dsa-page-key="'+key+'" '+(hasNext?'':'disabled')+'>Next</button>';
   }
   function dsaLoadingHtml(label){return '<div class="dsa-loading-card" aria-label="'+dsaEsc(label||'Loading list')+'"><div class="dsa-skeleton short"></div><div class="dsa-skeleton"></div><div class="dsa-skeleton"></div></div>'}
   function dsaEmptyHtml(title,copy){return '<div class="dsa-empty-card"><strong>'+dsaEsc(title)+'</strong><p>'+dsaEsc(copy)+'</p></div>'}
@@ -1039,9 +1049,9 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
     if(!dsaState.authenticated||dsaState[key].loading)return;
     var state=dsaState[key],pageIndex=reset?0:state.page+1,cursor=reset?null:(state.pages[state.page]&&state.pages[state.page].nextCursor)||null,libraryAll=key==='library'&&((dsa$('dsaLibraryBucket')&&dsa$('dsaLibraryBucket').value)||'all')==='all';
     if(!reset&&state.pages[pageIndex]){state.page=pageIndex;dsaRenderAllLists();return}
-    if(reset){state.pages=[];state.page=0;state.error=null;state.request+=1}
+    if(reset){state.pages=[];state.page=0;state.error=null;state.totalCount=null;state.request+=1}
     var generation=dsaGeneration,request=++state.request;state.loading=true;state.error=null;dsaRenderAllLists();
-    dsaRequest(url(cursor),{},generation).then(function(data){if(!dsaCurrent(generation)||request!==state.request)return;var items=Array.isArray(data.cards)?data.cards:Array.isArray(data.items)?data.items:[];if(libraryAll)items=items.map(function(item){return Object.assign({},item,{cardId:item.cardId||item.id,title:item.title||item.question||'Untitled problem',practiceState:'saved'})});state.pages[pageIndex]={items:items,nextCursor:data.nextCursor||null,hasMore:!!data.hasMore,version:data.version||null};state.page=pageIndex;state.error=null}).catch(function(error){if(error.stale||!dsaCurrent(generation)||request!==state.request)return;state.error=error.message||'Request failed';if(reset)state.pages=[]}).finally(function(){if(dsaCurrent(generation)&&request===state.request){state.loading=false;dsaRenderAllLists()}});
+    dsaRequest(url(cursor),{},generation).then(function(data){if(!dsaCurrent(generation)||request!==state.request)return;var items=Array.isArray(data.cards)?data.cards:Array.isArray(data.items)?data.items:[];if(libraryAll)items=items.map(function(item){return Object.assign({},item,{cardId:item.cardId||item.id,title:item.title||item.question||'Untitled problem',practiceState:'saved'})});if(Number.isFinite(Number(data.totalCount)))state.totalCount=Math.max(0,Number(data.totalCount));state.pages[pageIndex]={items:items,nextCursor:data.nextCursor||null,hasMore:!!data.hasMore,version:data.version||null};state.page=pageIndex;state.error=null}).catch(function(error){if(error.stale||!dsaCurrent(generation)||request!==state.request)return;state.error=error.message||'Request failed';if(reset)state.pages=[]}).finally(function(){if(dsaCurrent(generation)&&request===state.request){state.loading=false;dsaRenderAllLists()}});
   }
   function dsaRecallUrl(cursor){return function(){return '/api/cards/due?summary=1&limit='+RECALL_LIMIT+(cursor?'&cursor='+encodeURIComponent(cursor):'')}}
   function dsaTodayColdUrl(cursor){return function(){return dsaPracticeUrl('queue',{bucket:'due',limit:RECALL_LIMIT,cursor:cursor||undefined})}}
@@ -1129,7 +1139,7 @@ var shell=l$('appShell');if(window.MutationObserver&&shell)new MutationObserver(
   }
   function dsaRevealCold(){
     var flow=dsaState.coldFlow;if(!flow||!flow.item||!flow.saved||flow.revealLoading||flow.revealed)return;var generation=dsaGeneration,request=++dsaState.coldRevealRequest;flow.revealLoading=true;flow.status='Loading your saved solution…';dsaRenderColdDialog();
-    dsaRequest(dsaPracticeUrl('reveal',{cardId:flow.item.cardId}),{},generation).then(function(data){if(!dsaCurrent(generation)||request!==dsaState.coldRevealRequest||!dsaState.coldFlow)return;flow.reveal=data.reveal||{};flow.revealed=true;flow.revealLoading=false;flow.status='Attempt saved. Compare it with your original notes.';flow.statusKind='success';dsaRenderColdDialog()}).catch(function(error){if(error.stale||!dsaCurrent(generation)||request!==dsaState.coldRevealRequest)return;flow.revealLoading=false;flow.status='Attempt saved, but your solution could not be loaded: '+error.message;flow.statusKind='error';dsaRenderColdDialog()});
+    dsaRequest(dsaPracticeUrl('reveal',{cardId:flow.item.cardId}),{},generation).then(function(data){if(!dsaCurrent(generation)||request!==dsaState.coldRevealRequest||!dsaState.coldFlow)return;flow.reveal=data.reveal||{};flow.revealed=true;var disclosure=dsa$('dsaColdDialogRevealBox');if(disclosure)disclosure.open=true;flow.revealLoading=false;flow.status='Attempt saved. Compare it with your original notes.';flow.statusKind='success';dsaRenderColdDialog()}).catch(function(error){if(error.stale||!dsaCurrent(generation)||request!==dsaState.coldRevealRequest)return;flow.revealLoading=false;flow.status='Attempt saved, but your solution could not be loaded: '+error.message;flow.statusKind='error';dsaRenderColdDialog()});
   }
   function dsaSaveCold(){
     var flow=dsaState.coldFlow;if(!flow||!flow.item||!flow.outcome||flow.saving||flow.saved)return;flow.reflection=(dsa$('dsaColdDialogReflection').value||'').trim();flow.saving=true;flow.status='Saving attempt…';flow.statusKind='';dsaRenderColdDialog();var generation=dsaGeneration;flow.idempotencyKey=flow.idempotencyKey||((window.crypto&&crypto.randomUUID)?crypto.randomUUID():'dsa-practice-'+Date.now()+'-'+Math.random().toString(36).slice(2));
