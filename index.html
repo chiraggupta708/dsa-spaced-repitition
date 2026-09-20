@@ -160,8 +160,10 @@ body.dark #appShell.dsa-approved-active .dsa-approved-workspace {
   --dsa-danger-soft: #4a2325;
   --dsa-shadow: 0 10px 28px rgba(0, 0, 0, .18);
 }
+.dsa-private-badge,
+.dsa-practice-group,
+.dsa-sidebar-foot { display: none; }
 .dsa-private-badge {
-  display: inline-flex;
   width: fit-content;
   min-height: 28px;
   align-items: center;
@@ -174,6 +176,7 @@ body.dark #appShell.dsa-approved-active .dsa-approved-workspace {
   font-weight: 650;
 }
 body.dark .dsa-private-badge { border-color: #3a5578; background: #1a2b42; }
+#appShell.dsa-approved-active .dsa-private-badge { display: inline-flex; }
 #appShell.dsa-approved-active .workspace-label,
 #appShell.dsa-approved-active .nav-label {
   margin: 0 10px 7px;
@@ -201,7 +204,7 @@ body.dark .dsa-private-badge { border-color: #3a5578; background: #1a2b42; }
 #appShell.dsa-approved-active .workspace-link small { margin-left: auto; color: var(--dsa-quiet); font-size: 11px; }
 #appShell.dsa-approved-active .workspace-link.active { border-color: #c8d9ef; color: var(--dsa-accent-dark); background: var(--dsa-accent-soft); font-weight: 700; }
 #appShell.dsa-approved-active .dsa-sidebar-group { min-width: 0; }
-#appShell.dsa-approved-active .dsa-practice-group { margin-top: 2px; }
+#appShell.dsa-approved-active .dsa-practice-group { display: block; margin-top: 2px; }
 #appShell.dsa-approved-active .dsa-approved-nav { display: grid; gap: 5px; }
 #appShell.dsa-approved-active .dsa-nav-button {
   display: flex;
