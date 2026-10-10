@@ -438,7 +438,7 @@ body.dark .dsa-reveal-section p { color: #c7ead8; }
   .dsa-library-toolbar input { grid-column: 1 / -1; }
   .dsa-mobile-nav:not(.hidden) { position: fixed; z-index: 25; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; padding: 7px 8px calc(7px + env(safe-area-inset-bottom)); border-top: 1px solid var(--dsa-line); background: rgba(251, 252, 254, .98); }
   body.dark .dsa-mobile-nav:not(.hidden) { background: rgba(29, 38, 51, .98); }
-  .dsa-mobile-nav button { min-width: 0; min-height: 48px; padding: 0 4px; color: var(--dsa-muted); background: transparent; font-size: 11px; }
+  .dsa-mobile-nav button { min-width: 0; min-height: 48px; padding: 0 4px; border: 1px solid transparent; border-radius: 9px; display: grid; place-items: center; color: var(--dsa-muted); background: transparent; font-size: 11px; font-weight: 600; line-height: 1.2; }
   .dsa-mobile-nav button.active { border-color: #c8d9ef; color: var(--dsa-accent-dark); background: var(--dsa-accent-soft); font-weight: 700; }
   .dsa-approved-overlay { padding: 14px 10px 28px; }
   .dsa-flow-head, .dsa-flow-body { padding-right: 16px; padding-left: 16px; }
